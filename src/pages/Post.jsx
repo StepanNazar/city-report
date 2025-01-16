@@ -26,10 +26,13 @@ function Post() {
  
 
   const [fetchPost,isPostLoading, postError] = useFetching(async()=>{
+    /*
       const response = await PostService.getAll(limit, page);      
       const test = (response.headers['x-total-count']);
-      setTotalPostPages(getPageCount(test, limit));
-      setPost(response.data);
+      setTotalPostPages(getPageCount(test, limit));*/
+      fetch('http://127.0.0.1:5000/posts').then(res => res.json()).then(data => {
+        setPost(data);
+      });
     })
 
   const clRemovepost = (post)=>{
