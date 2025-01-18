@@ -5,7 +5,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Список користувачів
-users = [{
+posts = [{
     "userId": 1,
     "id": 1,
     "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
@@ -32,19 +32,28 @@ users = [{
 
 @app.route('/posts', methods=['GET'])
 def get_users():
-    return jsonify(users)
+    return jsonify(posts)
 
-@app.route('/users', methods=['POST'])
-def add_user():
-    data = request.json
-    if 'name' in data and 'description' in data:
-        new_user = {
-            'name': data['name'],
-            'description': data['description']
-        }
-        users.append(new_user)
-        return jsonify({'message': 'User added successfully!'}), 200
-    return jsonify({'error': 'Name and description are required!'}), 400
+@app.route('/posts', methods=['POST'])
+def create_post():
+    # Отримуємо дані з запиту
+    data = request.get_json()
 
+    # Перевірка на наявність необхідних полів
+    if 'title' not in data or 'body' not in data:
+        return jsonify({'error': 'Missing title or body'}), 400
+
+    # Створюємо новий пост
+    new_post = {
+        'id': data.get('id', None),  # Якщо id не передано, можна поставити None
+        'title': data['title'],
+        'body': data['body']
+    }
+
+    # Додаємо пост до списку
+    posts.append(new_post)
+
+    # Відповідаємо створеним постом
+    return jsonify(new_post), 201
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
