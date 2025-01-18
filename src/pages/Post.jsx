@@ -35,8 +35,26 @@ function Post() {
       });
     })
 
-  const clRemovepost = (post)=>{
+  const clRemovepost = async(post)=>{
     setPost(posts.filter((p) => p.id !== post.id))
+    try {
+      const response = await fetch('/api/posts_del', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(post),  // Перетворюємо пост в JSON формат
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        setPost(data);
+      } else {
+        console.error('Error creating post:', response.status);
+      }
+    } catch (error) {
+      console.error('Error with fetch operation:', error);
+    }
   }
  
  

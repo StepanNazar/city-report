@@ -55,5 +55,30 @@ def create_post():
 
     # Відповідаємо створеним постом
     return jsonify(new_post), 201
+
+@app.route('/posts_del', methods=['POST'])
+def del_post():
+    # Отримуємо дані з запиту
+    global posts
+    data = request.get_json()
+
+    # Перевірка на наявність необхідних полів
+    if 'title' not in data or 'body' not in data:
+        return jsonify({'error': 'Missing title or body'}), 400
+
+    # Створюємо новий пост
+    new_post = {
+        'id': data.get('id', None),  # Якщо id не передано, можна поставити None
+        'title': data['title'],
+        'body': data['body']
+    }
+
+    # Додаємо пост до списку
+    posts = [post for post in posts if post['id'] != new_post["id"]]
+    
+
+    # Відповідаємо створеним постом
+    return jsonify(posts), 201
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
