@@ -65,15 +65,3 @@
   color: white;
   text-decoration: none;
 }
-
-@media only screen and (max-width: 800px) {
-  .App{
-    width: 400px;
-}
-}
-
-@media only screen and (max-width: 400px) {
-  .App{
-    width: 300px;
-}
-}
