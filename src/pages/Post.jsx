@@ -26,16 +26,35 @@ function Post() {
  
 
   const [fetchPost,isPostLoading, postError] = useFetching(async()=>{
+    /*
       const response = await PostService.getAll(limit, page);      
-      console.log(response)
-      const test = (response.headers['post-count']);
-      setTotalPostPages(getPageCount(test, limit));
-      setPost(response.data);
+      const test = (response.headers['x-total-count']);
+      setTotalPostPages(getPageCount(test, limit));*/
+      fetch('/api/posts').then(res => res.json()).then(data => {
+        setPost(data);
+      });
     })
 
   const clRemovepost = async(post)=>{
     setPost(posts.filter((p) => p.id !== post.id))
-    PostService.deletePost(post);
+    try {
+      const response = await fetch('/api/posts_del', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(post),  // Перетворюємо пост в JSON формат
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        setPost(data);
+      } else {
+        console.error('Error creating post:', response.status);
+      }
+    } catch (error) {
+      console.error('Error with fetch operation:', error);
+    }
   }
  
  
