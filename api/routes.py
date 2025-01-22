@@ -18,7 +18,7 @@ def get_posts():
             }
         ]
     elif request.method == 'POST':
-        return {}, 201  # TODO location header????
+        return {}, 201  # location header????
 
 
 @app.route('/posts/<int:post_id>', methods=['GET', 'PATCH', 'DELETE'])
@@ -59,7 +59,7 @@ def login():
         "id": 8,
         "username": "john_doe",
         "email": "john@example.com"
-    }  # TODO 200 or 201? + add jwt token
+    }  # 200 or 201? + add jwt token
 
 
 @app.route('/auth/register', methods=['POST'])
@@ -68,7 +68,7 @@ def register():
         "id": 8,
         "username": "john_doe",
         "email": "john@example.com"
-    }, 201  # TODO add jwt token
+    }, 201  # add jwt token
 
 
 @app.route('/auth/password', methods=['PATCH'])
