@@ -39,6 +39,13 @@
   display: flex;
   justify-content: center;
 }
+.post__btn{
+  display: flex;
+}
+
+.about_post{
+  margin-right: 5px;
+}
 .page{
   padding: 10px;
   border: 1px solid teal;
@@ -69,6 +76,14 @@
 @media only screen and (max-width: 800px) {
   .App{
     width: 400px;
+}
+.post__btn{
+  display: flex;
+  flex-direction: column;
+}
+.about_post{
+  margin-right: 0px;
+  margin-bottom: 5px;
 }
 }
 
