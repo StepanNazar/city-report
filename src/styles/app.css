@@ -72,6 +72,14 @@
   color: white;
   text-decoration: none;
 }
+.auth_form{
+  padding-top: 40px;
+}
+.auth_btn{
+  padding-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
 
 @media only screen and (max-width: 800px) {
   .App{

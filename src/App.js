@@ -1,22 +1,48 @@
-import { BrowserRouter, Link, Route, Routes} from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import Post from "./pages/Post";
-import './styles/app.css'
+import './styles/app.css';
 import About from "./pages/About";
 import NavBar from "./components/UI/navbar/NavBar";
 import PostInf from "./pages/PostInf";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import { useContext, useEffect } from "react";
+import React from "react";
+import { UserContext } from ".";
+import { observer } from "mobx-react-lite";
+
 function App() {
-  
+  const { USER } = useContext(UserContext);
+
+  useEffect(() => {
+    USER.checkAuth(); 
+  }, []);
+
   return (
-      <BrowserRouter>
-        <NavBar></NavBar>
-          <Routes>
-            <Route path="/about" element={<About />} />
-            <Route path="/posts" element={<Post />} />
-            <Route path="/posts/:id" element={<PostInf/>} />
-            <Route path="*" element={<Post />} />
-          </Routes> 
-      </BrowserRouter>    
+    <BrowserRouter>
+      <NavBar />
+      <Routes> 
+       
+        <Route
+          path="*"
+          element={
+            USER.iaAuth ? (
+              <Routes>
+                <Route path="/about" element={<About />} />
+                <Route path="/posts" element={<Post />} />
+                <Route path="/posts/:id" element={<PostInf />} />
+                <Route path="*" element={<Post />} />
+              </Routes>
+            ) : (
+              <Navigate to="/reg" replace />
+            )
+          }
+        />
+        <Route path="/log" element={<Login />} />
+        <Route path="/reg" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
-export default App;
+export default observer(App);
