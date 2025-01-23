@@ -1,52 +1,47 @@
-from flask import request, jsonify
+from flask import request
 
 from api import app
-from models import posts_data
 
-@app.route('/posts', methods=['POST'])
-def post_posts():
-    data = request.get_json()
-    if 'title' not in data or 'body' not in data:
-        return {'error': 'Missing title or body'}, 400
-    new_post = {
-        'id': data.get('id'),
-        'title': data['title'],
-        'body': data['body']
-    }
-    posts_data.append(new_post)
-    return new_post, 201
 
-@app.route('/posts', methods=['GET'])
+@app.route('/posts', methods=['GET', 'POST'])
 def get_posts():
-    # Отримуємо параметри ліміту та сторінки
-    limit = request.args.get('limit', type=int, default=10)
-    page = request.args.get('page', type=int, default=1)
-    # Обчислюємо індекси для пагінації
-    start = (page - 1) * limit
-    end = start + limit
-    paginated_posts = posts_data[start:end]
-    response = jsonify(paginated_posts)
-    # Додаємо заголовок з кількістю постів
-    response.headers['post-count'] = len(posts_data)
-    return response
+  if request.method == 'GET':
+        return [
+            {
+                "id": 1,
+                "authorID": 8,
+                "authorName": "John",
+                "creationTime": "2025-01-22 22:17",
+                "latitude": 45.8548,
+                "longitude": 89.6545,
+                "title": "Lorem",
+            }
+        ]
+    elif request.method == 'POST':
+        return {}, 201  # location header????
 
+      
+@app.route('/posts/<int:post_id>', methods=['GET', 'PATCH', 'DELETE'])
+def get_post(post_id):
+    if request.method == 'GET':
+        return {
+            "id": 1,
+            "authorID": 8,
+            "authorName": "John",
+            "creationTime": "2025-01-22 22:17",
+            "latitude": 45.8548,
+            "longitude": 89.6545,
+            "country": "ukraine",
+            "state": "if oblast",
+            "locality": "if",
+            "title": "Lorem",
+            "body": "lorem"
+        }
+    elif request.method == 'PATCH':
+        return {}, 204
+    elif request.method == 'DELETE':
+        return {}, 204
 
-@app.route('/postsDetailed', methods=['GET'])
-def get_posts_by_id():
-    post_id = request.args.get('id', type=int, default=0)
-    postsN = [post for post in posts_data if post['id'] == post_id]
-    return postsN[0]
-
-@app.route('/posts', methods=['DELETE'])
-def del_post():
-    global posts_data
-    data = request.get_json()['data']
-    print(data)
-    if 'title' not in data or 'body' not in data:
-        return {'error': 'Missing title or body'}, 400
-    post_id = data.get('id')
-    posts_data = [post for post in posts_data if post['id'] != post_id]
-    return {'message': f'Post with ID {post_id} was successfully deleted.'}, 200
 
 #com struct {
 #comId
@@ -73,3 +68,47 @@ def get_coments_by_id():
         return jsonify(response.json())
     except:
        return jsonify({"error": "Failed to fetch comments"}), 500
+
+
+@app.route('/auth/me', methods=['GET'])
+def get_current_user():
+    return {
+        "id": 8,
+        "username": "john_doe",
+        "email": "john@example.com",
+        "password": "password123"
+    }
+
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    return {
+        "id": 8,
+        "username": "john_doe",
+        "email": "john@example.com"
+    }  # 200 or 201? + add jwt token
+
+
+@app.route('/auth/register', methods=['POST'])
+def register():
+    return {
+        "id": 8,
+        "username": "john_doe",
+        "email": "john@example.com"
+    }, 201  # add jwt token
+
+
+@app.route('/auth/password', methods=['PATCH'])
+def change_password():
+    return {}, 204
+
+
+@app.route('/auth/password/reset-request', methods=['POST'])
+def reset_password_request():
+    return {}, 202
+
+
+@app.route('/auth/password/reset', methods=['POST'])
+def reset_password():
+    return {}, 204
+
