@@ -15,14 +15,14 @@ function App() {
   const { USER } = useContext(UserContext);
 
   useEffect(() => {
-    USER.checkAuth(); // Виклик перевірки автентифікації при завантаженні
+    USER.checkAuth(); 
   }, []);
 
   return (
     <BrowserRouter>
       <NavBar />
       <Routes> 
-        {/* Захищений маршрут для незареєстрованих користувачів */}
+       
         <Route
           path="*"
           element={
@@ -38,7 +38,6 @@ function App() {
             )
           }
         />
-        {/* Вільний доступ до сторінок авторизації */}
         <Route path="/log" element={<Login />} />
         <Route path="/reg" element={<Register />} />
       </Routes>
