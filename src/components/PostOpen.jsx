@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import FormButton from './UI/button/button';
 import {useNavigate} from "react-router-dom";
-const PostOpen = function(probs){
+const PostOpen = function(probs){   
     let post = probs.post;
     const route = useNavigate();
     return <div className='post'>      

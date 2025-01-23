@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {Link} from "react-router-dom";
+import { UserContext } from '../../..';
+import { observer } from 'mobx-react-lite';
 const NavBar = () => {
+  const {USER} = useContext(UserContext)
+  const logout = async()=>{
+    USER.logout();
+  }
   return (
     <div className="navbar">
-    <div className="navbar__linkers">
+      {USER.isAuth? <div className="navbar__linkers">     
       <Link to="/about">About</Link>
       <Link to="/posts">Posts</Link>
-    </div>
+      <Link onClick={logout} to="/log">Logout</Link></div>
+      :null
+      }
+    
   </div>
   );
 };
 
-export default NavBar;
+export default observer(NavBar);
