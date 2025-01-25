@@ -38,7 +38,7 @@ export default class USER_INFO{
         }
     }
 
-    async login(email, password){
+    async logout(email, password){
         try {
            const response = await AuthService.logout(); 
            localStorage.removeItem('token');
