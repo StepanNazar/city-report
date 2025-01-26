@@ -1,24 +1,29 @@
-posts_data = [{
-    "userId": 1,
-    "id": 1,
-    "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
-    "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
-  },
-  {
-    "userId": 1,
-    "id": 2,
-    "title": "qui est esse",
-    "body": "est rerum tempore vitae\nsequi sint nihil reprehenderit dolor beatae ea dolores neque\nfugiat blanditiis voluptate porro vel nihil molestiae ut reiciendis\nqui aperiam non debitis possimus qui neque nisi nulla"
-  },
-  {
-    "userId": 1,
-    "id": 3,
-    "title": "ea molestias quasi exercitationem repellat qui ipsa sit aut",
-    "body": "et iusto sed quo iure\nvoluptatem occaecati omnis eligendi aut ad\nvoluptatem doloribus vel accusantium quis pariatur\nmolestiae porro eius odio et labore et velit aut"
-  },
-  {
-    "userId": 1,
-    "id": 8,
-    "title": "eum et est occaecati",
-    "body": "ullam et saepe reiciendis voluptatem adipisci\nsit amet autem assumenda provident rerum culpa\nquis hic commodi nesciunt rem tenetur doloremque ipsam iure\nquis sunt voluptatem rerum illo velit"
-  }]
+import sqlalchemy as sa
+import sqlalchemy.orm as so
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from main import db
+
+
+class User(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    firstname: so.Mapped[str] = so.mapped_column(sa.String(64))
+    lastname: so.Mapped[str] = so.mapped_column(sa.String(64))
+    # locality_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey("Locality.id"))
+    email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
+    password_hash: so.Mapped[str] = so.mapped_column(sa.String(256))
+    is_activated: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
+    activation_code: so.Mapped[str] = so.mapped_column(sa.String(36))
+
+    def __repr__(self):
+        return "<User {}>".format(self.email)
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password_hash, password)
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
