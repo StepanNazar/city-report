@@ -37,7 +37,7 @@ import routes, models  # noqa
 
 @app.shell_context_processor
 def make_shell_context():
-    return {"sa": sa, "so": so, "db": db, "User": models.User}
+    return {"sa": sa, "so": so}
 
 
 if __name__ == '__main__':
