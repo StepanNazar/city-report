@@ -101,6 +101,8 @@ class SendActivationLink(Resource):
     @jwt_required()
     def post(self):
         current_user = get_current_user()
+        if current_user.is_activated:
+            return {'error': 'User already activated'}, 409
         EmailService().send_activation_link(current_user)
         return {}, 202
 
