@@ -1,7 +1,6 @@
 import datetime
 from uuid import uuid4
 
-import requests
 from flask import request, jsonify, Response
 from flask_jwt_extended import (
     create_access_token,
@@ -9,13 +8,16 @@ from flask_jwt_extended import (
     jwt_required,
     set_refresh_cookies,
     unset_jwt_cookies,
-    get_current_user, get_jwt, get_jti, get_jwt_identity
+    get_current_user, get_jwt, get_jti
 )
-from flask_restx import Resource
+from flask_restx import Resource, Namespace
 
-from main import api, jwt, app, db
-from models import User, ActiveDevice
-from services import EmailService
+from api import jwt, app, db
+from api.models import User, ActiveDevice
+from api.services import EmailService
+
+# later path can be changed to /auth, but kept as / for now to match the frontend
+auth = Namespace('auth', description='Authentication operations', path='/')
 
 
 @jwt.user_identity_loader
@@ -56,7 +58,7 @@ def generate_jwt_tokens(user: User) -> Response:
     return response
 
 
-@api.route('/register')
+@auth.route('/register')
 class Register(Resource):
     def post(self):
         data = request.get_json()
@@ -79,7 +81,7 @@ class Register(Resource):
         return response
 
 
-@api.route("/login")
+@auth.route("/login")
 class Login(Resource):
     def post(self):
         data = request.get_json()
@@ -89,7 +91,7 @@ class Login(Resource):
         return {"message": "Invalid username or password"}, 401
 
 
-@api.route('/refresh')
+@auth.route('/refresh')
 class Refresh(Resource):
     @jwt_required(refresh=True)
     def get(self):
@@ -103,7 +105,7 @@ class Refresh(Resource):
         return jsonify({'access_token': access_token})
 
 
-@api.route('/logout')
+@auth.route('/logout')
 class Logout(Resource):
     # verify_type=False should allow to logout from both access and refresh tokens
     # but it doesn't work as expected and returns 401 when there is only refresh token
@@ -120,7 +122,7 @@ class Logout(Resource):
         return response
 
 
-@api.route('/activate/<string:activation_code>')
+@auth.route('/activate/<string:activation_code>')
 class Activate(Resource):
     def get(self, activation_code):
         user = User.query.filter_by(activation_code=activation_code).first()
@@ -131,7 +133,7 @@ class Activate(Resource):
         return {'error': 'User not found'}, 404
 
 
-@api.route('/send-activation-link')
+@auth.route('/send-activation-link')
 class SendActivationLink(Resource):
     @jwt_required()
     def post(self):
@@ -142,7 +144,7 @@ class SendActivationLink(Resource):
         return {}, 202
 
 
-@api.route('/whoami')
+@auth.route('/whoami')
 class WhoAmI(Resource):
     @jwt_required()
     def get(self):
@@ -156,7 +158,7 @@ class WhoAmI(Resource):
         }
 
 
-@api.route('/devices')  # to do make consistent case(camelCase or snake_case) in api
+@auth.route('/devices')  # to do make consistent case(camelCase or snake_case) in api
 class Devices(Resource):
     @jwt_required()
     def get(self):
@@ -167,7 +169,7 @@ class Devices(Resource):
                         for device in current_user.active_devices])
 
 
-@api.route('/devices/<int:device_id>')
+@auth.route('/devices/<int:device_id>')
 class Device(Resource):
     @jwt_required()
     def delete(self, device_id):
@@ -180,92 +182,21 @@ class Device(Resource):
         return {'error': 'Device not found'}, 404
 
 
-@api.route('/posts')
-class Posts(Resource):
-    def get(self):
-        return [
-            {
-                "id": 1,
-                "authorID": 8,
-                "authorName": "John",
-                "creationTime": "2025-01-22 22:17",
-                "latitude": 45.8548,
-                "longitude": 89.6545,
-                "title": "Lorem",
-            }
-        ]
-
-    def post(self):
-        return {}, 201
-
-
-@api.route('/posts/<int:post_id>')
-class Post(Resource):
-    def get(self, post_id):
-        return {
-            "id": 1,
-            "authorID": 8,
-            "authorName": "John",
-            "creationTime": "2025-01-22 22:17",
-            "latitude": 45.8548,
-            "longitude": 89.6545,
-            "country": "ukraine",
-            "state": "if oblast",
-            "locality": "if",
-            "title": "Lorem",
-            "body": "lorem"
-        }
-
-    def patch(self, post_id):
-        return {}, 204
-
-    def delete(self, post_id):
-        return {}, 204
-
-
-# com struct {
-# comId
-# postID
-# who create
-# body
-# countof likes dislikes
-# }
-@api.route('/comentsForId')
-class ComentsForId(Resource):
-    def get(self):
-        com_id = request.args.get('id', type=int, default=0)  # Отримуємо параметр id
-        if com_id <= 0:
-            return jsonify({"error": "Invalid ID"}), 400  # Перевірка на валідність id
-
-        # Формуємо URL для отримання коментарів
-        url = f"https://jsonplaceholder.typicode.com/posts/{com_id}/comments"
-
-        try:
-            # Виконуємо GET-запит до JSONPlaceholder
-            response = requests.get(url)
-            response.raise_for_status()  # Перевіряємо статус відповіді (404, 500 тощо)
-
-            # Повертаємо отримані дані у вигляді JSON
-            return jsonify(response.json())
-        except:
-            return jsonify({"error": "Failed to fetch comments"}), 500
-
-
-@api.route('/password')
+@auth.route('/password')
 class ChangePassword(Resource):
     @jwt_required()
     def patch(self):
         return {}, 204
 
 
-@api.route('/password/reset-request')
+@auth.route('/password/reset-request')
 class ResetPasswordRequest(Resource):
     @jwt_required()
     def post(self):
         return {}, 202
 
 
-@api.route('/password/reset')
+@auth.route('/password/reset')
 class ResetPassword(Resource):
     @jwt_required()
     def post(self):

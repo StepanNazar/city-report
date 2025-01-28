@@ -1,4 +1,4 @@
-from models import User
+from api.models import User
 
 
 class EmailService: # replace with flask-mail?

@@ -8,7 +8,7 @@ from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
 from jwt import PyJWTError
 
-from config import DevConfig
+from api.config import DevConfig
 
 
 class FixedApi(Api):
@@ -32,7 +32,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
-import routes, models  # noqa
+from api import models, routes  # noqa
 
 
 @app.shell_context_processor

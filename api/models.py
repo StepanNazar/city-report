@@ -3,7 +3,7 @@ import sqlalchemy.orm as so
 from ua_parser import parse
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from main import db
+from api import db
 
 
 class User(db.Model):
