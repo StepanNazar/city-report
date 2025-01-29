@@ -55,6 +55,8 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
+        if not isinstance(password, str):
+            return False
         if len(password) > PASSWORD_MAX_LENGTH:
             return False
         return check_password_hash(self.password_hash, password)

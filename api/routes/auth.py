@@ -170,12 +170,25 @@ class Devices(Resource):
                          "loginTime": device.login_time}
                         for device in current_user.active_devices])
 
+    @jwt_required()
+    def delete(self):
+        """Logout from all devices"""
+        current_user = get_current_user()
+        ActiveDevice.query.filter_by(user_id=current_user.id).delete()
+        db.session.commit()
+        response = jsonify({'message': 'Logged out from all devices'})
+        unset_jwt_cookies(response)
+        return response
+
 
 @auth.route('/devices/<int:device_id>')
 class Device(Resource):
     @jwt_required()
     def delete(self, device_id):
         current_user = get_current_user()
+        password = request.get_json().get('password')
+        if not current_user.check_password(password):
+            return {'error': 'Invalid password'}, 401
         device = ActiveDevice.query.filter_by(id=device_id, user_id=current_user.id).first()
         if device:
             db.session.delete(device)
