@@ -1,6 +1,4 @@
-import datetime
-from uuid import uuid4
-
+from email_validator import EmailNotValidError
 from flask import request, jsonify, Response
 from flask_jwt_extended import (
     create_access_token,
@@ -12,7 +10,7 @@ from flask_jwt_extended import (
 )
 from flask_restx import Resource, Namespace
 
-from api import jwt, app, db
+from api import jwt, db
 from api.models import User, ActiveDevice
 from api.services import EmailService
 
@@ -28,7 +26,7 @@ def user_identity_lookup(user: User) -> str:
 @jwt.user_lookup_loader
 def user_lookup_callback(jwt_header, jwt_data: dict) -> User:
     identity = jwt_data["sub"]
-    return User.query.filter_by(id=int(identity)).one_or_none()
+    return User.query.get(int(identity))
 
 
 @jwt.token_in_blocklist_loader
@@ -48,8 +46,7 @@ def generate_jwt_tokens(user: User) -> Response:
         ip_address=request.remote_addr,
         user_id=user.id,
         refresh_jti=get_jti(refresh_token),
-        access_jti=get_jti(access_token),
-        expires_at=datetime.datetime.now(datetime.UTC) + app.config['JWT_REFRESH_TOKEN_EXPIRES']
+        access_jti=get_jti(access_token)
     )
     db.session.add(active_device)
     db.session.commit()
@@ -62,15 +59,17 @@ def generate_jwt_tokens(user: User) -> Response:
 class Register(Resource):
     def post(self):
         data = request.get_json()
-        current_user = User.query.filter_by(email=data.get('email')).first()
-        if current_user:
-            return {'error': 'Email already used'}, 409
-
-        new_user = User(firstname=data.get('name'),
-                        lastname=data.get('lastName'),
-                        email=data.get('email'),
-                        activation_code=str(uuid4()))
-        new_user.set_password(data.get('password'))
+        email = data.get('email')
+        try:
+            current_user = User.find_by_email(email)
+            if current_user:
+                return {'error': 'Email already used'}, 409
+            new_user = User(firstname=data.get('name'), lastname=data.get('lastName'),
+                            email=email, password=data.get('password'))
+        except EmailNotValidError as e:
+            return {'error': f'Invalid email address: {e}'}, 400
+        except AssertionError as e:
+            return {'error': str(e)}, 400
         db.session.add(new_user)
         db.session.commit()
 
@@ -85,7 +84,10 @@ class Register(Resource):
 class Login(Resource):
     def post(self):
         data = request.get_json()
-        db_user = User.query.filter_by(email=data.get('email')).first()
+        try:
+            db_user = User.find_by_email(data.get('email'))
+        except EmailNotValidError as e:
+            return {"message": "Invalid username or password"}, 401
         if db_user and db_user.check_password(data.get('password')):
             return generate_jwt_tokens(db_user)
         return {"message": "Invalid username or password"}, 401
@@ -126,7 +128,7 @@ class Logout(Resource):
 class Activate(Resource):
     def get(self, activation_code):
         user = User.query.filter_by(activation_code=activation_code).first()
-        if user:
+        if user and not user.is_activated:
             user.is_activated = True
             db.session.commit()
             return {'message': 'User activated'}, 200
