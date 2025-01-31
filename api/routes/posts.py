@@ -1,5 +1,6 @@
 import requests
 from flask import request, jsonify
+from flask_jwt_extended import jwt_required
 from flask_restx import Resource, Namespace
 
 # later path can be changed, but kept as / for now to match the frontend
@@ -9,6 +10,7 @@ posts = Namespace('posts', description='Posts operations', path='/')
 @posts.route('/posts')
 class Posts(Resource):
     def get(self):
+        """Get all posts"""
         return [
             {
                 "id": 1,
@@ -21,13 +23,16 @@ class Posts(Resource):
             }
         ]
 
+    @jwt_required()
     def post(self):
+        """Create a new post"""
         return {}, 201
 
 
 @posts.route('/posts/<int:post_id>')
 class Post(Resource):
     def get(self, post_id):
+        """Get a post by ID"""
         return {
             "id": 1,
             "authorID": 8,
@@ -42,10 +47,14 @@ class Post(Resource):
             "body": "lorem"
         }
 
+    @jwt_required()
     def patch(self, post_id):
+        """Edit a post by ID"""
         return {}, 204
 
+    @jwt_required()
     def delete(self, post_id):
+        """Delete a post by ID"""
         return {}, 204
 
 

@@ -2,32 +2,27 @@ import sqlalchemy as sa
 import sqlalchemy.orm as so
 from flask import Flask
 from flask_jwt_extended import JWTManager
-from flask_jwt_extended.exceptions import JWTExtendedException
 from flask_migrate import Migrate
 from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
-from jwt import PyJWTError
 
 from api.config import DevConfig
 
-
-class FixedApi(Api):
-    """Fixes the issue with Flask-JWT-Extended errors handling in flask-restx.
-    Without this you get 500 status codes instead of 4xx when JWT errors occur."""
-
-    def error_router(self, original_handler, e):
-        if (not isinstance(e, PyJWTError) and not isinstance(e, JWTExtendedException)
-                and self._has_fr_route()):
-            try:
-                return self.handle_error(e)
-            except Exception:
-                pass  # Fall through to original handler
-        return original_handler(e)
-
-
 app = Flask(__name__)
 app.config.from_object(DevConfig)
-api = FixedApi(app)
+authorizations = {
+    'jwt_access_token': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'Authorization'
+    },
+    'jwt_refresh_token': {
+        'type': 'apiKey',
+        'in': 'cookie',
+        'name': 'refresh_token_cookie'
+    }
+}
+api = Api(app, validate=True, authorizations=authorizations, security='jwt_access_token')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
