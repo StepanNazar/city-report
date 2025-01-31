@@ -64,6 +64,7 @@ def user_lookup_callback(jwt_header, jwt_data: dict) -> User:
 @jwt.token_in_blocklist_loader
 def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
     if jwt_payload['type'] == 'refresh':
+        # additional checks can be added like user_agent?
         token = ActiveDevice.query.filter_by(refresh_jti=jwt_payload['jti']).one_or_none()
     else:
         token = ActiveDevice.query.filter_by(access_jti=jwt_payload['jti']).one_or_none()

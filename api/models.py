@@ -22,7 +22,7 @@ class User(db.Model):
     email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
     password_hash: so.Mapped[str] = so.mapped_column(sa.String(256))
     is_activated: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
-    # add expiration for activation code?
+    # add expiration for activation code? restrict unactivated accounts?
     activation_code: so.Mapped[str] = so.mapped_column(sa.String(36),  # use sa.UUID instead?
                                                        default=lambda: str(uuid4()))
     active_devices: so.Mapped[list["ActiveDevice"]] = so.relationship()

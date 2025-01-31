@@ -13,6 +13,8 @@ class Config:
     JWT_REFRESH_TOKEN_EXPIRES = datetime.timedelta(
         days=os.environ.get("JWT_REFRESH_TOKEN_EXPIRES_DAYS") or 30)
     JWT_TOKEN_LOCATION = ["cookies", "headers"]
+    # path to which cookies are sent. might be changed to connect to a frontend
+    JWT_REFRESH_COOKIE_PATH = "/refresh"
 
 
 class DevConfig(Config):
