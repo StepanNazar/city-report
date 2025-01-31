@@ -228,7 +228,7 @@ class Devices(Resource):
 class Device(Resource):
     @jwt_required()
     @auth.expect(password_model)
-    @auth.doc(responses={401: 'Invalid password', 404: 'Device not found'})
+    @auth.doc(responses={401: 'Invalid password', 404: 'Device not found', 204: 'Device logged out'})
     def delete(self, device_id):
         """Log out from device"""
         current_user = get_current_user()
