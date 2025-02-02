@@ -58,7 +58,7 @@ def user_identity_lookup(user: User) -> str:
 @jwt.user_lookup_loader
 def user_lookup_callback(jwt_header, jwt_data: dict) -> User:
     identity = jwt_data["sub"]
-    return User.query.get(int(identity))
+    return User.query.get(int(identity))  # legacy method query.get
 
 
 @jwt.token_in_blocklist_loader

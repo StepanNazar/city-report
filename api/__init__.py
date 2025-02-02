@@ -1,5 +1,3 @@
-import sqlalchemy as sa
-import sqlalchemy.orm as so
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
@@ -8,8 +6,17 @@ from flask_sqlalchemy import SQLAlchemy
 
 from api.config import DevConfig
 
-app = Flask(__name__)
-app.config.from_object(DevConfig)
+
+def create_app(config):
+    app = Flask(__name__)
+    app.config.from_object(config)
+    api.init_app(app)
+    db.init_app(app)
+    migrate.init_app(app, db)
+    jwt.init_app(app)
+    return app
+
+
 authorizations = {
     'jwt_access_token': {
         'type': 'apiKey',
@@ -22,18 +29,14 @@ authorizations = {
         'name': 'refresh_token_cookie'
     }
 }
-api = Api(app, validate=True, authorizations=authorizations, security='jwt_access_token')
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-jwt = JWTManager(app)
+api = Api(validate=True, authorizations=authorizations, security='jwt_access_token')
+db = SQLAlchemy()
+migrate = Migrate()
+jwt = JWTManager()
 
 from api import models, routes  # noqa
 
-
-@app.shell_context_processor
-def make_shell_context():
-    return {"sa": sa, "so": so}
-
-
 if __name__ == '__main__':
+    app = create_app(DevConfig)
+
     app.run(debug=True, port=5000)
