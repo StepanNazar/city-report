@@ -5,7 +5,7 @@ import USER_INFO from './Store/store';
 
 // Створення інстансу класу USER_INFO
 const USER = new USER_INFO();
-
+console.log("index")
 // Створення контексту
 export const UserContext = React.createContext(); 
 

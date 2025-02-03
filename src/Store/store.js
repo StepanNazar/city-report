@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx"
 import AuthService from "../Services/AuthService";
-import { useNavigate } from 'react-router-dom';
+
 import axios from 'axios'
 export default class USER_INFO{
     user = {}
@@ -20,9 +20,10 @@ export default class USER_INFO{
     async login(email, password){
         try {
            const response = await axios.post(`api/login`, {email, password}); 
-           localStorage.setItem('token', response.data.accessToken);
+           
+           localStorage.setItem('token', response.data.access_token);
+           console.log(`Bearer ${localStorage.getItem('token')}`)
             await this.getUserData();
-            await this.checkAuth();
         } catch (error) {
             console.log(error.response?.data?.messege)
         }
@@ -52,9 +53,10 @@ export default class USER_INFO{
     async getUserData(){
         try {
             const response = await AuthService.getUser();
-            console.log("Auth Response:", response);
-            this.setAuth(true);
-            this.setUser(response.data.user); 
+            console.log("Auth Response:", response.data);
+            await this.setAuth(true);
+            await this.setUser(response.data); 
+            console.log(this.user)
         } catch (error) {
             console.log(error);
         }   
@@ -65,7 +67,7 @@ export default class USER_INFO{
           const response = await axios.get(`api/refresh`, {
             withCredentials: true,
           });
-          localStorage.setItem('token', response.data.accessToken);
+          localStorage.setItem('token', response.data.access_token);
           await this.getUserData();
         } catch (e) {
           console.log('НЕ АВТОРИЗОВАНИЙ Користувач: ', e);

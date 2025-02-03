@@ -14,7 +14,7 @@ import { observer } from "mobx-react-lite";
 function App() {
   const { USER } = useContext(UserContext);
   useEffect(() => {
-    //USER.checkAuth(); 
+    USER.checkAuth(); 
   }, []);
 
   return (
