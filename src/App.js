@@ -13,9 +13,8 @@ import { observer } from "mobx-react-lite";
 
 function App() {
   const { USER } = useContext(UserContext);
-
   useEffect(() => {
-    USER.checkAuth(); 
+    //USER.checkAuth(); 
   }, []);
 
   return (
@@ -26,7 +25,7 @@ function App() {
         <Route
           path="*"
           element={
-            USER.iaAuth ? (
+            USER.isAuth ? (
               <Routes>
                 <Route path="/about" element={<About />} />
                 <Route path="/posts" element={<Post />} />
@@ -34,7 +33,7 @@ function App() {
                 <Route path="*" element={<Post />} />
               </Routes>
             ) : (
-              <Navigate to="/reg" replace />
+              <Navigate to="/log" replace />
             )
           }
         />

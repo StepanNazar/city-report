@@ -5,10 +5,11 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_cors import CORS
 from api.config import DevConfig
 
 app = Flask(__name__)
+CORS(app, supports_credentials=True)
 app.config.from_object(DevConfig)
 authorizations = {
     'jwt_access_token': {
@@ -36,4 +37,4 @@ def make_shell_context():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, ssl_context='adhoc')

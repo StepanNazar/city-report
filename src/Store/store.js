@@ -1,5 +1,6 @@
 import { makeAutoObservable } from "mobx"
 import AuthService from "../Services/AuthService";
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
 export default class USER_INFO{
     user = {}
@@ -18,21 +19,21 @@ export default class USER_INFO{
 
     async login(email, password){
         try {
-           const response = await AuthService.login(email, password); 
+           const response = await axios.post(`api/login`, {email, password}); 
            localStorage.setItem('token', response.data.accessToken);
-           this.setAuth(true);
-           this.setUser(response.data.user)
+            await this.getUserData();
+            await this.checkAuth();
         } catch (error) {
             console.log(error.response?.data?.messege)
         }
     }
 
     async regist(name, lastName, city, email, password){
+
         try {
            const response = await AuthService.regist(name, lastName, city, email, password); 
            localStorage.setItem('token', response.data.accessToken);
-           this.setAuth(true);
-           this.setUser(response.data.user)
+           this.getUserData()
         } catch (error) {
             console.log(error.response?.data?.messege)
         }
@@ -48,24 +49,30 @@ export default class USER_INFO{
             console.log(error.response?.data?.messege)
         }
     }
+    async getUserData(){
+        try {
+            const response = await AuthService.getUser();
+            console.log("Auth Response:", response);
+            this.setAuth(true);
+            this.setUser(response.data.user); 
+        } catch (error) {
+            console.log(error);
+        }   
+    }
 
     async checkAuth() {
         try {
           const response = await axios.get(`api/refresh`, {
             withCredentials: true,
           });
-      
-          console.log("Auth Response:", response);
-      
-          // Зберігаємо токен у LocalStorage
-          localStorage.setItem("token", response.data.accessToken);
-      
-          // Оновлюємо стан автентифікації та користувача
-          this.setAuth(true);
-          this.setUser(response.data.user);
-        } catch (error) {
-          console.error("Authentication failed:", error?.response?.data?.message || error.message);
+          localStorage.setItem('token', response.data.accessToken);
+          await this.getUserData();
+        } catch (e) {
+          console.log('НЕ АВТОРИЗОВАНИЙ Користувач: ', e);
+          this.setAuth(false);
+          localStorage.removeItem('token');
         }
       }
+      
       
 }

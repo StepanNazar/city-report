@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Am I</title>
+</head>
+<body>
+    <button onclick="getUserInfo()">Отримати інформацію про користувача</button>
+
+    <script>
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTczODU5NzQ1NCwianRpIjoiMjJkZTA1ODMtNGFhOS00MjZlLWI3MWMtNDc5NWE3YWMxMDhhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjIiLCJuYmYiOjE3Mzg1OTc0NTQsImNzcmYiOiI0YWI0NDNmYy02ZWMyLTQxNDktYjIxMS0zNjk2NTM0MTgwZDQiLCJleHAiOjE3Mzg1OTgzNTR9.m1Dxxohl7laYk38ALGXIqAYX--3ApE1oOllGrLtTe6w";
+
+        const getUserInfo = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/whoami', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Помилка запиту: ' + response.status);
+                }
+
+                const data = await response.json();
+                console.log('Інформація про користувача:', data);
+            } catch (error) {
+                console.error('Сталася помилка:', error);
+            }
+        };
+    </script>
+</body>
+</html>
