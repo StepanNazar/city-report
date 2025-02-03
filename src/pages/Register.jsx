@@ -45,7 +45,7 @@ const Register = () => {
             onChange={event => {setPassword(event.target.value)}}
             type='password' placeholder='Password' />
         <div className='auth_btn'>
-            <Button onClick={async()=>{USER.regist(name, lastName, city, email, password)}}>Register</Button>
+            <Button onClick={async(e)=>{await USER.regist(name, lastName, city, email, password); e.preventDefault()}}>Register</Button>
             <Button onClick={()=>route(`/log`)}>Go to Login</Button>
         </div>
   </form>

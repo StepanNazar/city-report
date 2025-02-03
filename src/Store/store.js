@@ -14,7 +14,7 @@ export default class USER_INFO{
     }
 
     setUser(user){
-        this.user = user;
+        this.user = {...user};
     }
 
     async login(email, password){
@@ -53,7 +53,7 @@ export default class USER_INFO{
     async getUserData(){
         try {
             const response = await AuthService.getUser();
-            console.log("Auth Response:", response.data);
+            console.log("Auth Response:", response);
             await this.setAuth(true);
             await this.setUser(response.data); 
             console.log(this.user)
@@ -71,8 +71,6 @@ export default class USER_INFO{
           await this.getUserData();
         } catch (e) {
           console.log('НЕ АВТОРИЗОВАНИЙ Користувач: ', e);
-          this.setAuth(false);
-          localStorage.removeItem('token');
         }
       }
       

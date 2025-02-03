@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Who Am I</title>
+    <title>Document</title>
 </head>
 <body>
-    <button onclick="getUserInfo()">Отримати інформацію про користувача</button>
+    <button onclick="bam()">Натисни мене</button>
 
     <script>
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTczODU5NzQ1NCwianRpIjoiMjJkZTA1ODMtNGFhOS00MjZlLWI3MWMtNDc5NWE3YWMxMDhhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjIiLCJuYmYiOjE3Mzg1OTc0NTQsImNzcmYiOiI0YWI0NDNmYy02ZWMyLTQxNDktYjIxMS0zNjk2NTM0MTgwZDQiLCJleHAiOjE3Mzg1OTgzNTR9.m1Dxxohl7laYk38ALGXIqAYX--3ApE1oOllGrLtTe6w";
-
-        const getUserInfo = async () => {
+        const bam = async () => {
             try {
-                const response = await fetch('http://localhost:5000/whoami', {
-                    method: 'GET',
+                const response = await fetch('http://localhost:5000/login', {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({
+                        email: "test1@gmail.com",
+                        password: "12345678Rv!"
+                    })
                 });
 
                 if (!response.ok) {
@@ -26,7 +27,7 @@
                 }
 
                 const data = await response.json();
-                console.log('Інформація про користувача:', data);
+                console.log('Відповідь сервера:', data);
             } catch (error) {
                 console.error('Сталася помилка:', error);
             }
