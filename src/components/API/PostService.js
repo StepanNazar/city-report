@@ -1,4 +1,12 @@
 import axios from 'axios';
+    const api = axios.create({
+    baseURL: 'http://localhost:5000',  // Базова адреса для всіх запитів
+    timeout: 5000,                         // (Необов'язково) Тайм-аут у 5 секунд
+    headers: {
+        'Content-Type': 'application/json'   // (Необов'язково) Тип контенту
+    }
+    });
+
 export default class PostService{
     static async getAll(limit, page){
             const response = await axios.get('/api/posts', {
@@ -10,21 +18,17 @@ export default class PostService{
             return response;
     }
     static async getPost(id){
-        const response = await axios.get('/api/postsDetailed', {
-            params: {
-                id: id
-            }
-        });
+        const response = await axios.get(`/api/posts/${id}`);
         return response;
     }
 
     static async getComentsFor(id){
-        const response = await axios.get('https://jsonplaceholder.typicode.com/posts/'+id+'/comments', /*{
-            params: {
-                id: id
-            }
-        }*/);
-        return response;
+        const response = await api.get('/comentsForId', {
+            params: { id }  // Параметр передається як query string: ?id=1
+          });
+     
+          return response;
+ 
     }
 
     static async addPost(post){

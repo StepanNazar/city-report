@@ -12,21 +12,6 @@ const CommentList = function({coments, title, remove}){
             {coments.map((c)=>{
             return  <Coment com={c} key={c.id}/>
             })}
-            {coments.map((c)=>{
-            return  <Coment com={c} key={c.id+7}/>
-            })}
-            {coments.map((c)=>{
-            return  <Coment com={c} key={c.id+14}/>
-            })}
-            {coments.map((c)=>{
-            return  <Coment com={c} key={c.id+21}/>
-            })}
-            {coments.map((c)=>{
-            return  <Coment com={c} key={c.id+28}/>
-            })}
-            {coments.map((c)=>{
-            return  <Coment com={c} key={c.id+37}/>
-            })}
             </div>
     </div>
 }

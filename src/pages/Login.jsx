@@ -24,7 +24,10 @@ const Login = () => {
             onChange={event => {setPassword(event.target.value)}}
             type='password' placeholder='password' />
         <div className='auth_btn'>
-            <Button onClick={async(e)=>{ e.preventDefault(); await USER.login(log, password)}}>Login</Button>
+            <Button onClick={async(e)=>{ e.preventDefault(); 
+                const code = await USER.login(log, password);
+                if(code == 200) route('/posts');
+            }}>Login</Button>
             <Button onClick={()=>route(`/reg`)}>GO to Registretion</Button>
         </div>
   </form>

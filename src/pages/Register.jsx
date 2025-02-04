@@ -14,10 +14,6 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const {USER} = useContext(UserContext)
     const route = useNavigate();
-    const register = async (e) => {
-      e.preventDefault();
-      
-    };
     
     return <form className='auth_form'>
         <FormInput
@@ -45,7 +41,7 @@ const Register = () => {
             onChange={event => {setPassword(event.target.value)}}
             type='password' placeholder='Password' />
         <div className='auth_btn'>
-            <Button onClick={async(e)=>{await USER.regist(name, lastName, city, email, password); e.preventDefault()}}>Register</Button>
+            <Button onClick={async(e)=>{e.preventDefault(); await USER.regist(name, lastName, city, email, password); route('/post')}}>Register</Button>
             <Button onClick={()=>route(`/log`)}>Go to Login</Button>
         </div>
   </form>

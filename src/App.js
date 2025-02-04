@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Post from "./pages/Post";
 import './styles/app.css';
 import About from "./pages/About";
@@ -10,18 +10,17 @@ import { useContext, useEffect } from "react";
 import React from "react";
 import { UserContext } from ".";
 import { observer } from "mobx-react-lite";
+import AuthCheck from "./utils/Authcheck";
 
 function App() {
   const { USER } = useContext(UserContext);
-  useEffect(() => {
-    USER.checkAuth(); 
-  }, []);
+
 
   return (
     <BrowserRouter>
+      <AuthCheck/>
       <NavBar />
       <Routes> 
-       
         <Route
           path="*"
           element={
