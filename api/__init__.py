@@ -10,7 +10,7 @@ from api.config import DevConfig
 
 def create_app(config):
     app = Flask(__name__)
-    CORS(app, supports_credentials=True)
+    cors.init_app(app)
     app.config.from_object(config)
     api.init_app(app)
     db.init_app(app)
@@ -31,6 +31,7 @@ api = Api(validate=True, authorizations=authorizations, security="jwt_access_tok
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
+cors = CORS(supports_credentials=True)
 
 from api import models, routes  # noqa
 
