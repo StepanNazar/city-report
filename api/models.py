@@ -7,7 +7,7 @@ import sqlalchemy.orm as so
 from email_validator import validate_email
 from flask import current_app
 from ua_parser import parse
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from api import db
 
@@ -24,8 +24,10 @@ class User(db.Model):
     password_hash: so.Mapped[str] = so.mapped_column(sa.String(256))
     is_activated: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
     # add expiration for activation code? restrict unactivated accounts?
-    activation_code: so.Mapped[str] = so.mapped_column(sa.String(36),  # use sa.UUID instead?
-                                                       default=lambda: str(uuid4()))
+    activation_code: so.Mapped[str] = so.mapped_column(
+        sa.String(36),  # use sa.UUID instead?
+        default=lambda: str(uuid4()),
+    )
     active_devices: so.Mapped[list["ActiveDevice"]] = so.relationship()
 
     @so.validates("email")
@@ -33,10 +35,10 @@ class User(db.Model):
         return validate_email(email).normalized
 
     @classmethod
-    def find_by_email(cls, email: str) -> "User":
+    def find_by_email(cls, email: str) -> "User | None":
         return cls.query.filter_by(email=validate_email(email).normalized).one_or_none()
 
-    def __init__(self, password: str = '', *args, **kwargs):
+    def __init__(self, password: str = "", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_password(password)
 
@@ -47,9 +49,13 @@ class User(db.Model):
         # prohibit non-ASCII characters?
         # to do: replace assert with raise because assert is debug-only
         if len(password) < PASSWORD_MIN_LENGTH:
-            raise ValueError(f"Password must be at least {PASSWORD_MIN_LENGTH} characters long")
+            raise ValueError(
+                f"Password must be at least {PASSWORD_MIN_LENGTH} characters long"
+            )
         if len(password) > PASSWORD_MAX_LENGTH:
-            raise ValueError(f"Password must be at most {PASSWORD_MAX_LENGTH} characters long")
+            raise ValueError(
+                f"Password must be at most {PASSWORD_MAX_LENGTH} characters long"
+            )
         if not re.search(r"\d", password):
             raise ValueError("Password must contain at least one digit")
         if not re.search(r"[A-Z]", password):
@@ -70,28 +76,42 @@ class User(db.Model):
 
 class ActiveDevice(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    refresh_jti: so.Mapped[str] = so.mapped_column(sa.String(36),
-                                                   index=True, unique=True)  # use sa.UUID instead?
-    access_jti: so.Mapped[str] = so.mapped_column(sa.String(36),
-                                                  index=True, unique=True)  # use sa.UUID instead?
-    login_time: so.Mapped[sa.DateTime] = so.mapped_column(sa.DateTime, default=sa.func.now())
+    refresh_jti: so.Mapped[str] = so.mapped_column(
+        sa.String(36), index=True, unique=True
+    )  # use sa.UUID instead?
+    access_jti: so.Mapped[str] = so.mapped_column(
+        sa.String(36), index=True, unique=True
+    )  # use sa.UUID instead?
+    login_time: so.Mapped[sa.DateTime] = so.mapped_column(
+        sa.DateTime, default=sa.func.now()
+    )
     expires_at: so.Mapped[sa.DateTime] = so.mapped_column(
         sa.DateTime,
-        default=lambda: datetime.datetime.now(datetime.UTC) +
-                        current_app.config['JWT_REFRESH_TOKEN_EXPIRES']
+        default=lambda: datetime.datetime.now(datetime.UTC)
+        + current_app.config["JWT_REFRESH_TOKEN_EXPIRES"],
     )  # to do: implement deletion of expired records
-    ip_address: so.Mapped[str] = so.mapped_column(sa.String(15))  # is there a better type?
-    device: so.Mapped[str] = so.mapped_column(sa.String(64), nullable=True)
-    os: so.Mapped[str] = so.mapped_column(sa.String(64), nullable=True)
-    browser: so.Mapped[str] = so.mapped_column(sa.String(64), nullable=True)
+    ip_address: so.Mapped[str | None] = so.mapped_column(
+        sa.String(15), nullable=True
+    )  # is there a better type?
+    device: so.Mapped[str | None] = so.mapped_column(sa.String(64), nullable=True)
+    os: so.Mapped[str | None] = so.mapped_column(sa.String(64), nullable=True)
+    browser: so.Mapped[str | None] = so.mapped_column(sa.String(64), nullable=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id))
 
-    def __init__(self, *args, user_agent: str = '', ip_address: str | None = None, **kwargs):
+    def __init__(
+        self, *args, user_agent: str = "", ip_address: str | None = None, **kwargs
+    ):
         super().__init__(*args, **kwargs)
-        user_agent = parse(user_agent)
-        self.device = user_agent.device.family if user_agent.device else None
-        self.os = user_agent.os.family if user_agent.os else None
-        self.browser = user_agent.user_agent.family if user_agent.user_agent else None
+        parsed_user_agent = parse(user_agent)
+        self.device = (
+            parsed_user_agent.device.family if parsed_user_agent.device else None
+        )
+        self.os = parsed_user_agent.os.family if parsed_user_agent.os else None
+        self.browser = (
+            parsed_user_agent.user_agent.family
+            if parsed_user_agent.user_agent
+            else None
+        )
         self.ip_address = ip_address
 
     def __repr__(self):

@@ -1,13 +1,13 @@
 import requests
-from flask import request, jsonify
+from flask import jsonify, request
 from flask_jwt_extended import jwt_required
-from flask_restx import Resource, Namespace
+from flask_restx import Namespace, Resource
 
 # later path can be changed, but kept as / for now to match the frontend
-posts = Namespace('posts', description='Posts operations', path='/')
+posts = Namespace("posts", description="Posts operations", path="/")
 
 
-@posts.route('/posts')
+@posts.route("/posts")
 class Posts(Resource):
     def get(self):
         """Get all posts"""
@@ -29,7 +29,7 @@ class Posts(Resource):
         return {}, 201
 
 
-@posts.route('/posts/<int:post_id>')
+@posts.route("/posts/<int:post_id>")
 class Post(Resource):
     def get(self, post_id):
         """Get a post by ID"""
@@ -44,7 +44,7 @@ class Post(Resource):
             "state": "if oblast",
             "locality": "if",
             "title": "Lorem",
-            "body": "lorem"
+            "body": "lorem",
         }
 
     @jwt_required()
@@ -65,10 +65,10 @@ class Post(Resource):
 # body
 # countof likes dislikes
 # }
-@posts.route('/comentsForId')
+@posts.route("/comentsForId")
 class ComentsForId(Resource):
     def get(self):
-        com_id = request.args.get('id', type=int, default=0)  # Отримуємо параметр id
+        com_id = request.args.get("id", type=int, default=0)  # Отримуємо параметр id
         if com_id <= 0:
             return jsonify({"error": "Invalid ID"}), 400  # Перевірка на валідність id
 
@@ -77,10 +77,10 @@ class ComentsForId(Resource):
 
         try:
             # Виконуємо GET-запит до JSONPlaceholder
-            response = requests.get(url)
+            response = requests.get(url, timeout=5)
             response.raise_for_status()  # Перевіряємо статус відповіді (404, 500 тощо)
 
-            # Повертаємо отримані дані у вигляді JSON
+            # Повертаємо отримані дані у вигляді JSON  # noqa # у is Cyrillic
             return jsonify(response.json())
-        except:
+        except requests.RequestException:
             return jsonify({"error": "Failed to fetch comments"}), 500
