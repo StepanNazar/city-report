@@ -5,10 +5,11 @@ from uuid import uuid4
 import sqlalchemy as sa
 import sqlalchemy.orm as so
 from email_validator import validate_email
+from flask import current_app
 from ua_parser import parse
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from api import db, app
+from api import db
 
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128  # prevent DoS attacks with long passwords
@@ -44,14 +45,19 @@ class User(db.Model):
 
     def set_password(self, password: str) -> None:
         # prohibit non-ASCII characters?
-        assert len(password) >= PASSWORD_MIN_LENGTH, \
-            f"Password must be at least {PASSWORD_MIN_LENGTH} characters long"
-        assert len(password) <= PASSWORD_MAX_LENGTH, \
-            f"Password must be at most {PASSWORD_MAX_LENGTH} characters long"
-        assert re.search(r"\d", password), "Password must contain at least one digit"
-        assert re.search(r"[A-Z]", password), "Password must contain at least one uppercase letter"
-        assert re.search(r"[a-z]", password), "Password must contain at least one lowercase letter"
-        assert re.search(r"\W", password), "Password must contain at least one special character"
+        # to do: replace assert with raise because assert is debug-only
+        if len(password) < PASSWORD_MIN_LENGTH:
+            raise ValueError(f"Password must be at least {PASSWORD_MIN_LENGTH} characters long")
+        if len(password) > PASSWORD_MAX_LENGTH:
+            raise ValueError(f"Password must be at most {PASSWORD_MAX_LENGTH} characters long")
+        if not re.search(r"\d", password):
+            raise ValueError("Password must contain at least one digit")
+        if not re.search(r"[A-Z]", password):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", password):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"\W", password):
+            raise ValueError("Password must contain at least one special character")
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
@@ -71,7 +77,8 @@ class ActiveDevice(db.Model):
     login_time: so.Mapped[sa.DateTime] = so.mapped_column(sa.DateTime, default=sa.func.now())
     expires_at: so.Mapped[sa.DateTime] = so.mapped_column(
         sa.DateTime,
-        default=lambda: datetime.datetime.now(datetime.UTC) + app.config['JWT_REFRESH_TOKEN_EXPIRES']
+        default=lambda: datetime.datetime.now(datetime.UTC) +
+                        current_app.config['JWT_REFRESH_TOKEN_EXPIRES']
     )  # to do: implement deletion of expired records
     ip_address: so.Mapped[str] = so.mapped_column(sa.String(15))  # is there a better type?
     device: so.Mapped[str] = so.mapped_column(sa.String(64), nullable=True)

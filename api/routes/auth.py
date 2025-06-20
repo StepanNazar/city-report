@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     jwt_required,
     set_refresh_cookies,
     unset_jwt_cookies,
-    get_current_user, get_jwt, get_jti
+    get_current_user, get_jwt, get_jti, get_jwt_identity
 )
 from flask_restx import Resource, Namespace, fields
 
@@ -49,16 +49,10 @@ device_model = auth.model('Device', {
     'loginTime': fields.DateTime(attribute='login_time'),
 })
 
-
-@jwt.user_identity_loader
-def user_identity_lookup(user: User) -> str:
-    return str(user.id)
-
-
 @jwt.user_lookup_loader
 def user_lookup_callback(jwt_header, jwt_data: dict) -> User:
     identity = jwt_data["sub"]
-    return User.query.get(int(identity))
+    return User.query.get(int(identity))  # legacy method query.get
 
 
 @jwt.token_in_blocklist_loader
@@ -72,8 +66,8 @@ def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
 
 
 def generate_jwt_tokens(user: User) -> Response:
-    refresh_token = create_refresh_token(identity=user)
-    access_token = create_access_token(identity=user)
+    refresh_token = create_refresh_token(identity=str(user.id))
+    access_token = create_access_token(identity=str(user.id))
     active_device = ActiveDevice(
         user_agent=request.user_agent.string,
         ip_address=request.remote_addr,
@@ -141,9 +135,9 @@ class Refresh(Resource):
     @auth.response(200, 'Access token refreshed', access_token_model)
     def get(self):
         """Refresh access token"""
-        current_user = get_current_user()
+        identity = get_jwt_identity()
         token = get_jwt()
-        access_token = create_access_token(identity=current_user)
+        access_token = create_access_token(identity=identity)
         ActiveDevice.query.filter_by(refresh_jti=token['jti']).update(
             {"access_jti": get_jti(access_token)}
         )
@@ -216,8 +210,8 @@ class Devices(Resource):
     @jwt_required()
     def delete(self):
         """Log out from all devices"""
-        current_user = get_current_user()
-        ActiveDevice.query.filter_by(user_id=current_user.id).delete()
+        identity = get_jwt_identity()
+        ActiveDevice.query.filter_by(user_id=int(identity)).delete()
         db.session.commit()
         response = jsonify({'message': 'Logged out from all devices'})
         unset_jwt_cookies(response)
@@ -228,7 +222,7 @@ class Devices(Resource):
 class Device(Resource):
     @jwt_required()
     @auth.expect(password_model)
-    @auth.doc(responses={401: 'Invalid password', 404: 'Device not found'})
+    @auth.doc(responses={401: 'Invalid password', 404: 'Device not found', 204: 'Device logged out'})
     def delete(self, device_id):
         """Log out from device"""
         current_user = get_current_user()

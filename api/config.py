@@ -24,9 +24,9 @@ class DevConfig(Config):
 
 
 class TestConfig(Config):
-    pass
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "test.db")
 
 
 class ProdConfig(Config):
     JWT_COOKIE_SECURE = True
-

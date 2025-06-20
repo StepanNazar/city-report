@@ -30,3 +30,4 @@ __pycache__
 # pycharm
 .idea
 /api/app.db
+/api/test.db
