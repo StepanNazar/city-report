@@ -59,7 +59,7 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(409, response.status_code)
         # test for invalid email
         response = self.register(email="test")
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(422, response.status_code)
 
     def test_login_and_refresh(self):
         self.register()
@@ -73,6 +73,8 @@ class TestAuth(unittest.TestCase):
         json = response.get_json()
         self.assertIn("access_token", json)
         response = self.login(email="test")
+        self.assertEqual(422, response.status_code)
+        response = self.login(email="test@x.com")
         self.assertEqual(401, response.status_code)
 
     def test_logout_with_access_token(self):

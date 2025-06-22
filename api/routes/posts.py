@@ -1,14 +1,14 @@
 import requests
+from apiflask import APIBlueprint
 from flask import jsonify, request
+from flask.views import MethodView
 from flask_jwt_extended import jwt_required
-from flask_restx import Namespace, Resource
 
 # later path can be changed, but kept as / for now to match the frontend
-posts = Namespace("posts", description="Posts operations", path="/")
+posts = APIBlueprint("posts", __name__, tag="Posts operations", url_prefix="/")
 
 
-@posts.route("/posts")
-class Posts(Resource):
+class Posts(MethodView):
     def get(self):
         """Get all posts"""
         return [
@@ -29,8 +29,7 @@ class Posts(Resource):
         return {}, 201
 
 
-@posts.route("/posts/<int:post_id>")
-class Post(Resource):
+class Post(MethodView):
     def get(self, post_id):
         """Get a post by ID"""
         return {
@@ -65,8 +64,7 @@ class Post(Resource):
 # body
 # countof likes dislikes
 # }
-@posts.route("/comentsForId")
-class ComentsForId(Resource):
+class ComentsForId(MethodView):
     def get(self):
         com_id = request.args.get("id", type=int, default=0)  # Отримуємо параметр id
         if com_id <= 0:
@@ -84,3 +82,8 @@ class ComentsForId(Resource):
             return jsonify(response.json())
         except requests.RequestException:
             return jsonify({"error": "Failed to fetch comments"}), 500
+
+
+posts.add_url_rule("/posts", view_func=Posts.as_view("all_posts"))
+posts.add_url_rule("/posts/<int:post_id>", view_func=Post.as_view("specific_post"))
+posts.add_url_rule("/comentsForId", view_func=ComentsForId.as_view("coments_for_id"))
