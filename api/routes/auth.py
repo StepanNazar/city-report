@@ -1,5 +1,4 @@
-from apiflask import APIBlueprint, Schema, abort, validators
-from apiflask.fields import Boolean, DateTime, Email, Integer, String
+from apiflask import APIBlueprint, abort
 from email_validator import EmailNotValidError
 from flask import Response, jsonify, request
 from flask.views import MethodView
@@ -15,58 +14,20 @@ from flask_jwt_extended import (
     unset_jwt_cookies,
 )
 
-from api import db, jwt, models
+from api import db, jwt
 from api.models import ActiveDevice, User
+from api.schemas.auth import (
+    AccessTokenSchema,
+    DeviceSchema,
+    LoginSchema,
+    PasswordSchema,
+    RegisterSchema,
+    UserSchema,
+)
 from api.services import EmailService
 
 # later path can be changed to /auth, but kept as / for now to match the frontend
 auth = APIBlueprint("auth", __name__, tag="Authentication operations", url_prefix="/")
-
-
-class AccessTokenSchema(Schema):
-    access_token = String()
-
-
-class PasswordSchema(Schema):
-    password = String(
-        required=True,
-        validate=validators.Length(min=8, max=models.PASSWORD_MAX_LENGTH),
-        # pattern="^regex$", validate in both api and database?
-        metadata={"example": "Pas$word123"},
-    )
-
-
-class LoginSchema(PasswordSchema):
-    email = Email(
-        required=True,
-        metadata={"example": "dsx@gmail.com"},
-    )
-
-
-class RegisterSchema(LoginSchema):
-    name = String(
-        required=True, metadata={"example": "John", "description": "first name"}
-    )
-    lastName = String(
-        required=True, metadata={"example": "Doe", "description": "last name"}
-    )
-
-
-class UserSchema(Schema):
-    id = Integer()
-    name = String(attribute="firstname")
-    lastName = String(attribute="lastname")
-    email = Email(validate=validators.Email())  # is validation needed for output?
-    isActivated = Boolean(attribute="is_activated")
-
-
-class DeviceSchema(Schema):
-    id = Integer()
-    ip = String(attribute="ip_address")
-    device = String()
-    os = String()
-    browser = String()
-    loginTime = DateTime(attribute="login_time")
 
 
 @jwt.user_lookup_loader
