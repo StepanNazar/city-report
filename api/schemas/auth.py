@@ -35,16 +35,18 @@ class RegisterSchema(LoginSchema):
 
 class UserSchema(Schema):
     id = Integer()
-    name = String(attribute="firstname")
-    lastName = String(attribute="lastname")
-    email = Email(validate=validators.Email())  # is validation needed for output?
+    name = String(attribute="firstname", metadata={"x-faker": "name.firstName"})
+    lastName = String(attribute="lastname", metadata={"x-faker": "name.lastName"})
+    email = Email(
+        validate=validators.Email(), metadata={"x-faker": "internet.email"}
+    )  # is validation needed for output?
     isActivated = Boolean(attribute="is_activated")
 
 
 class DeviceSchema(Schema):
     id = Integer()
-    ip = String(attribute="ip_address")
+    ip = String(attribute="ip_address", metadata={"x-faker": "internet.ip"})
     device = String()
     os = String()
     browser = String()
-    loginTime = DateTime(attribute="login_time")
+    loginTime = DateTime(attribute="login_time", metadata={"x-faker": "date.recent"})
