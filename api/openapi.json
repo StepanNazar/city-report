@@ -833,7 +833,7 @@
       }
     },
     "/refresh": {
-      "get": {
+      "post": {
         "parameters": [],
         "responses": {
           "200": {

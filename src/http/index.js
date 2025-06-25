@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getCookie } from "../utils/cookies";
 const $api = axios.create({
     withCredentials: true
 });
@@ -15,8 +16,12 @@ $api.interceptors.request.use((config)=>{
     if (error.response.status === 401 && error.config && !error.config._isRetry) {
         originalRequest._isRetry = true;
         try {
-            const response = await axios.get(`api/refresh`, {
-                withCredentials: true,
+            const csrfToken = getCookie('csrf_refresh_token');
+            const response = await axios.post(`api/refresh`, {}, {
+              withCredentials: true,
+              headers: {
+                'X-CSRF-TOKEN': csrfToken
+              }
             });
             localStorage.setItem('token', response.data.access_token);
 

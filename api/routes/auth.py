@@ -127,7 +127,7 @@ class Refresh(MethodView):
     @jwt_required(refresh=True)
     @auth.output(AccessTokenSchema)
     @auth.doc(security="jwt_refresh_token", responses={200: "Access token refreshed"})
-    def get(self):
+    def post(self):
         """Refresh access token"""
         identity = get_jwt_identity()
         token = get_jwt()

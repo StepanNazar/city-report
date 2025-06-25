@@ -1,5 +1,6 @@
 import { makeAutoObservable, toJS } from "mobx"
 import AuthService from "../Services/AuthService";
+import { getCookie } from "../utils/cookies";
 
 import axios from 'axios'
 export default class USER_INFO{
@@ -68,8 +69,12 @@ export default class USER_INFO{
 
     async checkAuth() {
         try {
-          const response = await axios.get(`api/refresh`, {
-            withCredentials: true,
+          const csrfToken = getCookie('csrf_refresh_token');
+          const response = await axios.post(`api/refresh`, {}, {
+              withCredentials: true,
+              headers: {
+                'X-CSRF-TOKEN': csrfToken
+              }
           });
           localStorage.setItem('token', response.data.access_token);
           await this.getUserData();

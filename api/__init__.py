@@ -17,13 +17,12 @@ authorizations = {
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
-cors = CORS(supports_credentials=True)
 
 
 def create_app(config):
     app = APIFlask(__name__, title="City Report API", docs_path="/")
     app.security_schemes = authorizations
-    cors.init_app(app)
+    CORS(app, supports_credentials=True, origins=config.CORS_ORIGINS)
     app.config.from_object(config)
     db.init_app(app)
     migrate.init_app(app, db)

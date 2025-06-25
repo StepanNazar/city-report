@@ -7,3 +7,4 @@ Flask-Migrate~=4.0.7
 Flask-JWT-Extended~=4.7.1
 ua-parser[regex]~=1.0.0
 email_validator~=2.2.0
+Flask-Cors==6.0.1
