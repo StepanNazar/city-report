@@ -258,6 +258,11 @@
       }
     },
     "securitySchemes": {
+      "csrf_refresh_token": {
+        "in": "header",
+        "name": "X-CSRF-TOKEN",
+        "type": "apiKey"
+      },
       "jwt_access_token": {
         "in": "header",
         "name": "Authorization",
@@ -860,6 +865,9 @@
         "security": [
           {
             "jwt_refresh_token": []
+          },
+          {
+            "csrf_refresh_token": []
           }
         ],
         "summary": "Refresh access token",
