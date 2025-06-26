@@ -13,6 +13,11 @@ authorizations = {
         "in": "cookie",
         "name": "refresh_token_cookie",
     },
+    "csrf_refresh_token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-TOKEN",
+    },
 }
 db = SQLAlchemy()
 migrate = Migrate()
