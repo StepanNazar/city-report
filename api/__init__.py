@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from api.config import DevConfig
 
 authorizations = {
-    "jwt_access_token": {"type": "apiKey", "in": "header", "name": "Authorization"},
+    "jwt_access_token": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
     "jwt_refresh_token": {
         "type": "apiKey",
         "in": "cookie",
