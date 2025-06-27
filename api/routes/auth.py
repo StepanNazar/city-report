@@ -281,9 +281,7 @@ auth.add_url_rule(
 )
 auth.add_url_rule("/whoami", view_func=WhoAmI.as_view("whoami"))
 auth.add_url_rule("/devices", view_func=Devices.as_view("all_devices"))
-auth.add_url_rule(
-    "/devices/<int:device_id>", view_func=Device.as_view("specific_device")
-)
+auth.add_url_rule("/devices/<int:device_id>", view_func=Device.as_view("device"))
 auth.add_url_rule("/password", view_func=ChangePassword.as_view("change_password"))
 auth.add_url_rule(
     "/password/reset-request",

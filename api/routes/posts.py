@@ -92,5 +92,5 @@ class ComentsForId(MethodView):
 
 
 posts.add_url_rule("/posts", view_func=Posts.as_view("all_posts"))
-posts.add_url_rule("/posts/<int:post_id>", view_func=Post.as_view("specific_post"))
+posts.add_url_rule("/posts/<int:post_id>", view_func=Post.as_view("post"))
 posts.add_url_rule("/comentsForId", view_func=ComentsForId.as_view("coments_for_id"))
