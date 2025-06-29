@@ -19,7 +19,7 @@ class Config:
         days=float(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES_DAYS") or 30)
     )
     JWT_TOKEN_LOCATION = ("cookies", "headers")
-    # path to which cookies are sent. might be changed to connect to a frontend
+    # path to which cookies are sent
     JWT_REFRESH_COOKIE_PATH = "/refresh"
     CORS_ORIGINS = re.compile(r"^https?://(localhost|127\.0\.0\.1):3000$")
 

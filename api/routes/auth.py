@@ -26,7 +26,6 @@ from api.schemas.auth import (
 )
 from api.services import EmailService
 
-# later path can be changed to /auth, but kept as / for now to match the frontend
 auth = APIBlueprint("auth", __name__, tag="Authentication operations", url_prefix="/")
 
 
@@ -68,7 +67,7 @@ def generate_jwt_tokens(user: User) -> Response:
 
 
 class Register(MethodView):
-    @auth.input(RegisterSchema, location="json")
+    @auth.input(RegisterSchema)
     @auth.output(AccessTokenSchema, status_code=201)
     @auth.doc(
         responses={
@@ -79,7 +78,7 @@ class Register(MethodView):
         security=[],
     )
     def post(self, json_data):
-        """Register a new user. Sets refresh token cookie. Sends activation link."""
+        """Register a new user. Set refresh token cookie. Send the activation link."""
         email = json_data.get("email")
         try:
             current_user = User.find_by_email(email)
@@ -106,13 +105,13 @@ class Register(MethodView):
 
 
 class Login(MethodView):
-    @auth.input(LoginSchema, location="json")
+    @auth.input(LoginSchema)
     @auth.output(AccessTokenSchema)
     @auth.doc(
         responses={401: "Invalid email or password", 200: "User logged in"}, security=[]
     )
     def post(self, json_data):
-        """Login user. Sets refresh token cookie."""
+        """Login user. Set refresh token cookie."""
         json_data = request.get_json()
         try:
             db_user = User.find_by_email(json_data.get("email"))
@@ -148,7 +147,7 @@ class Logout(MethodView):
     @jwt_required(verify_type=False)
     @auth.doc(security=["jwt_access_token", "jwt_refresh_token"])
     def post(self):
-        """Log out from current device. Unsets refresh token cookie."""
+        """Log out from the current device. Unset refresh token cookie."""
         token = get_jwt()
         if token["type"] == "access":
             ActiveDevice.query.filter_by(access_jti=token["jti"]).delete()
@@ -162,8 +161,8 @@ class Logout(MethodView):
 
 class Activate(MethodView):
     @auth.doc(security=[], responses={404: "User not found", 200: "User activated"})
-    def get(self, activation_code):
-        """Activate user account"""
+    def post(self, activation_code):
+        """Activate the user's account"""
         user = User.query.filter_by(activation_code=activation_code).first()
         if user and not user.is_activated:
             user.is_activated = True
@@ -218,7 +217,7 @@ class Devices(MethodView):
 
 class Device(MethodView):
     @jwt_required()
-    @auth.input(PasswordSchema, location="json")
+    @auth.input(PasswordSchema)
     @auth.doc(
         responses={
             401: "Invalid password",
@@ -228,7 +227,7 @@ class Device(MethodView):
         security=["jwt_access_token"],
     )
     def delete(self, device_id, json_data):
-        """Log out from device"""
+        """Log out from the device"""
         current_user = get_current_user()
         password = json_data.get("password")
         if not current_user.check_password(password):
@@ -245,25 +244,28 @@ class Device(MethodView):
 
 class ChangePassword(MethodView):
     @jwt_required()
-    @auth.doc(security="jwt_access_token")
-    def patch(self):
+    @auth.doc(
+        security="jwt_access_token",
+        responses={204: "Password changed", 400: "Invalid old or new password"},
+    )
+    def put(self):
         """Change password"""
         return {}, 501
 
 
 class ResetPasswordRequest(MethodView):
-    @jwt_required()
-    @auth.doc(security="jwt_access_token")
+    @auth.doc(responses={202: "Password reset link sent"})
     def post(self):
-        """Request password reset"""
+        """Request email with a secret code for password reset"""
         return {}, 501
 
 
 class ResetPassword(MethodView):
-    @jwt_required()
-    @auth.doc(security="jwt_access_token")
+    @auth.doc(
+        responses={204: "Password changed", 400: "Invalid secret code or new password"}
+    )
     def post(self):
-        """Reset password"""
+        """Reset password using a secret code from email and pass a new password"""
         return {}, 501
 
 
@@ -273,10 +275,10 @@ auth.add_url_rule("/login", view_func=Login.as_view("login"))
 auth.add_url_rule("/refresh", view_func=Refresh.as_view("refresh"))
 auth.add_url_rule("/logout", view_func=Logout.as_view("logout"))
 auth.add_url_rule(
-    "/activate/<string:activation_code>", view_func=Activate.as_view("activate")
+    "/activate/<uuid:activation_code>", view_func=Activate.as_view("activate")
 )
 auth.add_url_rule(
-    "/send-activation-link",
+    "/activation-link-email",
     view_func=SendActivationLink.as_view("send_activation_link"),
 )
 auth.add_url_rule("/whoami", view_func=WhoAmI.as_view("whoami"))
