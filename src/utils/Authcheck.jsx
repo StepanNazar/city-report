@@ -11,7 +11,7 @@ const AuthCheck = observer(() => {
     const checkAuth = async () => {
       await USER.checkAuth();
       if (USER.isAuth) {
-        console.log("mov to posts")
+        console.log("move to posts")
         navigate("/posts"); // Перенаправлення після авторизації
       }
     };
