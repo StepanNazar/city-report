@@ -15,12 +15,12 @@ const PostInf = () => {
     const[coments, setComents] = useState([])
     const [fetchPost,isPostLoading, postError] = useFetching(async()=>{
           const response = await PostService.getPost(id);      
-          //console.log(response)
           setPost(response.data);
+          console.log(post)
     })
     const [fetchComents,isComLoading, comError] = useFetching(async()=>{
         const response = await PostService.getComentsFor(id);      
-        //console.log(response.data)
+       console.log(response.data)
         setComents(response.data);
 
     })

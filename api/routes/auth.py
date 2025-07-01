@@ -1,67 +1,54 @@
+from apiflask import abort
 from email_validator import EmailNotValidError
-from flask import request, jsonify, Response
+from flask import Response, jsonify, make_response, request, url_for
+from flask.views import MethodView
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    get_current_user,
+    get_jti,
+    get_jwt,
+    get_jwt_identity,
     jwt_required,
     set_refresh_cookies,
     unset_jwt_cookies,
-    get_current_user, get_jwt, get_jti, get_jwt_identity
 )
-from flask_restx import Resource, Namespace, fields
 
-from api import jwt, db, models
-from api.models import User, ActiveDevice
+from api import db, jwt
+from api.models import ActiveDevice, User
+from api.routes.common import CustomAPIBlueprint
+from api.schemas.auth import (
+    AccessTokenSchema,
+    DeviceSchema,
+    LoginSchema,
+    PasswordSchema,
+    RegisterSchema,
+    WhoAmISchema,
+)
 from api.services import EmailService
 
-# later path can be changed to /auth, but kept as / for now to match the frontend
-auth = Namespace('auth', description='Authentication operations', path='/')
+auth = CustomAPIBlueprint(
+    "auth", __name__, tag="Authentication operations", url_prefix="/"
+)
 
-access_token_model = auth.model('AccessToken', {
-    'access_token': fields.String(required=True)
-})
-password_model = auth.model('Password', {
-    'password': fields.String(
-        required=True, min_length=8, max_length=models.PASSWORD_MAX_LENGTH,
-        # pattern="^regex$", validate in both api and database?
-        example='Pas$word123')
-})
-login_model = auth.inherit('Login', password_model, {
-    'email': fields.String(required=True, example="dsx@gmail.com"),
-})
-register_model = auth.inherit('Register', login_model, {
-    'name': fields.String(required=True, description='first name', example='John'),
-    'lastName': fields.String(required=True, description='last name', example='Doe'),
-})
-user_model = auth.model('User', {
-    'id': fields.Integer(),
-    'name': fields.String(attribute='firstname'),
-    'lastName': fields.String(attribute='lastname'),
-    'email': fields.String(),
-    'isActivated': fields.Boolean(attribute='is_activated')
-})
-device_model = auth.model('Device', {
-    'id': fields.Integer(),
-    'ip': fields.String(attribute='ip_address'),
-    'device': fields.String(),
-    'os': fields.String(),
-    'browser': fields.String(),
-    'loginTime': fields.DateTime(attribute='login_time'),
-})
 
 @jwt.user_lookup_loader
-def user_lookup_callback(jwt_header, jwt_data: dict) -> User:
+def user_lookup_callback(jwt_header, jwt_data: dict) -> User | None:
     identity = jwt_data["sub"]
     return User.query.get(int(identity))  # legacy method query.get
 
 
 @jwt.token_in_blocklist_loader
 def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
-    if jwt_payload['type'] == 'refresh':
+    if jwt_payload["type"] == "refresh":
         # additional checks can be added like user_agent?
-        token = ActiveDevice.query.filter_by(refresh_jti=jwt_payload['jti']).one_or_none()
+        token = ActiveDevice.query.filter_by(
+            refresh_jti=jwt_payload["jti"]
+        ).one_or_none()
     else:
-        token = ActiveDevice.query.filter_by(access_jti=jwt_payload['jti']).one_or_none()
+        token = ActiveDevice.query.filter_by(
+            access_jti=jwt_payload["jti"]
+        ).one_or_none()
     return token is None
 
 
@@ -73,189 +60,240 @@ def generate_jwt_tokens(user: User) -> Response:
         ip_address=request.remote_addr,
         user_id=user.id,
         refresh_jti=get_jti(refresh_token),
-        access_jti=get_jti(access_token)
+        access_jti=get_jti(access_token),
     )
     db.session.add(active_device)
     db.session.commit()
-    response = jsonify({'access_token': access_token})
+    response = jsonify({"access_token": access_token})
     set_refresh_cookies(response, refresh_token)
     return response
 
 
-@auth.route('/register')
-class Register(Resource):
-    @auth.expect(register_model)
-    @auth.doc(responses={400: 'Invalid email or password', 409: 'Email already used'}, security=[])
-    @auth.response(201, 'User registered', access_token_model)
-    def post(self):
-        """Register a new user. Sets refresh token cookie. Sends activation link."""
-        data = request.get_json()
-        email = data.get('email')
+class Register(MethodView):
+    @auth.input(RegisterSchema)
+    @auth.output(AccessTokenSchema, status_code=201)
+    @auth.doc(
+        responses={
+            400: "Invalid email or password",
+            409: "Email already used",
+            201: "User registered",
+        },
+    )
+    def post(self, json_data):
+        """Register a new user. Set refresh token cookie. Send the activation link."""
+        email = json_data.get("email")
         try:
             current_user = User.find_by_email(email)
             if current_user:
-                return {'message': 'Email already used'}, 409
-            new_user = User(firstname=data.get('name'), lastname=data.get('lastName'),
-                            email=email, password=data.get('password'))
+                abort(409, message="Email already used")
+            new_user = User(
+                firstname=json_data.get("name"),
+                lastname=json_data.get("lastName"),
+                email=email,
+                password=json_data.get("password"),
+            )
         except EmailNotValidError as e:
-            return {'message': f'Invalid email address: {e}'}, 400
-        except AssertionError as e:
-            return {'message': str(e)}, 400
+            abort(400, message=f"Invalid email address: {e}")
+        except ValueError as e:
+            abort(400, message=str(e))
         db.session.add(new_user)
         db.session.commit()
 
         # what if exceptions happens below and user is saved to db, but no link and token sent?
         response = generate_jwt_tokens(new_user)
         response.status_code = 201
+        response.headers["Location"] = url_for(
+            "users.user", user_id=new_user.id, _external=True
+        )
         EmailService().send_activation_link(new_user)
         return response
 
 
-@auth.route("/login")
-class Login(Resource):
-    @auth.expect(login_model)
-    @auth.doc(responses={401: 'Invalid email or password'}, security=[])
-    @auth.response(200, 'User logged in', access_token_model)
-    def post(self):
-        """Login user. Sets refresh token cookie."""
-        data = request.get_json()
+class Login(MethodView):
+    @auth.input(LoginSchema)
+    @auth.output(AccessTokenSchema)
+    @auth.doc(
+        responses={401: "Invalid email or password", 200: "User logged in"},
+    )
+    def post(self, json_data):
+        """Login user. Set refresh token cookie."""
+        json_data = request.get_json()
         try:
-            db_user = User.find_by_email(data.get('email'))
-        except EmailNotValidError as e:
-            return {"message": "Invalid username or password"}, 401
-        if db_user and db_user.check_password(data.get('password')):
+            db_user = User.find_by_email(json_data.get("email"))
+        except EmailNotValidError:
+            abort(401, message="Invalid username or password")
+        if db_user and db_user.check_password(json_data.get("password")):
             return generate_jwt_tokens(db_user)
-        return {"message": "Invalid username or password"}, 401
+        abort(401, message="Invalid username or password")
 
 
-@auth.route('/refresh')
-class Refresh(Resource):
+class Refresh(MethodView):
     @jwt_required(refresh=True)
-    @auth.doc(security='jwt_refresh_token')
-    @auth.response(200, 'Access token refreshed', access_token_model)
-    def get(self):
+    @auth.output(AccessTokenSchema)
+    @auth.doc(
+        security=["jwt_refresh_token", "csrf_refresh_token"],
+        responses={200: "Access token refreshed"},
+    )
+    def post(self):
         """Refresh access token"""
         identity = get_jwt_identity()
         token = get_jwt()
         access_token = create_access_token(identity=identity)
-        ActiveDevice.query.filter_by(refresh_jti=token['jti']).update(
+        ActiveDevice.query.filter_by(refresh_jti=token["jti"]).update(
             {"access_jti": get_jti(access_token)}
         )
         db.session.commit()
-        return jsonify({'access_token': access_token})
+        return jsonify({"access_token": access_token})
 
 
-@auth.route('/logout')
-class Logout(Resource):
-    # verify_type=False should allow to log out with both access and refresh tokens,
-    # but it doesn't work as expected and returns 401 when there is only refresh token
-    @jwt_required(verify_type=False)
-    @auth.doc(security=['jwt_access_token', 'jwt_refresh_token'])
+class Logout(MethodView):
+    @jwt_required()
+    @auth.doc(security=["jwt_access_token"])
     def post(self):
-        """Log out from current device. Unsets refresh token cookie."""
+        """Log out from the current device. Unset refresh token cookie."""
         token = get_jwt()
-        if token['type'] == 'access':
-            ActiveDevice.query.filter_by(access_jti=token['jti']).delete()
+        if token["type"] == "access":
+            ActiveDevice.query.filter_by(access_jti=token["jti"]).delete()
         else:
-            ActiveDevice.query.filter_by(refresh_jti=token['jti']).delete()
+            ActiveDevice.query.filter_by(refresh_jti=token["jti"]).delete()
         db.session.commit()
-        response = jsonify({'message': 'Logged out'})
+        response = jsonify({"message": "Logged out"})
         unset_jwt_cookies(response)
         return response
 
 
-@auth.route('/activate/<string:activation_code>')
-class Activate(Resource):
-    @auth.doc(security=[], responses={404: 'User not found', 200: 'User activated'})
-    def get(self, activation_code):
-        """Activate user account"""
+class Activate(MethodView):
+    @auth.doc(
+        security=[], responses={400: "Invalid activation code", 200: "User activated"}
+    )
+    def post(self, activation_code):
+        """Activate the user's account"""
         user = User.query.filter_by(activation_code=activation_code).first()
         if user and not user.is_activated:
             user.is_activated = True
             db.session.commit()
-            return {'message': 'User activated'}
-        return {'message': 'User not found'}, 404
+            return {"message": "User activated"}
+        abort(400, message="Invalid activation code")
 
 
-@auth.route('/send-activation-link')
-class SendActivationLink(Resource):
+class SendActivationLink(MethodView):
     @jwt_required()
-    @auth.doc(responses={409: 'User already activated', 202: 'Activation link sent'})
+    @auth.doc(
+        responses={409: "User already activated", 202: "Activation link sent"},
+        security=["jwt_access_token"],
+    )
     def post(self):
         """Request activation link"""
         current_user = get_current_user()
         if current_user.is_activated:
-            return {'message': 'User already activated'}, 409
+            abort(409, message="User already activated")
         EmailService().send_activation_link(current_user)
         return {}, 202
 
 
-@auth.route('/whoami')
-class WhoAmI(Resource):
+class WhoAmI(MethodView):
     @jwt_required()
-    @auth.marshal_with(user_model)
+    @auth.output(WhoAmISchema)
+    @auth.doc(security="jwt_access_token")
     def get(self):
         """Get current user info"""
         return get_current_user()
 
 
-@auth.route('/devices')  # to do make consistent case(camelCase or snake_case) in api
-class Devices(Resource):
+class Devices(MethodView):
     @jwt_required()
-    @auth.marshal_list_with(device_model)
+    @auth.output(DeviceSchema(many=True))
+    @auth.doc(security="jwt_access_token")
     def get(self):
         """Get all active devices"""
         return get_current_user().active_devices
 
     @jwt_required()
+    @auth.doc(
+        security="jwt_access_token", responses={204: "Logged out from all devices"}
+    )
     def delete(self):
         """Log out from all devices"""
         identity = get_jwt_identity()
         ActiveDevice.query.filter_by(user_id=int(identity)).delete()
         db.session.commit()
-        response = jsonify({'message': 'Logged out from all devices'})
+        response = make_response("", 204)
         unset_jwt_cookies(response)
         return response
 
 
-@auth.route('/devices/<int:device_id>')
-class Device(Resource):
+class Device(MethodView):
     @jwt_required()
-    @auth.expect(password_model)
-    @auth.doc(responses={401: 'Invalid password', 404: 'Device not found', 204: 'Device logged out'})
-    def delete(self, device_id):
-        """Log out from device"""
+    @auth.input(PasswordSchema)
+    @auth.doc(
+        responses={
+            401: "Invalid password",
+            404: "Device not found",
+            204: "Device logged out",
+        },
+        security=["jwt_access_token"],
+    )
+    def delete(self, device_id, json_data):
+        """Log out from the device"""
         current_user = get_current_user()
-        password = request.get_json().get('password')
+        password = json_data.get("password")
         if not current_user.check_password(password):
-            return {'message': 'Invalid password'}, 401
-        device = ActiveDevice.query.filter_by(id=device_id, user_id=current_user.id).first()
+            abort(401, message="Invalid password")
+        device = ActiveDevice.query.filter_by(
+            id=device_id, user_id=current_user.id
+        ).first()
         if device:
             db.session.delete(device)
             db.session.commit()
             return {}, 204
-        return {'message': 'Device not found'}, 404
+        abort(404, message="Device not found")
 
 
-@auth.route('/password')
-class ChangePassword(Resource):
+class ChangePassword(MethodView):
     @jwt_required()
-    def patch(self):
+    @auth.doc(
+        security="jwt_access_token",
+        responses={204: "Password changed", 400: "Invalid old or new password"},
+    )
+    def put(self):
         """Change password"""
         return {}, 501
 
 
-@auth.route('/password/reset-request')
-class ResetPasswordRequest(Resource):
-    @jwt_required()
+class ResetPasswordRequest(MethodView):
+    @auth.doc(responses={202: "Password reset link sent"})
     def post(self):
-        """Request password reset"""
+        """Request email with a secret code for password reset"""
         return {}, 501
 
 
-@auth.route('/password/reset')
-class ResetPassword(Resource):
-    @jwt_required()
+class ResetPassword(MethodView):
+    @auth.doc(
+        responses={204: "Password changed", 400: "Invalid secret code or new password"}
+    )
     def post(self):
-        """Reset password"""
+        """Reset password using a secret code from email and pass a new password"""
         return {}, 501
+
+
+# to do make consistent case(camelCase or snake_case) in api
+auth.add_url_rule("/register", view_func=Register.as_view("register"))
+auth.add_url_rule("/login", view_func=Login.as_view("login"))
+auth.add_url_rule("/refresh", view_func=Refresh.as_view("refresh"))
+auth.add_url_rule("/logout", view_func=Logout.as_view("logout"))
+auth.add_url_rule(
+    "/activate/<uuid:activation_code>", view_func=Activate.as_view("activate")
+)
+auth.add_url_rule(
+    "/activation-link-email",
+    view_func=SendActivationLink.as_view("send_activation_link"),
+)
+auth.add_url_rule("/whoami", view_func=WhoAmI.as_view("whoami"))
+auth.add_url_rule("/devices", view_func=Devices.as_view("all_devices"))
+auth.add_url_rule("/devices/<int:device_id>", view_func=Device.as_view("device"))
+auth.add_url_rule("/password", view_func=ChangePassword.as_view("change_password"))
+auth.add_url_rule(
+    "/password/reset-request",
+    view_func=ResetPasswordRequest.as_view("reset_password_request"),
+)
+auth.add_url_rule("/password/reset", view_func=ResetPassword.as_view("reset_password"))

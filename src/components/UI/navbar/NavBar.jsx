@@ -9,10 +9,13 @@ const NavBar = () => {
   }
   return (
     <div className="navbar">
-      {USER.isAuth? <div className="navbar__linkers">     
+      {USER.isAuth}
+      {USER.isAuth? <div className="navbar__linkers"> 
+
       <Link to="/about">About</Link>
       <Link to="/posts">Posts</Link>
-      <Link onClick={logout} to="/log">Logout</Link></div>
+      <Link onClick={logout} to="/log">Logout</Link>
+      <h3>{USER.user.name}</h3></div>
       :null
       }
     

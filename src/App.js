@@ -10,23 +10,21 @@ import { useContext, useEffect } from "react";
 import React from "react";
 import { UserContext } from ".";
 import { observer } from "mobx-react-lite";
+import AuthCheck from "./utils/Authcheck";
 
 function App() {
   const { USER } = useContext(UserContext);
 
-  useEffect(() => {
-    USER.checkAuth(); 
-  }, []);
 
   return (
     <BrowserRouter>
+      <AuthCheck/>
       <NavBar />
       <Routes> 
-       
         <Route
           path="*"
           element={
-            USER.iaAuth ? (
+            USER.isAuth ? (
               <Routes>
                 <Route path="/about" element={<About />} />
                 <Route path="/posts" element={<Post />} />
@@ -34,7 +32,7 @@ function App() {
                 <Route path="*" element={<Post />} />
               </Routes>
             ) : (
-              <Navigate to="/reg" replace />
+              <Navigate to="/log" replace />
             )
           }
         />

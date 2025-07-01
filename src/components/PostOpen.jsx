@@ -1,23 +1,21 @@
-import React, {useState} from 'react';
-import FormButton from './UI/button/button';
-import {useNavigate} from "react-router-dom";
-const PostOpen = function(probs){   
-    let post = probs.post;
-    const route = useNavigate();
-    return <div className='post'>      
-        <div className="post__content">
-            <h3>{post.id}. {post.title}</h3>
-            <div>
-                {post.body}
-            </div>
-        </div> 
+import React from 'react';
 
-        {/*
-        <div className="post__btn">
-
-            <FormButton onClick={()=>route(`/posts/${post.id}`)} className="about_post">Розгорнути</FormButton>
-            <FormButton onClick={()=>probs.remove(post)}>Виконано</FormButton>
-        </div>*/}
+const PostOpen = ({ post }) => {
+  return (
+    <div className='post'>
+      <div className="post__content">
+        <h3>{post.id}. {post.title}</h3>
+        <p><strong>Автор ID:</strong> {post.authorId}</p>
+        <p><strong>Ім'я автора:</strong> {post.authorName}</p>
+        <p><strong>Дата створення:</strong> {post.createdAt}</p>
+        <p><strong>Координати:</strong> {post.latitude}, {post.longitude}</p>
+        <p><strong>Країна:</strong> {post.country}</p>
+        <p><strong>Область:</strong> {post.state}</p>
+        <p><strong>Населений пункт:</strong> {post.locality}</p>
+        <p><strong>Опис:</strong> {post.body}</p>
+      </div>
     </div>
-}
-export default PostOpen
+  );
+};
+
+export default PostOpen;

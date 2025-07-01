@@ -12,4 +12,7 @@ export default class AuthService{
     static async logout(){
         return $api.post('api/logout')
     }
+    static async getUser(){
+        return $api.get('api/whoami')
+    }
 }

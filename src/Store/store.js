@@ -1,5 +1,7 @@
-import { makeAutoObservable } from "mobx"
+import { makeAutoObservable, toJS } from "mobx"
 import AuthService from "../Services/AuthService";
+import { getCookie } from "../utils/cookies";
+
 import axios from 'axios'
 export default class USER_INFO{
     user = {}
@@ -12,27 +14,32 @@ export default class USER_INFO{
         this.isAuth = bool;
     }
 
-    setUser(user){
-        this.user = user;
+    setUser(userd){
+        this.user = { ...userd };
+        console.log(toJS(this.user))
+        console.log(this.user.name)
     }
 
     async login(email, password){
         try {
-           const response = await AuthService.login(email, password); 
-           localStorage.setItem('token', response.data.accessToken);
-           this.setAuth(true);
-           this.setUser(response.data.user)
+           const response = await axios.post(`api/login`, {email, password}); 
+           
+           localStorage.setItem('token', response.data.access_token);
+           console.log(`Bearer ${localStorage.getItem('token')}`)
+            await this.getUserData();
+            return 200;
         } catch (error) {
             console.log(error.response?.data?.messege)
         }
     }
 
     async regist(name, lastName, city, email, password){
+
         try {
            const response = await AuthService.regist(name, lastName, city, email, password); 
            localStorage.setItem('token', response.data.accessToken);
-           this.setAuth(true);
-           this.setUser(response.data.user)
+           console.log(response)
+           this.getUserData()
         } catch (error) {
             console.log(error.response?.data?.messege)
         }
@@ -48,24 +55,33 @@ export default class USER_INFO{
             console.log(error.response?.data?.messege)
         }
     }
+    async getUserData(){
+        try {
+            const response = await AuthService.getUser();
+            console.log("Auth Response:", response);
+            await this.setAuth(true);
+            await this.setUser(response.data); 
+
+        } catch (error) {
+            console.log(error);
+        }   
+    }
 
     async checkAuth() {
         try {
-          const response = await axios.get(`api/refresh`, {
-            withCredentials: true,
+          const csrfToken = getCookie('csrf_refresh_token');
+          const response = await axios.post(`api/refresh`, {}, {
+              withCredentials: true,
+              headers: {
+                'X-CSRF-TOKEN': csrfToken
+              }
           });
-      
-          console.log("Auth Response:", response);
-      
-          // Зберігаємо токен у LocalStorage
-          localStorage.setItem("token", response.data.accessToken);
-      
-          // Оновлюємо стан автентифікації та користувача
-          this.setAuth(true);
-          this.setUser(response.data.user);
-        } catch (error) {
-          console.error("Authentication failed:", error?.response?.data?.message || error.message);
+          localStorage.setItem('token', response.data.access_token);
+          await this.getUserData();
+        } catch (e) {
+          console.log('НЕ АВТОРИЗОВАНИЙ Користувач: ', e);
         }
       }
+      
       
 }

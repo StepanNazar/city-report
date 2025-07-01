@@ -1,20 +1,27 @@
 import datetime
 import os
+import re
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
-    SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS") or False
+    SQLALCHEMY_TRACK_MODIFICATIONS = (
+        os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS") or False
+    )
     JWT_COOKIE_SECURE = False
+    JWT_COOKIE_SAMESITE = "Strict"
     JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(
-        minutes=os.environ.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES") or 15)
+        minutes=float(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES_MINUTES") or 15)
+    )
     JWT_REFRESH_TOKEN_EXPIRES = datetime.timedelta(
-        days=os.environ.get("JWT_REFRESH_TOKEN_EXPIRES_DAYS") or 30)
-    JWT_TOKEN_LOCATION = ["cookies", "headers"]
-    # path to which cookies are sent. might be changed to connect to a frontend
+        days=float(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES_DAYS") or 30)
+    )
+    JWT_TOKEN_LOCATION = ("cookies", "headers")
+    # path to which cookies are sent
     JWT_REFRESH_COOKIE_PATH = "/refresh"
+    CORS_ORIGINS = re.compile(r"^https?://(localhost|127\.0\.0\.1):3000$")
 
 
 class DevConfig(Config):
