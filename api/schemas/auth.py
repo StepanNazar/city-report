@@ -32,6 +32,9 @@ class RegisterSchema(LoginSchema):
     lastName = String(
         required=True, metadata={"example": "Doe", "description": "last name"}
     )
+    city = String(
+        metadata={"description": "added temporarily for compatibility with frontend"}
+    )
 
 
 class WhoAmISchema(Schema):
