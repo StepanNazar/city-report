@@ -1,30 +1,50 @@
-from apiflask import APIBlueprint
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 
-from api.schemas.posts import PostSchema
+from api.routes.common import CustomAPIBlueprint
+from api.schemas.comments import (
+    CommentOutPaginationSchema,
+    CommentOutSchema,
+    CommentSortingSchema,
+)
+from api.schemas.common import (
+    JSONPatchSchema,
+    TextBodySchema,
+    merge_schemas,
+    pagination_query_schema,
+)
+from api.schemas.posts import (
+    PostInSchema,
+    PostOutPaginationSchema,
+    PostOutSchema,
+    PostSortingFilteringSchema,
+)
+from api.schemas.solutions import (
+    SolutionInSchema,
+    SolutionOutPaginationSchema,
+    SolutionOutSchema,
+    SolutionSortingFilteringSchema,
+)
+from api.schemas.users import ReactionSchema
 
-posts = APIBlueprint("posts", __name__, tag="Posts operations", url_prefix="/")
+posts = CustomAPIBlueprint("posts", __name__, tag="Posts operations", url_prefix="/")
 
 
 class Posts(MethodView):
-    @posts.output(PostSchema(many=True))
-    def get(self):
+    @posts.input(
+        merge_schemas(
+            pagination_query_schema(default_per_page=50), PostSortingFilteringSchema
+        ),
+        location="query",
+    )
+    @posts.output(PostOutPaginationSchema)
+    def get(self, query_data):
         """Get all posts"""
         return {}, 501
-        # return [
-        #     {
-        #         "id": 1,
-        #         "authorID": 8,
-        #         "authorName": "John",
-        #         "creationTime": "2025-01-22 22:17",
-        #         "latitude": 45.8548,
-        #         "longitude": 89.6545,
-        #         "title": "Lorem",
-        #     }
-        # ]
 
     @jwt_required()
+    @posts.input(PostInSchema)
+    @posts.output(PostOutSchema, status_code=201)
     @posts.doc(security="jwt_access_token", responses={201: "Post created"})
     def post(self):
         """Create a new post. Activated account required."""
@@ -32,25 +52,14 @@ class Posts(MethodView):
 
 
 class Post(MethodView):
-    @posts.output(PostSchema)
+    @posts.output(PostOutSchema)
     def get(self, post_id):
         """Get a post by ID"""
         return {}, 501
-        # return {
-        #     "id": 1,
-        #     "authorID": 8,
-        #     "authorName": "John",
-        #     "creationTime": "2025-01-22 22:17",
-        #     "latitude": 45.8548,
-        #     "longitude": 89.6545,
-        #     "country": "ukraine",
-        #     "state": "if oblast",
-        #     "locality": "if",
-        #     "title": "Lorem",
-        #     "body": "lorem",
-        # }
 
     @jwt_required()
+    @posts.input(PostInSchema)
+    @posts.output(PostOutSchema)
     @posts.doc(
         security="jwt_access_token", responses={403: "Forbidden", 200: "Post updated"}
     )
@@ -59,6 +68,8 @@ class Post(MethodView):
         return {}, 501
 
     @jwt_required()
+    @posts.input(JSONPatchSchema)
+    @posts.output(PostOutSchema)
     @posts.doc(
         security="jwt_access_token",
         responses={403: "Forbidden", 200: "Post partially updated"},
@@ -78,6 +89,7 @@ class Post(MethodView):
 
 class PostReaction(MethodView):
     @jwt_required()
+    @posts.input(ReactionSchema)
     @posts.doc(security="jwt_access_token", responses={204: "Reaction added/updated"})
     def put(self, post_id):
         """Add or update reaction to the post. Activated account required."""
@@ -92,6 +104,7 @@ class PostReaction(MethodView):
 
 class PostReport(MethodView):
     @jwt_required()
+    @posts.input(TextBodySchema)
     @posts.doc(security="jwt_access_token", responses={201: "Report created"})
     def post(self, post_id):
         """Report post. Activated account required."""
@@ -99,11 +112,17 @@ class PostReport(MethodView):
 
 
 class PostComments(MethodView):
-    def get(self, post_id):
+    @posts.input(
+        merge_schemas(pagination_query_schema(), CommentSortingSchema), location="query"
+    )
+    @posts.output(CommentOutPaginationSchema)
+    def get(self, post_id, query_data):
         """Get comments for post"""
         return {}, 501
 
     @jwt_required()
+    @posts.input(TextBodySchema)
+    @posts.output(CommentOutSchema, status_code=201)
     @posts.doc(security="jwt_access_token", responses={201: "Comment created"})
     def post(self, post_id):
         """Create a new comment for the post. Activated account required."""
@@ -111,11 +130,20 @@ class PostComments(MethodView):
 
 
 class PostSolutions(MethodView):
+    @posts.input(
+        merge_schemas(
+            pagination_query_schema(default_per_page=5), SolutionSortingFilteringSchema
+        ),
+        location="query",
+    )
+    @posts.output(SolutionOutPaginationSchema)
     def get(self, post_id):
         """Get solutions for post"""
         return {}, 501
 
     @jwt_required()
+    @posts.input(SolutionInSchema)
+    @posts.output(SolutionOutSchema, status_code=201)
     @posts.doc(security="jwt_access_token", responses={201: "Solution created"})
     def post(self, post_id):
         """Create a new solution for post. Activated account required."""

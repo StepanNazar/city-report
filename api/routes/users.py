@@ -1,42 +1,85 @@
-from apiflask import APIBlueprint
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 
-users = APIBlueprint("users", __name__, tag="Users operations", url_prefix="/")
+from api.routes.common import CustomAPIBlueprint
+from api.schemas.comments import CommentOutPaginationSchema, CommentSortingSchema
+from api.schemas.common import JSONPatchSchema, merge_schemas, pagination_query_schema
+from api.schemas.posts import (
+    PostOutPaginationSchema,
+    PostSortingSchema,
+)
+from api.schemas.solutions import (
+    SolutionOutPaginationSchema,
+    SolutionSortingFilteringSchema,
+)
+from api.schemas.users import (
+    UserBanInSchema,
+    UserBanOutPaginationSchema,
+    UserBanOutSchema,
+    UserBanPatchSchema,
+    UserBanSortingFilteringSchema,
+    UserOutSchema,
+    UserReactionOutPaginationSchema,
+    UserReactionSortingFilteringSchema,
+)
+
+users = CustomAPIBlueprint("users", __name__, tag="Users operations", url_prefix="/")
 
 
 class User(MethodView):
+    @users.output(UserOutSchema)
     def get(self, user_id):
         """Get user profile"""
         return {}, 501
 
 
 class UserPosts(MethodView):
-    def get(self, user_id):
+    @users.input(
+        merge_schemas(pagination_query_schema(), PostSortingSchema),
+        location="query",
+    )
+    @users.output(PostOutPaginationSchema)
+    def get(self, user_id, query_data):
         """Get user posts"""
         return {}, 501
 
 
 class UserSolutions(MethodView):
-    def get(self, user_id):
+    @users.input(
+        merge_schemas(pagination_query_schema(), SolutionSortingFilteringSchema),
+        location="query",
+    )
+    @users.output(SolutionOutPaginationSchema)
+    def get(self, user_id, query_data):
         """Get user solutions"""
         return {}, 501
 
 
 class UserComments(MethodView):
-    def get(self, user_id):
+    @users.input(
+        merge_schemas(pagination_query_schema(), CommentSortingSchema), location="query"
+    )
+    @users.output(CommentOutPaginationSchema)
+    def get(self, user_id, query_data):
         """Get user comments"""
         return {}, 501
 
 
 class UserReactions(MethodView):
-    def get(self, user_id):
-        """Get user reactions"""
+    @users.input(
+        merge_schemas(pagination_query_schema(), UserReactionSortingFilteringSchema),
+        location="query",
+    )
+    @users.output(UserReactionOutPaginationSchema)
+    def get(self, user_id, query_data):
+        """Get user reactions. Ordered by reaction time."""
         return {}, 501
 
 
 class UserMe(MethodView):
     @jwt_required()
+    @users.input(JSONPatchSchema)
+    @users.output(UserOutSchema)
     @users.doc(security="jwt_access_token")
     def patch(self):
         """Edit the current user profile using JSON Patch."""
@@ -45,6 +88,11 @@ class UserMe(MethodView):
 
 class UserBans(MethodView):
     @jwt_required()
+    @users.input(
+        merge_schemas(pagination_query_schema(), UserBanSortingFilteringSchema),
+        location="query",
+    )
+    @users.output(UserBanOutPaginationSchema)
     @users.doc(
         security="jwt_access_token",
         responses={200: "User bans retrieved", 403: "Forbidden"},
@@ -54,6 +102,8 @@ class UserBans(MethodView):
         return {}, 501
 
     @jwt_required()
+    @users.input(UserBanInSchema)
+    @users.output(UserBanOutSchema)
     @users.doc(
         security="jwt_access_token",
         responses={201: "User ban created", 403: "Forbidden"},
@@ -65,18 +115,21 @@ class UserBans(MethodView):
 
 class UserBan(MethodView):
     @jwt_required()
+    @users.output(UserBanOutSchema)
     @users.doc(
         security="jwt_access_token",
-        responses={204: "User ban retrieved", 403: "Forbidden"},
+        responses={200: "User ban retrieved", 403: "Forbidden"},
     )
     def get(self, user_id, ban_id):
         """Get the specific user's ban. Only for admins and the user themselves."""
         return {}, 501
 
     @jwt_required()
+    @users.input(UserBanPatchSchema)
+    @users.output(UserBanOutSchema)
     @users.doc(
         security="jwt_access_token",
-        responses={204: "User ban deleted", 403: "Forbidden"},
+        responses={200: "User ban edited", 403: "Forbidden"},
     )
     def patch(self, user_id, ban_id):
         """Partially update the user's ban. Only for admins."""

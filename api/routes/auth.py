@@ -1,6 +1,6 @@
-from apiflask import APIBlueprint, abort
+from apiflask import abort
 from email_validator import EmailNotValidError
-from flask import Response, jsonify, request
+from flask import Response, jsonify, make_response, request, url_for
 from flask.views import MethodView
 from flask_jwt_extended import (
     create_access_token,
@@ -16,17 +16,20 @@ from flask_jwt_extended import (
 
 from api import db, jwt
 from api.models import ActiveDevice, User
+from api.routes.common import CustomAPIBlueprint
 from api.schemas.auth import (
     AccessTokenSchema,
     DeviceSchema,
     LoginSchema,
     PasswordSchema,
     RegisterSchema,
-    UserSchema,
+    WhoAmISchema,
 )
 from api.services import EmailService
 
-auth = APIBlueprint("auth", __name__, tag="Authentication operations", url_prefix="/")
+auth = CustomAPIBlueprint(
+    "auth", __name__, tag="Authentication operations", url_prefix="/"
+)
 
 
 @jwt.user_lookup_loader
@@ -75,7 +78,6 @@ class Register(MethodView):
             409: "Email already used",
             201: "User registered",
         },
-        security=[],
     )
     def post(self, json_data):
         """Register a new user. Set refresh token cookie. Send the activation link."""
@@ -100,6 +102,9 @@ class Register(MethodView):
         # what if exceptions happens below and user is saved to db, but no link and token sent?
         response = generate_jwt_tokens(new_user)
         response.status_code = 201
+        response.headers["Location"] = url_for(
+            "users.user", user_id=new_user.id, _external=True
+        )
         EmailService().send_activation_link(new_user)
         return response
 
@@ -108,7 +113,7 @@ class Login(MethodView):
     @auth.input(LoginSchema)
     @auth.output(AccessTokenSchema)
     @auth.doc(
-        responses={401: "Invalid email or password", 200: "User logged in"}, security=[]
+        responses={401: "Invalid email or password", 200: "User logged in"},
     )
     def post(self, json_data):
         """Login user. Set refresh token cookie."""
@@ -142,10 +147,8 @@ class Refresh(MethodView):
 
 
 class Logout(MethodView):
-    # verify_type=False should allow to log out with both access and refresh tokens,
-    # but it doesn't work as expected and returns 401 when there is only refresh token
-    @jwt_required(verify_type=False)
-    @auth.doc(security=["jwt_access_token", "jwt_refresh_token"])
+    @jwt_required()
+    @auth.doc(security=["jwt_access_token"])
     def post(self):
         """Log out from the current device. Unset refresh token cookie."""
         token = get_jwt()
@@ -160,7 +163,9 @@ class Logout(MethodView):
 
 
 class Activate(MethodView):
-    @auth.doc(security=[], responses={404: "User not found", 200: "User activated"})
+    @auth.doc(
+        security=[], responses={400: "Invalid activation code", 200: "User activated"}
+    )
     def post(self, activation_code):
         """Activate the user's account"""
         user = User.query.filter_by(activation_code=activation_code).first()
@@ -168,7 +173,7 @@ class Activate(MethodView):
             user.is_activated = True
             db.session.commit()
             return {"message": "User activated"}
-        abort(404, message="User not found")
+        abort(400, message="Invalid activation code")
 
 
 class SendActivationLink(MethodView):
@@ -188,7 +193,7 @@ class SendActivationLink(MethodView):
 
 class WhoAmI(MethodView):
     @jwt_required()
-    @auth.output(UserSchema)
+    @auth.output(WhoAmISchema)
     @auth.doc(security="jwt_access_token")
     def get(self):
         """Get current user info"""
@@ -204,13 +209,15 @@ class Devices(MethodView):
         return get_current_user().active_devices
 
     @jwt_required()
-    @auth.doc(security="jwt_access_token")
+    @auth.doc(
+        security="jwt_access_token", responses={204: "Logged out from all devices"}
+    )
     def delete(self):
         """Log out from all devices"""
         identity = get_jwt_identity()
         ActiveDevice.query.filter_by(user_id=int(identity)).delete()
         db.session.commit()
-        response = jsonify({"message": "Logged out from all devices"})
+        response = make_response("", 204)
         unset_jwt_cookies(response)
         return response
 

@@ -47,7 +47,6 @@ class User(db.Model):
 
     def set_password(self, password: str) -> None:
         # prohibit non-ASCII characters?
-        # to do: replace assert with raise because assert is debug-only
         if len(password) < PASSWORD_MIN_LENGTH:
             raise ValueError(
                 f"Password must be at least {PASSWORD_MIN_LENGTH} characters long"

@@ -1,18 +1,35 @@
-from apiflask import APIBlueprint
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 
-solutions = APIBlueprint(
+from api.routes.common import CustomAPIBlueprint
+from api.schemas.comments import (
+    CommentOutPaginationSchema,
+    CommentOutSchema,
+    CommentSortingSchema,
+)
+from api.schemas.common import (
+    JSONPatchSchema,
+    TextBodySchema,
+    merge_schemas,
+    pagination_query_schema,
+)
+from api.schemas.solutions import SolutionInSchema, SolutionOutSchema
+from api.schemas.users import ReactionSchema
+
+solutions = CustomAPIBlueprint(
     "solutions", __name__, tag="Solutions operations", url_prefix="/"
 )
 
 
 class Solution(MethodView):
+    @solutions.output(SolutionOutSchema)
     def get(self, solution_id):
         """Get the solution by ID"""
         return {}, 501
 
     @jwt_required()
+    @solutions.input(SolutionInSchema)
+    @solutions.output(SolutionOutSchema)
     @solutions.doc(
         security="jwt_access_token",
         responses={200: "Solution updated", 403: "Forbidden"},
@@ -22,6 +39,8 @@ class Solution(MethodView):
         return {}, 501
 
     @jwt_required()
+    @solutions.input(JSONPatchSchema)
+    @solutions.output(SolutionOutSchema)
     @solutions.doc(
         security="jwt_access_token",
         responses={200: "Solution partially updated", 403: "Forbidden"},
@@ -62,6 +81,7 @@ class SolutionApproval(MethodView):
 
 class SolutionReaction(MethodView):
     @jwt_required()
+    @solutions.input(ReactionSchema)
     @solutions.doc(
         security="jwt_access_token", responses={204: "Reaction added/updated"}
     )
@@ -78,6 +98,7 @@ class SolutionReaction(MethodView):
 
 class SolutionReport(MethodView):
     @jwt_required()
+    @solutions.input(TextBodySchema)
     @solutions.doc(security="jwt_access_token", responses={201: "Report created"})
     def post(self, solution_id):
         """Report solution. Activated account required."""
@@ -85,11 +106,17 @@ class SolutionReport(MethodView):
 
 
 class SolutionComments(MethodView):
-    def get(self, solution_id):
+    @solutions.input(
+        merge_schemas(pagination_query_schema(), CommentSortingSchema), location="query"
+    )
+    @solutions.output(CommentOutPaginationSchema)
+    def get(self, solution_id, query_data):
         """Get comments for the solution"""
         return {}, 501
 
     @jwt_required()
+    @solutions.input(TextBodySchema)
+    @solutions.output(CommentOutSchema, status_code=201)
     @solutions.doc(security="jwt_access_token", responses={201: "Comment created"})
     def post(self, solution_id):
         """Create a new comment for the solution. Activated account required."""

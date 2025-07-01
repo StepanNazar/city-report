@@ -1,12 +1,284 @@
 {
   "components": {
     "schemas": {
+      "AIComment": {
+        "properties": {
+          "body": {
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "postId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "AIDataSuggestion": {
+        "properties": {
+          "authorFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "authorId": {
+            "type": "integer"
+          },
+          "authorLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "body": {
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "localityId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "AIDataSuggestionPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AIDataSuggestion"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "AIPrompt": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
+      "APIKey": {
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "apiKey"
+        ],
+        "type": "object"
+      },
       "AccessToken": {
         "properties": {
           "access_token": {
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "CommentOut": {
+        "properties": {
+          "authorFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "authorId": {
+            "type": "integer"
+          },
+          "authorLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "body": {
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "dislikes": {
+            "type": "integer"
+          },
+          "editedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "likes": {
+            "type": "integer"
+          },
+          "relatedId": {
+            "type": "integer"
+          },
+          "relatedType": {
+            "enum": [
+              "comment",
+              "solution",
+              "post"
+            ],
+            "type": "string"
+          },
+          "replies": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CommentOutPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CommentOut"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Country": {
+        "properties": {
+          "approvedSolutions": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "address.country"
+          },
+          "posts": {
+            "type": "integer"
+          },
+          "states": {
+            "type": "integer"
+          },
+          "users": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CountryPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Country"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CreateAdmin": {
+        "properties": {
+          "admin_id": {
+            "type": "integer"
+          },
+          "password": {
+            "example": "Pas$word123",
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          }
+        },
+        "required": [
+          "admin_id",
+          "password"
+        ],
         "type": "object"
       },
       "Device": {
@@ -46,6 +318,155 @@
         },
         "type": "object"
       },
+      "Image": {
+        "properties": {
+          "image": {
+            "format": "binary",
+            "type": "string",
+            "x-maximum": "5 MB"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "type": "object"
+      },
+      "ImageLinkOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "url": {
+            "format": "url",
+            "type": "string",
+            "x-faker": "image.url"
+          }
+        },
+        "type": "object"
+      },
+      "JSONPatch": {
+        "properties": {
+          "from": {
+            "description": "The source path for move/copy operations",
+            "type": "string"
+          },
+          "op": {
+            "description": "The operation to perform",
+            "enum": [
+              "add",
+              "remove",
+              "replace",
+              "move",
+              "copy",
+              "test"
+            ],
+            "type": "string"
+          },
+          "path": {
+            "description": "The path to the target element",
+            "type": "string"
+          },
+          "value": {
+            "description": "The value to be used in the operation"
+          }
+        },
+        "required": [
+          "op",
+          "path"
+        ],
+        "type": "object"
+      },
+      "Locality": {
+        "properties": {
+          "approvedSolutions": {
+            "type": "integer"
+          },
+          "countryId": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "address.city"
+          },
+          "posts": {
+            "type": "integer"
+          },
+          "stateId": {
+            "type": "integer"
+          },
+          "users": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "LocalityIDList": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "LocalityPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Locality"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "LocationNameInput": {
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
       "Login": {
         "properties": {
           "email": {
@@ -66,6 +487,36 @@
         ],
         "type": "object"
       },
+      "PaginationLinks": {
+        "properties": {
+          "first": {
+            "format": "url",
+            "type": "string",
+            "x-faker": "internet.url"
+          },
+          "last": {
+            "format": "url",
+            "type": "string",
+            "x-faker": "internet.url"
+          },
+          "next": {
+            "format": "url",
+            "type": "string",
+            "x-faker": "internet.url"
+          },
+          "prev": {
+            "format": "url",
+            "type": "string",
+            "x-faker": "internet.url"
+          },
+          "self": {
+            "format": "url",
+            "type": "string",
+            "x-faker": "internet.url"
+          }
+        },
+        "type": "object"
+      },
       "Password": {
         "properties": {
           "password": {
@@ -80,24 +531,86 @@
         ],
         "type": "object"
       },
-      "Post": {
+      "PostIn": {
         "properties": {
-          "authorID": {
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "imagesLinks": {
+            "items": {
+              "format": "url",
+              "type": "string",
+              "x-faker": "image.city"
+            },
+            "type": "array"
+          },
+          "latitude": {
+            "type": "number",
+            "x-faker": "address.latitude"
+          },
+          "localityId": {
+            "type": "string",
+            "x-faker": "address.city"
+          },
+          "longitude": {
+            "type": "number",
+            "x-faker": "address.longitude"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.sentences"
+          }
+        },
+        "required": [
+          "body",
+          "latitude",
+          "localityId",
+          "longitude",
+          "title"
+        ],
+        "type": "object"
+      },
+      "PostOut": {
+        "properties": {
+          "authorId": {
             "type": "integer"
+          },
+          "authorLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
           },
           "authorName": {
             "type": "string",
             "x-faker": "name.firstName"
           },
-          "body": {
-            "type": "string",
-            "x-faker": "lorem.paragraphs"
+          "comments": {
+            "type": "integer"
           },
           "country": {
             "type": "string",
             "x-faker": "address.country"
           },
-          "creationTime": {
+          "countryId": {
+            "type": "string",
+            "x-faker": "address.country"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "dislikes": {
+            "type": "integer"
+          },
+          "editedAt": {
             "format": "date-time",
             "type": "string",
             "x-faker": "date.recent"
@@ -105,27 +618,202 @@
           "id": {
             "type": "integer"
           },
+          "imagesLinks": {
+            "items": {
+              "format": "url",
+              "type": "string",
+              "x-faker": "image.city"
+            },
+            "type": "array"
+          },
           "latitude": {
-            "type": "string",
+            "type": "number",
             "x-faker": "address.latitude"
+          },
+          "likes": {
+            "type": "integer"
           },
           "locality": {
             "type": "string",
             "x-faker": "address.city"
           },
-          "longitude": {
+          "localityId": {
             "type": "string",
+            "x-faker": "address.city"
+          },
+          "longitude": {
+            "type": "number",
             "x-faker": "address.longitude"
           },
           "state": {
             "type": "string",
             "x-faker": "address.state"
           },
+          "stateId": {
+            "type": "string",
+            "x-faker": "address.state"
+          },
           "title": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string",
             "x-faker": "lorem.sentences"
           }
         },
+        "required": [
+          "countryId",
+          "latitude",
+          "localityId",
+          "longitude",
+          "stateId",
+          "title"
+        ],
+        "type": "object"
+      },
+      "PostOut1": {
+        "properties": {
+          "authorId": {
+            "type": "integer"
+          },
+          "authorLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "authorName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "comments": {
+            "type": "integer"
+          },
+          "country": {
+            "type": "string",
+            "x-faker": "address.country"
+          },
+          "countryId": {
+            "type": "string",
+            "x-faker": "address.country"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "dislikes": {
+            "type": "integer"
+          },
+          "editedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "imagesLinks": {
+            "items": {
+              "format": "url",
+              "type": "string",
+              "x-faker": "image.city"
+            },
+            "type": "array"
+          },
+          "latitude": {
+            "type": "number",
+            "x-faker": "address.latitude"
+          },
+          "likes": {
+            "type": "integer"
+          },
+          "locality": {
+            "type": "string",
+            "x-faker": "address.city"
+          },
+          "localityId": {
+            "type": "string",
+            "x-faker": "address.city"
+          },
+          "longitude": {
+            "type": "number",
+            "x-faker": "address.longitude"
+          },
+          "state": {
+            "type": "string",
+            "x-faker": "address.state"
+          },
+          "stateId": {
+            "type": "string",
+            "x-faker": "address.state"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.sentences"
+          }
+        },
+        "required": [
+          "body",
+          "countryId",
+          "latitude",
+          "localityId",
+          "longitude",
+          "stateId",
+          "title"
+        ],
+        "type": "object"
+      },
+      "PostOutPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "$ref": "#/components/schemas/PostOut"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Reaction": {
+        "properties": {
+          "reaction": {
+            "enum": [
+              "like",
+              "dislike"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "reaction"
+        ],
         "type": "object"
       },
       "Register": {
@@ -160,26 +848,729 @@
         ],
         "type": "object"
       },
-      "User": {
+      "Report": {
         "properties": {
-          "email": {
-            "format": "email",
+          "body": {
             "type": "string",
-            "x-faker": "internet.email"
+            "x-faker": "lorem.paragraph"
           },
           "id": {
             "type": "integer"
           },
-          "isActivated": {
+          "relatedId": {
+            "type": "integer"
+          },
+          "relatedType": {
+            "enum": [
+              "comment",
+              "solution",
+              "post"
+            ],
+            "type": "string"
+          },
+          "reportTime": {
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "reportedByFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "reportedById": {
+            "type": "integer"
+          },
+          "reportedByLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "reportedUserFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "reportedUserId": {
+            "type": "integer"
+          },
+          "reportedUserLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          }
+        },
+        "type": "object"
+      },
+      "ReportPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Report"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SolutionIn": {
+        "properties": {
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "imagesLinks": {
+            "items": {
+              "format": "url",
+              "type": "string",
+              "x-faker": "image.city"
+            },
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.sentences"
+          }
+        },
+        "required": [
+          "body",
+          "title"
+        ],
+        "type": "object"
+      },
+      "SolutionOut": {
+        "properties": {
+          "approved": {
+            "type": "boolean"
+          },
+          "approvedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          },
+          "authorId": {
+            "type": "integer"
+          },
+          "authorLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "authorName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "comments": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "dislikes": {
+            "type": "integer"
+          },
+          "editedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "imagesLinks": {
+            "items": {
+              "format": "url",
+              "type": "string",
+              "x-faker": "image.city"
+            },
+            "type": "array"
+          },
+          "likes": {
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "lorem.sentences"
+          }
+        },
+        "required": [
+          "body",
+          "title"
+        ],
+        "type": "object"
+      },
+      "SolutionOutPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SolutionOut"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "State": {
+        "properties": {
+          "approvedSolutions": {
+            "type": "integer"
+          },
+          "countryId": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "localities": {
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-faker": "address.state"
+          },
+          "posts": {
+            "type": "integer"
+          },
+          "users": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "StatePagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/State"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "TextBody": {
+        "properties": {
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "type": "object"
+      },
+      "UserBanIn": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.future"
+          },
+          "reason": {
+            "maxLength": 500,
+            "type": "string",
+            "x-faker": "lorem.paragraph"
+          },
+          "userId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expiresAt",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "UserBanOut": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.future"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          },
+          "userEmail": {
+            "type": "string",
+            "x-faker": "internet.email"
+          },
+          "userFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "userId": {
+            "type": "integer"
+          },
+          "userLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          }
+        },
+        "required": [
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "UserBanOut1": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.future"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 500,
+            "type": "string",
+            "x-faker": "lorem.paragraph"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          },
+          "userEmail": {
+            "type": "string",
+            "x-faker": "internet.email"
+          },
+          "userFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "userId": {
+            "type": "integer"
+          },
+          "userLastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          }
+        },
+        "required": [
+          "expiresAt",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "UserBanOutPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "$ref": "#/components/schemas/UserBanOut"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "UserBanPatch": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.future"
+          },
+          "reason": {
+            "maxLength": 500,
+            "type": "string",
+            "x-faker": "lorem.paragraph"
+          }
+        },
+        "required": [
+          "expiresAt",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "UserOut": {
+        "properties": {
+          "comments": {
+            "type": "integer"
+          },
+          "country": {
+            "type": "string",
+            "x-faker": "address.country"
+          },
+          "countryId": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "dislikedComments": {
+            "type": "integer"
+          },
+          "dislikedPosts": {
+            "type": "integer"
+          },
+          "dislikedSolutions": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string",
+            "x-faker": "internet.email"
+          },
+          "firstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "isBanned": {
             "type": "boolean"
           },
           "lastName": {
             "type": "string",
             "x-faker": "name.lastName"
           },
-          "name": {
+          "likedComments": {
+            "type": "integer"
+          },
+          "likedPosts": {
+            "type": "integer"
+          },
+          "likedSolutions": {
+            "type": "integer"
+          },
+          "locality": {
+            "type": "string",
+            "x-faker": "address.city"
+          },
+          "localityId": {
+            "type": "integer"
+          },
+          "posts": {
+            "type": "integer"
+          },
+          "solutions": {
+            "type": "integer"
+          },
+          "state": {
+            "type": "string",
+            "x-faker": "address.state"
+          },
+          "stateId": {
+            "type": "integer"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          }
+        },
+        "type": "object"
+      },
+      "UserOut1": {
+        "properties": {
+          "comments": {
+            "type": "integer"
+          },
+          "country": {
+            "type": "string",
+            "x-faker": "address.country"
+          },
+          "countryId": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "dislikedComments": {
+            "type": "integer"
+          },
+          "dislikedPosts": {
+            "type": "integer"
+          },
+          "dislikedSolutions": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string",
+            "x-faker": "internet.email"
+          },
+          "firstName": {
             "type": "string",
             "x-faker": "name.firstName"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "isBanned": {
+            "type": "boolean"
+          },
+          "lastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "likedComments": {
+            "type": "integer"
+          },
+          "likedPosts": {
+            "type": "integer"
+          },
+          "likedSolutions": {
+            "type": "integer"
+          },
+          "locality": {
+            "type": "string",
+            "x-faker": "address.city"
+          },
+          "localityId": {
+            "type": "integer"
+          },
+          "posts": {
+            "type": "integer"
+          },
+          "profileDescription": {
+            "type": "string",
+            "x-faker": "lorem.paragraphs"
+          },
+          "solutions": {
+            "type": "integer"
+          },
+          "state": {
+            "type": "string",
+            "x-faker": "address.state"
+          },
+          "stateId": {
+            "type": "integer"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
+          }
+        },
+        "type": "object"
+      },
+      "UserOutPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "$ref": "#/components/schemas/UserOut"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "UserReactionOut": {
+        "properties": {
+          "reaction": {
+            "enum": [
+              "like",
+              "dislike"
+            ],
+            "type": "string"
+          },
+          "reactionTime": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.past"
+          },
+          "relatedAuthorFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "relatedAuthorId": {
+            "type": "integer"
+          },
+          "relatedId": {
+            "type": "integer"
+          },
+          "relatedTitle": {
+            "type": "string",
+            "x-faker": "lorem.sentence"
+          },
+          "relatedType": {
+            "enum": [
+              "comment",
+              "solution",
+              "post"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "reaction"
+        ],
+        "type": "object"
+      },
+      "UserReactionOutPagination": {
+        "properties": {
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserReactionOut"
+            },
+            "type": "array"
+          },
+          "itemsPerPage": {
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "totalItems": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
           }
         },
         "type": "object"
@@ -204,6 +1595,51 @@
           },
           "message": {
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "WhoAmI": {
+        "properties": {
+          "country": {
+            "type": "string",
+            "x-faker": "address.country"
+          },
+          "country_id": {
+            "type": "integer"
+          },
+          "email": {
+            "format": "email",
+            "type": "string",
+            "x-faker": "internet.email"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "isActivated": {
+            "type": "boolean"
+          },
+          "lastName": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "locality": {
+            "type": "string",
+            "x-faker": "address.city"
+          },
+          "locality_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
+          "state": {
+            "type": "string",
+            "x-faker": "address.state"
+          },
+          "state_id": {
+            "type": "integer"
           }
         },
         "type": "object"
@@ -254,6 +1690,16 @@
             },
             "description": "User activated"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Invalid activation code"
+          },
           "404": {
             "content": {
               "application/json": {
@@ -262,7 +1708,7 @@
                 }
               }
             },
-            "description": "User not found"
+            "description": "Not found"
           }
         },
         "summary": "Activate the user's account",
@@ -317,12 +1763,35 @@
     },
     "/admins": {
       "get": {
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserOutPagination"
+                }
               }
             },
             "description": "Admins retrieved"
@@ -346,6 +1815,16 @@
               }
             },
             "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -360,14 +1839,35 @@
       },
       "post": {
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdmin"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut1"
+                }
               }
             },
-            "description": "Admin created"
+            "description": "Admin created",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "content": {
@@ -388,6 +1888,16 @@
               }
             },
             "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -395,7 +1905,7 @@
             "jwt_access_token": []
           }
         ],
-        "summary": "Give user admin rights.",
+        "summary": "Give admin rights to user. Password is required.",
         "tags": [
           "Admin operations"
         ]
@@ -473,7 +1983,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOut"
+                }
               }
             },
             "description": "Successful response"
@@ -505,11 +2017,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOut"
+                }
               }
             },
             "description": "Comment updated"
@@ -543,6 +2066,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -614,6 +2147,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Reaction"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "Reaction added/updated"
@@ -637,6 +2179,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -660,13 +2212,63 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -680,6 +2282,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get replies to a comment",
@@ -698,14 +2310,35 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOut"
+                }
               }
             },
-            "description": "Reply created"
+            "description": "Reply created",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "content": {
@@ -726,6 +2359,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -751,13 +2394,17 @@
             }
           }
         ],
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
               }
-            },
+            }
+          }
+        },
+        "responses": {
+          "204": {
             "description": "Report created"
           },
           "401": {
@@ -779,6 +2426,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -792,17 +2449,319 @@
         ]
       }
     },
-    "/devices": {
-      "delete": {
-        "parameters": [],
+    "/countries": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CountryPagination"
+                }
               }
             },
             "description": "Successful response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Get all countries",
+        "tags": [
+          "Locations operations"
+        ]
+      },
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationNameInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Country"
+                }
+              }
+            },
+            "description": "Country created",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Create a new country. Activated account required.",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
+    "/countries/{country_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "country_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Country"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "summary": "Get a country by ID",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
+    "/countries/{country_id}/states": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "country_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatePagination"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Get all states for the country",
+        "tags": [
+          "Locations operations"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "country_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationNameInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
+                }
+              }
+            },
+            "description": "State created for the country",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Create a new state for the country. Activated account required.",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
+    "/devices": {
+      "delete": {
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Logged out from all devices"
           },
           "401": {
             "content": {
@@ -930,6 +2889,58 @@
         ]
       }
     },
+    "/localities": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalityPagination"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Get all localities",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
     "/localities/default/ai-prompt": {
       "get": {
         "parameters": [],
@@ -937,7 +2948,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AIPrompt"
+                }
               }
             },
             "description": "Default AI prompt retrieved"
@@ -975,6 +2988,15 @@
       },
       "put": {
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIPrompt"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -1003,6 +3025,16 @@
               }
             },
             "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1016,12 +3048,58 @@
         ]
       }
     },
-    "/localities/{city_id}/ai-data-suggestions": {
+    "/localities/with-suggestions": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalityIDList"
+                }
+              }
+            },
+            "description": "Localities with AI data suggestions retrieved"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Get localities with AI data suggestions. Only for admins.",
+        "tags": [
+          "AI Comments operations"
+        ]
+      }
+    },
+    "/localities/{locality_id}": {
       "get": {
         "parameters": [
           {
             "in": "path",
-            "name": "city_id",
+            "name": "locality_id",
             "required": true,
             "schema": {
               "type": "integer"
@@ -1032,7 +3110,82 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Locality"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "summary": "Get a locality by ID",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
+    "/localities/{locality_id}/ai-data-suggestions": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "locality_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIDataSuggestionPagination"
+                }
               }
             },
             "description": "AI data suggestions retrieved"
@@ -1066,6 +3219,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1073,7 +3236,7 @@
             "jwt_access_token": []
           }
         ],
-        "summary": "Get AI data suggestions for the city. Only for admins.",
+        "summary": "Get AI data suggestions for the city. Only for admins. Ordered by creation date.",
         "tags": [
           "AI Comments operations"
         ]
@@ -1082,20 +3245,24 @@
         "parameters": [
           {
             "in": "path",
-            "name": "city_id",
+            "name": "locality_id",
             "required": true,
             "schema": {
               "type": "integer"
             }
           }
         ],
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
               }
-            },
+            }
+          }
+        },
+        "responses": {
+          "204": {
             "description": "AI data suggestion sent"
           },
           "401": {
@@ -1117,6 +3284,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1130,12 +3307,12 @@
         ]
       }
     },
-    "/localities/{city_id}/ai-data-suggestions/{suggestion_id}": {
+    "/localities/{locality_id}/ai-data-suggestions/{suggestion_id}": {
       "delete": {
         "parameters": [
           {
             "in": "path",
-            "name": "city_id",
+            "name": "locality_id",
             "required": true,
             "schema": {
               "type": "integer"
@@ -1199,7 +3376,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "city_id",
+            "name": "locality_id",
             "required": true,
             "schema": {
               "type": "integer"
@@ -1218,7 +3395,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AIDataSuggestion"
+                }
               }
             },
             "description": "AI data suggestion retrieved"
@@ -1265,12 +3444,12 @@
         ]
       }
     },
-    "/localities/{city_id}/ai-prompt": {
+    "/localities/{locality_id}/ai-prompt": {
       "get": {
         "parameters": [
           {
             "in": "path",
-            "name": "city_id",
+            "name": "locality_id",
             "required": true,
             "schema": {
               "type": "integer"
@@ -1281,7 +3460,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AIPrompt"
+                }
               }
             },
             "description": "AI prompt retrieved"
@@ -1331,13 +3512,22 @@
         "parameters": [
           {
             "in": "path",
-            "name": "city_id",
+            "name": "locality_id",
             "required": true,
             "schema": {
               "type": "integer"
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIPrompt"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -1376,6 +3566,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1465,9 +3665,6 @@
         "security": [
           {
             "jwt_access_token": []
-          },
-          {
-            "jwt_refresh_token": []
           }
         ],
         "summary": "Log out from the current device. Unset refresh token cookie.",
@@ -1560,20 +3757,84 @@
     },
     "/posts": {
       "get": {
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "likes",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locality_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/Post"
-                  },
-                  "type": "array"
+                  "$ref": "#/components/schemas/PostOutPagination"
                 }
               }
             },
             "description": "Successful response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get all posts",
@@ -1583,14 +3844,35 @@
       },
       "post": {
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostIn"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PostOut1"
+                }
               }
             },
-            "description": "Post created"
+            "description": "Post created",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "content": {
@@ -1601,6 +3883,16 @@
               }
             },
             "description": "Authentication error"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1687,7 +3979,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Post"
+                  "$ref": "#/components/schemas/PostOut1"
                 }
               }
             },
@@ -1720,11 +4012,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JSONPatch"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PostOut1"
+                }
               }
             },
             "description": "Post partially updated"
@@ -1758,6 +4061,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1781,11 +4094,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostIn"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PostOut1"
+                }
               }
             },
             "description": "Post updated"
@@ -1819,6 +4143,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1848,7 +4182,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AIComment"
+                }
               }
             },
             "description": "Successful response"
@@ -1880,7 +4216,24 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APIKey"
+              }
+            }
+          }
+        },
         "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "AI comment already exists"
+          },
           "202": {
             "content": {
               "application/json": {
@@ -1908,6 +4261,26 @@
               }
             },
             "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "AI comment generation already in progress"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -1931,13 +4304,63 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -1951,6 +4374,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get comments for post",
@@ -1969,14 +4402,35 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOut"
+                }
               }
             },
-            "description": "Comment created"
+            "description": "Comment created",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "content": {
@@ -1997,6 +4451,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2068,6 +4532,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Reaction"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "Reaction added/updated"
@@ -2091,6 +4564,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2116,6 +4599,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
@@ -2144,6 +4636,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2167,13 +4669,71 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "likes",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "approved",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SolutionOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -2187,6 +4747,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get solutions for post",
@@ -2205,14 +4775,35 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolutionIn"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SolutionOut"
+                }
               }
             },
-            "description": "Solution created"
+            "description": "Solution created",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "content": {
@@ -2233,6 +4824,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2306,7 +4907,17 @@
                 }
               }
             },
-            "description": "User registered"
+            "description": "User registered",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "content": {
@@ -2347,12 +4958,61 @@
     },
     "/reports": {
       "get": {
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "related_type",
+            "required": false,
+            "schema": {
+              "enum": [
+                "post",
+                "solution",
+                "comment"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ReportPagination"
+                }
               }
             },
             "description": "Reports retrieved"
@@ -2376,6 +5036,16 @@
               }
             },
             "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2383,7 +5053,7 @@
             "jwt_access_token": []
           }
         ],
-        "summary": "Get all reports",
+        "summary": "Get all reports. Ordered by report time.",
         "tags": [
           "Admin operations"
         ]
@@ -2405,7 +5075,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
               }
             },
             "description": "Report retrieved"
@@ -2640,7 +5312,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SolutionOut"
+                }
               }
             },
             "description": "Successful response"
@@ -2672,11 +5346,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JSONPatch"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SolutionOut"
+                }
               }
             },
             "description": "Solution partially updated"
@@ -2710,6 +5395,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2733,11 +5428,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolutionIn"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SolutionOut"
+                }
               }
             },
             "description": "Solution updated"
@@ -2771,6 +5477,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2908,13 +5624,63 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -2928,6 +5694,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get comments for the solution",
@@ -2946,14 +5722,35 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOut"
+                }
               }
             },
-            "description": "Comment created"
+            "description": "Comment created",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "content": {
@@ -2974,6 +5771,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3045,6 +5852,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Reaction"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "Reaction added/updated"
@@ -3068,6 +5884,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3093,6 +5919,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
@@ -3121,6 +5956,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3134,17 +5979,207 @@
         ]
       }
     },
-    "/uploads/images": {
+    "/states": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatePagination"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Get all states",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
+    "/states/{state_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "state_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "summary": "Get a state by ID",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
+    "/states/{state_id}/localities": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "state_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalityPagination"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Get all localities for the state",
+        "tags": [
+          "Locations operations"
+        ]
+      },
       "post": {
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "state_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationNameInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Locality"
+                }
               }
             },
-            "description": "Image uploaded"
+            "description": "Locality created for the state",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "content": {
@@ -3155,6 +6190,91 @@
               }
             },
             "description": "Authentication error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Create a new locality for the state. Activated account required.",
+        "tags": [
+          "Locations operations"
+        ]
+      }
+    },
+    "/uploads/images": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Image"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageLinkOut"
+                }
+              }
+            },
+            "description": "Image uploaded",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3183,8 +6303,11 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
-                "schema": {}
+              "image": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
               }
             },
             "description": "Successful response"
@@ -3209,11 +6332,22 @@
     "/users/me": {
       "patch": {
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JSONPatch"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut1"
+                }
               }
             },
             "description": "Successful response"
@@ -3227,6 +6361,16 @@
               }
             },
             "description": "Authentication error"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3256,7 +6400,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut1"
+                }
               }
             },
             "description": "Successful response"
@@ -3288,13 +6434,116 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "expires_at",
+              "enum": [
+                "created_at",
+                "updated_at",
+                "expires_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_created_at",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_created_at",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_updated_at",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_updated_at",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_expires_at",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_expires_at",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserBanOutPagination"
+                }
               }
             },
             "description": "User bans retrieved"
@@ -3328,6 +6577,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3351,7 +6610,26 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserBanIn"
+              }
+            }
+          }
+        },
         "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserBanOut1"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
           "201": {
             "content": {
               "application/json": {
@@ -3389,6 +6667,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3423,7 +6711,14 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserBanOut1"
+                }
+              }
+            },
             "description": "User ban retrieved"
           },
           "401": {
@@ -3486,9 +6781,25 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserBanPatch"
+              }
+            }
+          }
+        },
         "responses": {
-          "204": {
-            "description": "User ban deleted"
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserBanOut1"
+                }
+              }
+            },
+            "description": "User ban edited"
           },
           "401": {
             "content": {
@@ -3519,6 +6830,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "security": [
@@ -3542,13 +6863,63 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -3562,6 +6933,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get user comments",
@@ -3580,13 +6961,71 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "likes",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locality_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PostOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -3600,6 +7039,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get user posts",
@@ -3618,13 +7067,61 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "related_type",
+            "required": false,
+            "schema": {
+              "enum": [
+                "post",
+                "solution",
+                "comment"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserReactionOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -3638,9 +7135,19 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
-        "summary": "Get user reactions",
+        "summary": "Get user reactions. Ordered by reaction time.",
         "tags": [
           "Users operations"
         ]
@@ -3656,13 +7163,71 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "likes",
+              "enum": [
+                "created_at",
+                "likes",
+                "dislikes",
+                "edited_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "approved",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SolutionOutPagination"
+                }
               }
             },
             "description": "Successful response"
@@ -3676,6 +7241,16 @@
               }
             },
             "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
           }
         },
         "summary": "Get user solutions",
@@ -3692,7 +7267,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/WhoAmI"
                 }
               }
             },
@@ -3735,13 +7310,16 @@
       "name": "Comments operations"
     },
     {
-      "name": "Uploads operations"
+      "name": "Locations operations"
     },
     {
       "name": "Posts operations"
     },
     {
       "name": "Solutions operations"
+    },
+    {
+      "name": "Uploads operations"
     },
     {
       "name": "Users operations"

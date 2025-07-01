@@ -1,28 +1,47 @@
-from apiflask import APIBlueprint
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 
-ai_comments = APIBlueprint(
+from api.routes.common import CustomAPIBlueprint
+from api.schemas.ai_comments import (
+    AICommentSchema,
+    AIDataSuggestionPaginationSchema,
+    AIDataSuggestionSchema,
+    AIDataSuggestionSortingSchema,
+    AIPromptSchema,
+    APIKeySchema,
+    LocalityIDListSchema,
+)
+from api.schemas.common import TextBodySchema, merge_schemas, pagination_query_schema
+
+ai_comments = CustomAPIBlueprint(
     "ai_comments", __name__, tag="AI Comments operations", url_prefix="/"
 )
 
 
 class PostAIComment(MethodView):
+    @ai_comments.output(AICommentSchema)
     def get(self, post_id):
         """Get AI comment for post"""
         return {}, 501
 
     @jwt_required()
+    @ai_comments.input(APIKeySchema)
     @ai_comments.doc(
-        security="jwt_access_token", responses={202: "AI comment generation started"}
+        security="jwt_access_token",
+        responses={
+            202: "AI comment generation started",
+            200: "AI comment already exists",
+            409: "AI comment generation already in progress",
+        },
     )
     def put(self, post_id):
         """Request generation of AI comment for post. Activated account required."""
         return {}, 501
 
 
-class CityAIPrompt(MethodView):
+class LocalityAIPrompt(MethodView):
     @jwt_required()
+    @ai_comments.output(AIPromptSchema)
     @ai_comments.doc(
         security="jwt_access_token",
         responses={403: "Forbidden", 200: "AI prompt retrieved"},
@@ -32,6 +51,7 @@ class CityAIPrompt(MethodView):
         return {}, 501
 
     @jwt_required()
+    @ai_comments.input(AIPromptSchema)
     @ai_comments.doc(
         security="jwt_access_token",
         responses={403: "Forbidden", 200: "AI prompt updated"},
@@ -41,8 +61,9 @@ class CityAIPrompt(MethodView):
         return {}, 501
 
 
-class DefaultCityAIPrompt(MethodView):
+class DefaultLocalityAIPrompt(MethodView):
     @jwt_required()
+    @ai_comments.output(AIPromptSchema)
     @ai_comments.doc(
         security="jwt_access_token",
         responses={403: "Forbidden", 200: "Default AI prompt retrieved"},
@@ -52,6 +73,7 @@ class DefaultCityAIPrompt(MethodView):
         return {}, 501
 
     @jwt_required()
+    @ai_comments.input(AIPromptSchema)
     @ai_comments.doc(
         security="jwt_access_token",
         responses={403: "Forbidden", 200: "Default AI prompt updated"},
@@ -61,27 +83,49 @@ class DefaultCityAIPrompt(MethodView):
         return {}, 501
 
 
-class CityAIDataSuggestions(MethodView):
+class LocalitiesWithAIDataSuggestions(MethodView):
     @jwt_required()
+    @ai_comments.output(LocalityIDListSchema)
+    @ai_comments.doc(
+        security="jwt_access_token",
+        responses={
+            403: "Forbidden",
+            200: "Localities with AI data suggestions retrieved",
+        },
+    )
+    def get(self):
+        """Get localities with AI data suggestions. Only for admins."""
+        return {}, 501
+
+
+class LocalityAIDataSuggestions(MethodView):
+    @jwt_required()
+    @ai_comments.input(
+        merge_schemas(pagination_query_schema(), AIDataSuggestionSortingSchema),
+        location="query",
+    )
+    @ai_comments.output(AIDataSuggestionPaginationSchema)
     @ai_comments.doc(
         security="jwt_access_token",
         responses={403: "Forbidden", 200: "AI data suggestions retrieved"},
     )
-    def get(self, city_id):
-        """Get AI data suggestions for the city. Only for admins."""
+    def get(self, city_id, query_data):
+        """Get AI data suggestions for the city. Only for admins. Ordered by creation date."""
         return {}, 501
 
     @jwt_required()
+    @ai_comments.input(TextBodySchema)
     @ai_comments.doc(
-        security="jwt_access_token", responses={201: "AI data suggestion sent"}
+        security="jwt_access_token", responses={204: "AI data suggestion sent"}
     )
     def post(self, city_id):
         """Send AI data suggestion for city to admins. Activated account required."""
         return {}, 501
 
 
-class CityAIDataSuggestion(MethodView):
+class LocalityAIDataSuggestion(MethodView):
     @jwt_required()
+    @ai_comments.output(AIDataSuggestionSchema)
     @ai_comments.doc(
         security="jwt_access_token",
         responses={403: "Forbidden", 200: "AI data suggestion retrieved"},
@@ -105,18 +149,22 @@ ai_comments.add_url_rule(
     view_func=PostAIComment.as_view("post_ai_comment"),
 )
 ai_comments.add_url_rule(
-    "/localities/<int:city_id>/ai-prompt",
-    view_func=CityAIPrompt.as_view("city_ai_prompt"),
+    "/localities/<int:locality_id>/ai-prompt",
+    view_func=LocalityAIPrompt.as_view("city_ai_prompt"),
 )
 ai_comments.add_url_rule(
     "/localities/default/ai-prompt",
-    view_func=DefaultCityAIPrompt.as_view("default_city_ai_prompt"),
+    view_func=DefaultLocalityAIPrompt.as_view("default_city_ai_prompt"),
 )
 ai_comments.add_url_rule(
-    "/localities/<int:city_id>/ai-data-suggestions",
-    view_func=CityAIDataSuggestions.as_view("city_ai_data_suggestions"),
+    "/localities/with-suggestions",
+    view_func=LocalitiesWithAIDataSuggestions.as_view("localities_with_ai_suggestions"),
 )
 ai_comments.add_url_rule(
-    "/localities/<int:city_id>/ai-data-suggestions/<int:suggestion_id>",
-    view_func=CityAIDataSuggestion.as_view("city_ai_data_suggestion"),
+    "/localities/<int:locality_id>/ai-data-suggestions",
+    view_func=LocalityAIDataSuggestions.as_view("city_ai_data_suggestions"),
+)
+ai_comments.add_url_rule(
+    "/localities/<int:locality_id>/ai-data-suggestions/<int:suggestion_id>",
+    view_func=LocalityAIDataSuggestion.as_view("city_ai_data_suggestion"),
 )

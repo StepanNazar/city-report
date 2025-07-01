@@ -21,6 +21,7 @@ class LoginSchema(PasswordSchema):
     email = Email(
         required=True,
         metadata={"example": "dsx@gmail.com"},
+        validate=validators.Email(),
     )
 
 
@@ -33,14 +34,18 @@ class RegisterSchema(LoginSchema):
     )
 
 
-class UserSchema(Schema):
+class WhoAmISchema(Schema):
     id = Integer()
     name = String(attribute="firstname", metadata={"x-faker": "name.firstName"})
     lastName = String(attribute="lastname", metadata={"x-faker": "name.lastName"})
-    email = Email(
-        validate=validators.Email(), metadata={"x-faker": "internet.email"}
-    )  # is validation needed for output?
+    email = Email(metadata={"x-faker": "internet.email"})
     isActivated = Boolean(attribute="is_activated")
+    country = String(metadata={"x-faker": "address.country"})
+    state = String(metadata={"x-faker": "address.state"})
+    locality = String(metadata={"x-faker": "address.city"})
+    country_id = Integer()
+    state_id = Integer()
+    locality_id = Integer()
 
 
 class DeviceSchema(Schema):

@@ -5,9 +5,9 @@ const PostOpen = ({ post }) => {
     <div className='post'>
       <div className="post__content">
         <h3>{post.id}. {post.title}</h3>
-        <p><strong>Автор ID:</strong> {post.authorID}</p>
+        <p><strong>Автор ID:</strong> {post.authorId}</p>
         <p><strong>Ім'я автора:</strong> {post.authorName}</p>
-        <p><strong>Дата створення:</strong> {post.creationTime}</p>
+        <p><strong>Дата створення:</strong> {post.createdAt}</p>
         <p><strong>Координати:</strong> {post.latitude}, {post.longitude}</p>
         <p><strong>Країна:</strong> {post.country}</p>
         <p><strong>Область:</strong> {post.state}</p>

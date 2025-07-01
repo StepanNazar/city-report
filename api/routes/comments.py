@@ -1,16 +1,33 @@
-from apiflask import APIBlueprint
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 
-comments = APIBlueprint("comments", __name__, tag="Comments operations", url_prefix="/")
+from api.routes.common import CustomAPIBlueprint
+from api.schemas.comments import (
+    CommentOutPaginationSchema,
+    CommentOutSchema,
+    CommentSortingSchema,
+)
+from api.schemas.common import (
+    TextBodySchema,
+    merge_schemas,
+    pagination_query_schema,
+)
+from api.schemas.users import ReactionSchema
+
+comments = CustomAPIBlueprint(
+    "comments", __name__, tag="Comments operations", url_prefix="/"
+)
 
 
 class Comment(MethodView):
+    @comments.output(CommentOutSchema)
     def get(self, comment_id):
         """Get comment by ID"""
         return {}, 501
 
     @jwt_required()
+    @comments.input(TextBodySchema)
+    @comments.output(CommentOutSchema)
     @comments.doc(
         security="jwt_access_token",
         responses={200: "Comment updated", 403: "Forbidden"},
@@ -31,6 +48,7 @@ class Comment(MethodView):
 
 class CommentReaction(MethodView):
     @jwt_required()
+    @comments.input(ReactionSchema)
     @comments.doc(
         security="jwt_access_token", responses={204: "Reaction added/updated"}
     )
@@ -47,18 +65,25 @@ class CommentReaction(MethodView):
 
 class CommentReport(MethodView):
     @jwt_required()
-    @comments.doc(security="jwt_access_token", responses={201: "Report created"})
+    @comments.input(TextBodySchema)
+    @comments.doc(security="jwt_access_token", responses={204: "Report created"})
     def post(self, comment_id):
         """Report comment. Activated account required."""
         return {}, 501
 
 
 class CommentReplies(MethodView):
-    def get(self, comment_id):
+    @comments.input(
+        merge_schemas(pagination_query_schema(), CommentSortingSchema), location="query"
+    )
+    @comments.output(CommentOutPaginationSchema)
+    def get(self, comment_id, query_data):
         """Get replies to a comment"""
         return {}, 501
 
     @jwt_required()
+    @comments.input(TextBodySchema)
+    @comments.output(CommentOutSchema, status_code=201)
     @comments.doc(security="jwt_access_token", responses={201: "Reply created"})
     def post(self, comment_id):
         """Create a new reply to a comment. Activated account required."""
