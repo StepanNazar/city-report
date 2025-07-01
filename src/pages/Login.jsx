@@ -26,7 +26,7 @@ const Login = () => {
         <div className='auth_btn'>
             <Button onClick={async(e)=>{ e.preventDefault(); 
                 const code = await USER.login(log, password);
-                if(code == 200) route('/posts');
+                if(code === 200) route('/posts');
             }}>Login</Button>
             <Button onClick={()=>route(`/reg`)}>GO to Registretion</Button>
         </div>
