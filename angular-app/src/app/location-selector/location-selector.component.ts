@@ -1,9 +1,8 @@
-import {Component, signal, inject} from '@angular/core';
+import {Component, signal, inject, output} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {LocationService} from '../location-service';
-import {Country} from '../country';
-import {State} from '../state';
-import {Locality} from '../locality';
+import {LocationOption} from './location-option';
+import {LocationSelectorService} from './location-selector-service';
+
 
 @Component({
   selector: 'app-location-selector',
@@ -12,59 +11,27 @@ import {Locality} from '../locality';
   styleUrl: './location-selector.component.scss'
 })
 export class LocationSelector {
-  countries: Country[] = [];
-  states: State[] = [];
-  localities: Locality[] = [];
-  locationService: LocationService = inject(LocationService);
+  private locationSelectorService = inject(LocationSelectorService);
 
-  readonly selectedCountry = signal<Country | null>(null);
-  readonly selectedState = signal<State | null>(null);
-  readonly selectedLocality = signal<Locality | null>(null);
-  readonly selectStateDisabled = signal(true);
-  readonly selectLocalityDisabled = signal(true);
+  localityOptions: LocationOption[] = [];
+  readonly typedInCountry = signal<string>("");
+  readonly typedInState = signal<string>("");
+  readonly typedInLocality = signal<string>("");
+  readonly selectedLocation = signal<LocationOption | null>(null);
+  readonly locationSelectedEvent = output<LocationOption | null>();
 
-  previousCountry: Country | null = null;
-  previousState: State | null = null;
-
-  constructor() {
-    this.locationService.getCountries().then(
-      (countries: Country[]) => {
-        this.countries = countries;
-      }
-    );
-  }
-
-  onCountrySelect() {
-    const country = this.selectedCountry();
-    if (!country || this.previousCountry === country) return;
-
-    this.selectedState.set(null);
-    this.selectedLocality.set(null);
-    this.selectStateDisabled.set(false);
-    this.selectLocalityDisabled.set(true);
-
-    this.previousCountry = this.selectedCountry();
-    this.previousState = null;
-
-    this.locationService.getStates(country.id).then(
-      (states: State[]) => {
-        this.states = states;
+  onSearch() {
+    this.locationSelectorService.searchLocations(
+      this.typedInCountry(),
+      this.typedInState(),
+      this.typedInLocality()
+    ).then(options => {
+      this.localityOptions = options;
+      this.selectedLocation.set(options[0] || null);
+      this.onSelectLocation();
     });
   }
-
-  onStateSelect() {
-    const state = this.selectedState();
-    if (!state || this.previousState === state) return;
-
-    this.selectedLocality.set(null);
-    this.selectLocalityDisabled.set(false);
-
-    this.previousState = this.selectedState();
-
-    this.locationService.getLocalities(state.id).then(
-      (localities: Locality[]) => {
-        this.localities = localities;
-      }
-    );
+  onSelectLocation() {
+    this.locationSelectedEvent.emit(this.selectedLocation());
   }
 }

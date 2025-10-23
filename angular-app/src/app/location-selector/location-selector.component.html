@@ -1,18 +1,9 @@
-<select [(ngModel)]="selectedCountry" (change)="onCountrySelect()">
-  <option [ngValue]="null" hidden>Country</option>
-  @for (country of countries; track country.id) {
-    <option [ngValue]="country">{{country.name}}</option>
-  }
-</select>
-<select [(ngModel)]="selectedState" [disabled]="selectStateDisabled()" (change)="onStateSelect()">
-  <option [ngValue]="null" hidden>State</option>
-  @for (state of states; track state.id) {
-    <option [ngValue]="state">{{state.name}}</option>
-  }
-</select>
-<select [(ngModel)]="selectedLocality" [disabled]="selectLocalityDisabled()">
-  <option [ngValue]="null" hidden>Locality</option>
-  @for (locality of localities; track locality.id) {
+<input type="text" placeholder="Country" [(ngModel)]="typedInCountry" (keydown.enter)="onSearch()"/>
+<input type="text" placeholder="State" [(ngModel)]="typedInState" (keydown.enter)="onSearch()"/>
+<input type="text" placeholder="Locality" [(ngModel)]="typedInLocality" (keydown.enter)="onSearch()"/>
+<button (click)="onSearch()">Search</button>
+<select [(ngModel)]="selectedLocation" (ngModelChange)="onSelectLocation()" required>
+  @for (locality of localityOptions; track locality.id) {
     <option [ngValue]="locality">{{locality.name}}</option>
   }
 </select>
