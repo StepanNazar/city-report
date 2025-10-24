@@ -19,18 +19,33 @@ export class LocationSelector {
   readonly typedInLocality = signal<string>("");
   readonly selectedLocation = signal<LocationOption | null>(null);
   readonly locationSelectedEvent = output<LocationOption | null>();
+  readonly isLoading = signal<boolean>(false);
+  readonly error = signal<string | null>(null);
 
-  onSearch() {
-    this.locationSelectorService.searchLocations(
-      this.typedInCountry(),
-      this.typedInState(),
-      this.typedInLocality()
-    ).then(options => {
-      this.localityOptions = options;
-      this.selectedLocation.set(options[0] || null);
+  async onSearch() {
+    if (this.isLoading()) {
+      return;
+    }
+    if (this.typedInCountry() === "" && this.typedInState() === "" && this.typedInLocality() === "") {
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.error.set(null);
+    try {
+      this.localityOptions = await this.locationSelectorService.searchLocations(
+        this.typedInCountry(), this.typedInState(), this.typedInLocality()
+      );
+    } catch (err) {
+      this.error.set('Error loading locations');
+      this.localityOptions = [];
+    } finally {
+      this.isLoading.set(false);
+      this.selectedLocation.set(this.localityOptions[0] || null);
       this.onSelectLocation();
-    });
+    }
   }
+
   onSelectLocation() {
     this.locationSelectedEvent.emit(this.selectedLocation());
   }

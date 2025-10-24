@@ -10,5 +10,4 @@ import {LocationSelector} from "./location-selector/location-selector.component"
 })
 export class App {
   protected readonly title = signal('angular-app');
-  protected readonly console = console;
 }

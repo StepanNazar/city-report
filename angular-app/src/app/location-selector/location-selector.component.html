@@ -1,7 +1,16 @@
 <input type="text" placeholder="Country" [(ngModel)]="typedInCountry" (keydown.enter)="onSearch()"/>
 <input type="text" placeholder="State" [(ngModel)]="typedInState" (keydown.enter)="onSearch()"/>
 <input type="text" placeholder="Locality" [(ngModel)]="typedInLocality" (keydown.enter)="onSearch()"/>
-<button (click)="onSearch()">Search</button>
+<button (click)="onSearch()" [disabled]="isLoading()">
+  @if (isLoading()) {
+    Searching...
+  } @else {
+    Search
+  }
+</button>
+@if (error()) {
+  {{ error() }}
+}
 <select [(ngModel)]="selectedLocation" (ngModelChange)="onSelectLocation()" required>
   @for (locality of localityOptions; track locality.id) {
     <option [ngValue]="locality">{{locality.name}}</option>
