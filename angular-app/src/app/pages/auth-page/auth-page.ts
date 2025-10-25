@@ -1,13 +1,11 @@
-import { Component, signal } from '@angular/core';
-import { SignInComponent } from '../../components/sign-in-component/sign-in-component';
-import { SignUpComponent } from '../../components/sign-up-component/sign-up-component';
+import { Component } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-auth-page',
-  imports: [SignInComponent, SignUpComponent],
+  imports: [RouterOutlet, RouterLink],
   templateUrl: './auth-page.html',
   styleUrl: './auth-page.scss'
 })
 export class AuthPage {
-  activeTab = signal<'signin' | 'signup'>('signin');
 }

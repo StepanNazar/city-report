@@ -1,16 +1,33 @@
-import { Component, signal } from '@angular/core';
+import {Component, inject} from '@angular/core';
+import {ActivatedRoute, RouterLink, Router} from '@angular/router';
 import { UserHeader } from '../../components/user-header/user-header';
-import { PostsList } from '../../components/posts-list/posts-list';
-import { SolutionsList } from '../../components/solutions-list/solutions-list';
-import { CommentsList } from '../../components/comments-list/comments-list';
 import { PublicStats } from '../../components/public-stats/public-stats';
+import {PostsList} from '../../components/posts-list/posts-list';
+import {CommentsList} from '../../components/comments-list/comments-list';
+import {SolutionsList} from '../../components/solutions-list/solutions-list';
 
 @Component({
   selector: 'app-user-page',
-  imports: [UserHeader, PostsList, SolutionsList, CommentsList, PublicStats],
+  imports: [UserHeader, PublicStats, PostsList, CommentsList, SolutionsList],
   templateUrl: './user-page.html',
   styleUrl: './user-page.scss'
 })
 export class UserPage {
-  activeTab = signal<'posts' | 'solutions' | 'comments'>('posts');
+  currentTab = 'posts';
+  router = inject(Router);
+  route = inject(ActivatedRoute);
+
+  constructor() {
+    this.route.queryParamMap.subscribe(params => {
+      this.currentTab = params.get('tab') ?? 'posts';
+    });
+  }
+
+  switchTab(tab: string) {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+    });
+  }
 }
