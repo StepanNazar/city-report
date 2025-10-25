@@ -1,0 +1,15 @@
+<div class="auth-page">
+  <div class="tabs">
+    <button (click)="activeTab.set('signin')" [class.active]="activeTab() === 'signin'">Sign In</button>
+    <button (click)="activeTab.set('signup')" [class.active]="activeTab() === 'signup'">Sign Up</button>
+  </div>
+
+  @if (activeTab() === 'signin') {
+    <app-sign-in-component></app-sign-in-component>
+  }
+
+  @if (activeTab() === 'signup') {
+    <app-sign-up-component></app-sign-up-component>
+  }
+</div>
+

@@ -1,0 +1,24 @@
+<div class="posts-list">
+  <h2>Posts</h2>
+
+  <div class="sort-options">
+    <label for="sortBy">Sort by:</label>
+    <select id="sortBy" name="sortBy">
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+      <option value="likes">Most Liked</option>
+    </select>
+  </div>
+
+  <div class="posts">
+    <app-short-post-info></app-short-post-info>
+    <app-short-post-info></app-short-post-info>
+  </div>
+
+  <div class="pagination">
+    <button type="button">Previous</button>
+    <span>Page 1 of 10</span>
+    <button type="button">Next</button>
+  </div>
+</div>
+

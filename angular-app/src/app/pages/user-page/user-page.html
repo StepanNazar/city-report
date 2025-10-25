@@ -1,0 +1,26 @@
+<div class="user-page">
+  <app-user-header></app-user-header>
+
+  <div class="user-tabs">
+    <button (click)="activeTab.set('posts')" [class.active]="activeTab() === 'posts'">Posts</button>
+    <button (click)="activeTab.set('solutions')" [class.active]="activeTab() === 'solutions'">Solutions</button>
+    <button (click)="activeTab.set('comments')" [class.active]="activeTab() === 'comments'">Comments</button>
+  </div>
+
+  <div class="tab-content">
+    @if (activeTab() === 'posts') {
+      <app-posts-list></app-posts-list>
+    }
+
+    @if (activeTab() === 'solutions') {
+      <app-solutions-list></app-solutions-list>
+    }
+
+    @if (activeTab() === 'comments') {
+      <app-comments-list></app-comments-list>
+    }
+  </div>
+
+  <app-public-stats></app-public-stats>
+</div>
+
