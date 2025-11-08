@@ -1,5 +1,4 @@
 import datetime
-import re
 from uuid import uuid4
 
 import sqlalchemy as sa
@@ -10,9 +9,6 @@ from ua_parser import parse
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from api import db
-
-PASSWORD_MIN_LENGTH = 8
-PASSWORD_MAX_LENGTH = 128  # prevent DoS attacks with long passwords
 
 
 class User(db.Model):
@@ -46,29 +42,10 @@ class User(db.Model):
         return f"<User {self.email}>"
 
     def set_password(self, password: str) -> None:
-        # prohibit non-ASCII characters?
-        if len(password) < PASSWORD_MIN_LENGTH:
-            raise ValueError(
-                f"Password must be at least {PASSWORD_MIN_LENGTH} characters long"
-            )
-        if len(password) > PASSWORD_MAX_LENGTH:
-            raise ValueError(
-                f"Password must be at most {PASSWORD_MAX_LENGTH} characters long"
-            )
-        if not re.search(r"\d", password):
-            raise ValueError("Password must contain at least one digit")
-        if not re.search(r"[A-Z]", password):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", password):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\W", password):
-            raise ValueError("Password must contain at least one special character")
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
         if not isinstance(password, str):
-            return False
-        if len(password) > PASSWORD_MAX_LENGTH:
             return False
         return check_password_hash(self.password_hash, password)
 

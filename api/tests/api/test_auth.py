@@ -76,10 +76,7 @@ def test_whoami(client):
     assert data["last_name"] == "Last"
     assert "id" in data
     assert "is_activated" in data
-    assert "country" in data
-    assert "state" in data
-    assert "locality" in data
-    assert "locality_id" in data
+    assert "locality_nominatim_id" in data
     assert "created_at" in data
 
 

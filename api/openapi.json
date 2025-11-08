@@ -272,6 +272,7 @@
             "example": "Pas$word123",
             "maxLength": 128,
             "minLength": 8,
+            "pattern": ".*\\d.*",
             "type": "string"
           }
         },
@@ -296,7 +297,7 @@
             "type": "string",
             "x-faker": "internet.ip"
           },
-          "loginTime": {
+          "login_time": {
             "format": "date-time",
             "type": "string",
             "x-faker": "date.recent"
@@ -478,6 +479,7 @@
             "example": "Pas$word123",
             "maxLength": 128,
             "minLength": 8,
+            "pattern": ".*\\d.*",
             "type": "string"
           }
         },
@@ -523,6 +525,7 @@
             "example": "Pas$word123",
             "maxLength": 128,
             "minLength": 8,
+            "pattern": ".*\\d.*",
             "type": "string"
           }
         },
@@ -823,27 +826,39 @@
             "format": "email",
             "type": "string"
           },
-          "lastName": {
+          "first_name": {
+            "description": "first name",
+            "example": "John",
+            "type": "string"
+          },
+          "last_name": {
             "description": "last name",
             "example": "Doe",
             "type": "string"
           },
-          "name": {
-            "description": "first name",
-            "example": "John",
+          "locality_id": {
+            "description": "provider's locality id",
+            "type": "integer"
+          },
+          "locality_provider": {
+            "enum": [
+              "google",
+              "nominatim"
+            ],
             "type": "string"
           },
           "password": {
             "example": "Pas$word123",
             "maxLength": 128,
             "minLength": 8,
+            "pattern": ".*\\d.*",
             "type": "string"
           }
         },
         "required": [
           "email",
-          "lastName",
-          "name",
+          "first_name",
+          "last_name",
           "password"
         ],
         "type": "object"
@@ -1601,44 +1616,34 @@
       },
       "WhoAmI": {
         "properties": {
-          "country": {
+          "created_at": {
+            "format": "date-time",
             "type": "string",
-            "x-faker": "address.country"
-          },
-          "country_id": {
-            "type": "integer"
+            "x-faker": "date.past"
           },
           "email": {
             "format": "email",
             "type": "string",
             "x-faker": "internet.email"
           },
-          "id": {
-            "type": "integer"
-          },
-          "isActivated": {
-            "type": "boolean"
-          },
-          "lastName": {
-            "type": "string",
-            "x-faker": "name.lastName"
-          },
-          "locality": {
-            "type": "string",
-            "x-faker": "address.city"
-          },
-          "locality_id": {
-            "type": "integer"
-          },
-          "name": {
+          "first_name": {
             "type": "string",
             "x-faker": "name.firstName"
           },
-          "state": {
-            "type": "string",
-            "x-faker": "address.state"
+          "id": {
+            "type": "integer"
           },
-          "state_id": {
+          "is_activated": {
+            "type": "boolean"
+          },
+          "last_name": {
+            "type": "string",
+            "x-faker": "name.lastName"
+          },
+          "locality_google_id": {
+            "type": "integer"
+          },
+          "locality_nominatim_id": {
             "type": "integer"
           }
         },
@@ -1669,98 +1674,6 @@
   },
   "openapi": "3.0.3",
   "paths": {
-    "/activate/{activation_code}": {
-      "post": {
-        "parameters": [
-          {
-            "in": "path",
-            "name": "activation_code",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "User activated"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Invalid activation code"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Not found"
-          }
-        },
-        "summary": "Activate the user's account",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
-    "/activation-link-email": {
-      "post": {
-        "parameters": [],
-        "responses": {
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Activation link sent"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Authentication error"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "User already activated"
-          }
-        },
-        "security": [
-          {
-            "jwt_access_token": []
-          }
-        ],
-        "summary": "Request activation link",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
     "/admins": {
       "get": {
         "parameters": [
@@ -1908,6 +1821,542 @@
         "summary": "Give admin rights to user. Password is required.",
         "tags": [
           "Admin operations"
+        ]
+      }
+    },
+    "/auth/activate/{activation_code}": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "activation_code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "User activated"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Invalid activation code"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "summary": "Activate the user's account",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/activation-link-email": {
+      "post": {
+        "parameters": [],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Activation link sent"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "User already activated"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Request activation link",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/devices": {
+      "delete": {
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Logged out from all devices"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Log out from all devices",
+        "tags": [
+          "Authentication operations"
+        ]
+      },
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Device"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Get all active devices",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/devices/{device_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Password"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Device logged out"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Invalid password"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Device not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Log out from the device",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessToken"
+                }
+              }
+            },
+            "description": "User logged in"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Invalid email or password"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Login user. Set refresh token cookie.",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Log out from the current device. Unset refresh token cookie.",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/password": {
+      "put": {
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Password changed"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Invalid old or new password"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Change password",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Password changed"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Invalid secret code or new password"
+          }
+        },
+        "summary": "Reset password using a secret code from email and pass a new password",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/password/reset-request": {
+      "post": {
+        "parameters": [],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Password reset link sent"
+          }
+        },
+        "summary": "Request email with a secret code for password reset",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessToken"
+                }
+              }
+            },
+            "description": "Access token refreshed"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          }
+        },
+        "security": [
+          {
+            "jwt_refresh_token": []
+          },
+          {
+            "csrf_refresh_token": []
+          }
+        ],
+        "summary": "Refresh access token",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Register"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessToken"
+                }
+              }
+            },
+            "description": "User registered",
+            "headers": {
+              "location": {
+                "description": "URL of the created resource",
+                "required": false,
+                "schema": {
+                  "format": "url",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Invalid email or password"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Email already used"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Register a new user. Set refresh token cookie. Send the activation link.",
+        "tags": [
+          "Authentication operations"
+        ]
+      }
+    },
+    "/auth/whoami": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhoAmI"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Authentication error"
+          }
+        },
+        "security": [
+          {
+            "jwt_access_token": []
+          }
+        ],
+        "summary": "Get current user info",
+        "tags": [
+          "Authentication operations"
         ]
       }
     },
@@ -2756,139 +3205,6 @@
         ]
       }
     },
-    "/devices": {
-      "delete": {
-        "parameters": [],
-        "responses": {
-          "204": {
-            "description": "Logged out from all devices"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Authentication error"
-          }
-        },
-        "security": [
-          {
-            "jwt_access_token": []
-          }
-        ],
-        "summary": "Log out from all devices",
-        "tags": [
-          "Authentication operations"
-        ]
-      },
-      "get": {
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/Device"
-                  },
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Authentication error"
-          }
-        },
-        "security": [
-          {
-            "jwt_access_token": []
-          }
-        ],
-        "summary": "Get all active devices",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
-    "/devices/{device_id}": {
-      "delete": {
-        "parameters": [
-          {
-            "in": "path",
-            "name": "device_id",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Password"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": "Device logged out"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Invalid password"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Device not found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
-                }
-              }
-            },
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "jwt_access_token": []
-          }
-        ],
-        "summary": "Log out from the device",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
     "/localities": {
       "get": {
         "parameters": [
@@ -3586,172 +3902,6 @@
         "summary": "Update AI prompt for city. Only for admins.",
         "tags": [
           "AI Comments operations"
-        ]
-      }
-    },
-    "/login": {
-      "post": {
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Login"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessToken"
-                }
-              }
-            },
-            "description": "User logged in"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Invalid email or password"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
-                }
-              }
-            },
-            "description": "Validation error"
-          }
-        },
-        "summary": "Login user. Set refresh token cookie.",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
-    "/logout": {
-      "post": {
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Authentication error"
-          }
-        },
-        "security": [
-          {
-            "jwt_access_token": []
-          }
-        ],
-        "summary": "Log out from the current device. Unset refresh token cookie.",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
-    "/password": {
-      "put": {
-        "parameters": [],
-        "responses": {
-          "204": {
-            "description": "Password changed"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Invalid old or new password"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Authentication error"
-          }
-        },
-        "security": [
-          {
-            "jwt_access_token": []
-          }
-        ],
-        "summary": "Change password",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
-    "/password/reset": {
-      "post": {
-        "parameters": [],
-        "responses": {
-          "204": {
-            "description": "Password changed"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Invalid secret code or new password"
-          }
-        },
-        "summary": "Reset password using a secret code from email and pass a new password",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
-    "/password/reset-request": {
-      "post": {
-        "parameters": [],
-        "responses": {
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Password reset link sent"
-          }
-        },
-        "summary": "Request email with a secret code for password reset",
-        "tags": [
-          "Authentication operations"
         ]
       }
     },
@@ -4844,115 +4994,6 @@
         "summary": "Create a new solution for post. Activated account required.",
         "tags": [
           "Posts operations"
-        ]
-      }
-    },
-    "/refresh": {
-      "post": {
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessToken"
-                }
-              }
-            },
-            "description": "Access token refreshed"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Authentication error"
-          }
-        },
-        "security": [
-          {
-            "jwt_refresh_token": []
-          },
-          {
-            "csrf_refresh_token": []
-          }
-        ],
-        "summary": "Refresh access token",
-        "tags": [
-          "Authentication operations"
-        ]
-      }
-    },
-    "/register": {
-      "post": {
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Register"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessToken"
-                }
-              }
-            },
-            "description": "User registered",
-            "headers": {
-              "location": {
-                "description": "URL of the created resource",
-                "required": false,
-                "schema": {
-                  "format": "url",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Invalid email or password"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Email already used"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
-                }
-              }
-            },
-            "description": "Validation error"
-          }
-        },
-        "summary": "Register a new user. Set refresh token cookie. Send the activation link.",
-        "tags": [
-          "Authentication operations"
         ]
       }
     },
@@ -7256,42 +7297,6 @@
         "summary": "Get user solutions",
         "tags": [
           "Users operations"
-        ]
-      }
-    },
-    "/whoami": {
-      "get": {
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WhoAmI"
-                }
-              }
-            },
-            "description": "Successful response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPError"
-                }
-              }
-            },
-            "description": "Authentication error"
-          }
-        },
-        "security": [
-          {
-            "jwt_access_token": []
-          }
-        ],
-        "summary": "Get current user info",
-        "tags": [
-          "Authentication operations"
         ]
       }
     }

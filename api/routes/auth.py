@@ -28,7 +28,7 @@ from api.schemas.auth import (
 from api.services import EmailService
 
 auth = CustomAPIBlueprint(
-    "auth", __name__, tag="Authentication operations", url_prefix="/"
+    "auth", __name__, tag="Authentication operations", url_prefix="/auth"
 )
 
 
@@ -87,8 +87,8 @@ class Register(MethodView):
             if current_user:
                 abort(409, message="Email already used")
             new_user = User(
-                firstname=json_data.get("name"),
-                lastname=json_data.get("lastName"),
+                firstname=json_data.get("first_name"),
+                lastname=json_data.get("last_name"),
                 email=email,
                 password=json_data.get("password"),
             )
@@ -105,7 +105,7 @@ class Register(MethodView):
         response.headers["Location"] = url_for(
             "users.user", user_id=new_user.id, _external=True
         )
-        EmailService().send_activation_link(new_user)
+        # EmailService().send_activation_link(new_user)
         return response
 
 
@@ -276,7 +276,6 @@ class ResetPassword(MethodView):
         return {}, 501
 
 
-# to do make consistent case(camelCase or snake_case) in api
 auth.add_url_rule("/register", view_func=Register.as_view("register"))
 auth.add_url_rule("/login", view_func=Login.as_view("login"))
 auth.add_url_rule("/refresh", view_func=Refresh.as_view("refresh"))
