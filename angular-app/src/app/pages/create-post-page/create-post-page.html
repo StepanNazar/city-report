@@ -1,0 +1,35 @@
+<div class="create-post-page">
+  <h1>Create New Post</h1>
+
+  <form>
+    <div class="location-section">
+      <app-location-selector></app-location-selector>
+
+      <div class="map-section">
+        <h3>Choose Location on Map</h3>
+        <app-map></app-map>
+        <div class="coordinates">
+          <label>Latitude: <input type="text" name="latitude" readonly></label>
+          <label>Longitude: <input type="text" name="longitude" readonly></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="image-section">
+      <app-image-upload></app-image-upload>
+    </div>
+
+    <div class="form-group">
+      <label for="title">Post Title</label>
+      <input type="text" id="title" name="title" required>
+    </div>
+
+    <div class="form-group">
+      <label for="body">Post Body</label>
+      <textarea id="body" name="body" rows="10" required></textarea>
+    </div>
+
+    <button type="submit">Create Post</button>
+  </form>
+</div>
+

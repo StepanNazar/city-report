@@ -1,0 +1,34 @@
+<div class="solutions">
+  <h2>Solutions</h2>
+
+  <div class="solutions-controls">
+    <div class="sort-options">
+      <label for="sortBy">Sort by:</label>
+      <select id="sortBy" name="sortBy">
+        <option value="likes">Likes</option>
+        <option value="dislikes">Dislikes</option>
+        <option value="time">Time</option>
+      </select>
+    </div>
+
+    <div class="filter-options">
+      <label>
+        <input type="checkbox" name="onlyApproved">
+        Only Approved
+      </label>
+    </div>
+  </div>
+
+  <div class="solutions-list">
+    <app-solution></app-solution>
+    <app-solution></app-solution>
+    <app-solution></app-solution>
+  </div>
+
+  <div class="pagination">
+    <button type="button">Previous</button>
+    <span>Page 1 of 10</span>
+    <button type="button">Next</button>
+  </div>
+</div>
+

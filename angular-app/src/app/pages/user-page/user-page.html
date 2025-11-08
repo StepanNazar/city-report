@@ -1,0 +1,22 @@
+<div class="user-page">
+  <app-user-header></app-user-header>
+
+  <div class="user-tabs">
+    <button (click)="switchTab('posts')">Posts</button>
+    <button (click)="switchTab('solutions')">Solutions</button>
+    <button (click)="switchTab('comments')">Comments</button>
+  </div>
+
+  <div class="tab-content">
+    @if ( currentTab === 'posts' ) {
+    <app-posts-list></app-posts-list>
+    } @else if ( currentTab === 'solutions' ) {
+    <app-solutions-list></app-solutions-list>
+    }
+    @else if ( currentTab === 'comments' ) {
+    <app-comments-list></app-comments-list>
+    }
+  </div>
+
+  <app-public-stats></app-public-stats>
+</div>

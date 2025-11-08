@@ -1,0 +1,29 @@
+<div class="post-edit">
+  <h2>Edit Post</h2>
+
+  <form>
+    <div class="form-group">
+      <label for="title">Post Title</label>
+      <input type="text" id="title" name="title" required>
+    </div>
+
+    <div class="form-group">
+      <label for="body">Post Body</label>
+      <textarea id="body" name="body" rows="10" required></textarea>
+    </div>
+
+    <div class="image-section">
+      <app-image-upload></app-image-upload>
+    </div>
+
+    <div class="location-section">
+      <app-location-selector></app-location-selector>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit">Save</button>
+      <button type="button">Cancel</button>
+    </div>
+  </form>
+</div>
+
