@@ -41,3 +41,8 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# mcp config files
+/.cursor/mcp.json
+/.junie/mcp/mcp.json
+/.gemini/settings.json
