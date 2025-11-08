@@ -14,7 +14,8 @@ jwt = JWTManager()
 def create_app(config):
     app = APIFlask(__name__, title="City Report API", docs_path="/")
 
-    CORS(app, supports_credentials=True, origins=config.CORS_ORIGINS)
+    if hasattr(config, "CORS_ORIGINS"):
+        CORS(app, supports_credentials=True, origins=config.CORS_ORIGINS)
     app.config.from_object(config)
     db.init_app(app)
     migrate.init_app(app, db)

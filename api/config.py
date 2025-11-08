@@ -20,19 +20,21 @@ class Config:
     )
     JWT_TOKEN_LOCATION = ("cookies", "headers")
     # path to which cookies are sent
-    JWT_REFRESH_COOKIE_PATH = "/refresh"
-    CORS_ORIGINS = re.compile(r"^https?://(localhost|127\.0\.0\.1):3000$")
+    JWT_REFRESH_COOKIE_PATH = "/auth/refresh"
+    JWT_REFRESH_CSRF_COOKIE_PATH = "/auth/refresh"
 
 
 class DevConfig(Config):
-    # DEBUG = True
+    DEBUG = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
     SQLALCHEMY_ECHO = True
+    CORS_ORIGINS = re.compile(r"^https?://(localhost|127\.0\.0\.1):3000$")
 
 
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "test.db")
+    JWT_COOKIE_SECURE = True
 
 
 class ProdConfig(Config):
