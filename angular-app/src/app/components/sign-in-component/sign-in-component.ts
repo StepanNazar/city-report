@@ -1,7 +1,9 @@
 import { Component, inject } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { AuthenticationService } from '../../services/authentication-service';
+import { NotificationService } from '../../services/notification.service';
 import {passwordPatternValidator} from '../../validators/password.validator';
 
 @Component({
@@ -13,6 +15,8 @@ import {passwordPatternValidator} from '../../validators/password.validator';
 export class SignInComponent {
   http = inject(HttpClient);
   authService = inject(AuthenticationService);
+  notificationService = inject(NotificationService);
+  router = inject(Router);
 
   loginForm: FormGroup = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -31,11 +35,13 @@ export class SignInComponent {
     }
     const payload = this.loginForm.value;
     this.authService.login(payload).subscribe({
-      next: (response) => {
-        // Handle success
+      next: () => {
+        this.notificationService.success('Successfully signed in! Welcome back.');
+        this.router.navigate(['/']);
       },
       error: (error) => {
-        console.log(`${error.statusText} ${error?.error?.message || ''}`);
+        const message = error?.error?.message || error.statusText || 'An error occurred during sign in';
+        this.notificationService.error(message);
       }
     });
   }

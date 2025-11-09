@@ -1,23 +1,22 @@
 import {Component, inject} from '@angular/core';
-import { LocationSelector } from '../location-selector/location-selector.component';
+import { Router } from '@angular/router';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {AuthenticationService} from '../../services/authentication-service';
+import { NotificationService } from '../../services/notification.service';
 import {passwordMatchValidator, passwordPatternValidator} from '../../validators/password.validator';
-
-interface AccessTokenResponse {
-  access_token: string;
-}
 
 @Component({
   selector: 'app-sign-up-component',
-  imports: [LocationSelector, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './sign-up-component.html',
   styleUrl: './sign-up-component.scss'
 })
 export class SignUpComponent {
   http = inject(HttpClient);
   authService = inject(AuthenticationService);
+  notificationService = inject(NotificationService);
+  router = inject(Router);
 
   loginForm: FormGroup = new FormGroup({
     firstName: new FormControl('', [Validators.required]),
@@ -41,11 +40,13 @@ export class SignUpComponent {
     const payload = this.loginForm.value;
     delete payload.confirmPassword;
     this.authService.register(payload).subscribe({
-      next: (response) => {
-        // Handle success
+      next: () => {
+        this.notificationService.success('Account created successfully! Welcome to City Report.');
+        this.router.navigate(['/']);
       },
       error: (error) => {
-        console.log(`${error.statusText} ${error?.error?.message || ''}`);
+        const message = error?.error?.message || error.statusText || 'An error occurred during registration';
+        this.notificationService.error(message);
       }
     });
   }
