@@ -2,9 +2,9 @@
   <div class="location-search-group">
     <label>Search Location</label>
     <div class="search-inputs">
-      <input type="text" placeholder="Country" [(ngModel)]="typedInCountry" (keydown.enter)="onSearch()"/>
-      <input type="text" placeholder="State" [(ngModel)]="typedInState" (keydown.enter)="onSearch()"/>
-      <input type="text" placeholder="City" [(ngModel)]="typedInLocality" (keydown.enter)="onSearch()"/>
+      <input type="text" placeholder="Country" [(ngModel)]="typedInCountry" (keydown.enter)="$event.preventDefault(); onSearch()"/>
+      <input type="text" placeholder="State" [(ngModel)]="typedInState" (keydown.enter)="$event.preventDefault(); onSearch()"/>
+      <input type="text" placeholder="City" [(ngModel)]="typedInLocality" (keydown.enter)="$event.preventDefault(); onSearch()"/>
     </div>
     <button type="button" class="search-button" (click)="onSearch()" [disabled]="isLoading()">
       @if (isLoading()) {
