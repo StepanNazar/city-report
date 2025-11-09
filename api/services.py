@@ -26,7 +26,9 @@ class NominatimService:
         url = "https://nominatim.openstreetmap.org/lookup?osm_ids=N{},W{},R{}&format=geocodejson"
         url = url.format(locality_id, locality_id, locality_id)
         headers = {"User-Agent": "City Report", "Accept-language": "en"}
-        json = requests.get(url, timeout=10, headers=headers).json()
+        r = requests.get(url, timeout=10, headers=headers)
+        r.raise_for_status()
+        json = r.json()
         if len(json["features"]) == 0:
             raise ValueError("Invalid locality id")
         name = json["features"][0]["properties"]["geocoding"]["name"]

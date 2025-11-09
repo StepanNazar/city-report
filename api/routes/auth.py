@@ -1,3 +1,4 @@
+import requests
 from apiflask import abort
 from email_validator import EmailNotValidError
 from flask import Response, jsonify, make_response, request, url_for
@@ -105,6 +106,8 @@ class Register(MethodView):
                             )
                         except ValueError:
                             abort(400, message="Invalid locality id")
+                        except requests.RequestException:
+                            abort(500, message="Nominatim service unavailable")
                         locality = Locality(
                             name=name,  # type: ignore[call-arg]
                             state=state,  # type: ignore[call-arg]
