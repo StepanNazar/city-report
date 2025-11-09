@@ -37,6 +37,17 @@ export class AuthenticationService {
   clearAccessToken() {
     localStorage.removeItem('d97g4584V5D6dg65gHDRG546r9d56');
   }
+  getUserId(): string | null {
+    const token = this.getAccessToken();
+    if (token) {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        return payload.sub;
+      }
+    }
+    return null;
+  }
   register(payload: RegisterPayload): Observable<AccessTokenResponse> {
     return this.http.post<AccessTokenResponse>('/api/auth/register', payload).pipe(
       tap(response => {
