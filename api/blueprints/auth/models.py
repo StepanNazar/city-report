@@ -1,0 +1,100 @@
+import datetime
+from uuid import uuid4
+
+import sqlalchemy as sa
+from email_validator import validate_email
+from flask import current_app
+from sqlalchemy import orm as so
+from ua_parser import parse
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from api import db
+from api.blueprints.locations.models import Locality
+
+
+class User(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    firstname: so.Mapped[str] = so.mapped_column(sa.String(64))
+    lastname: so.Mapped[str] = so.mapped_column(sa.String(64))  # validation for names?
+    # locality_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey("Locality.id"))
+    email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
+    password_hash: so.Mapped[str] = so.mapped_column(sa.String(256))
+    is_activated: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
+    # add expiration for activation code? restrict unactivated accounts?
+    activation_code: so.Mapped[str] = so.mapped_column(
+        sa.String(36),  # use sa.UUID instead?
+        default=lambda: str(uuid4()),
+    )
+    active_devices: so.Mapped[list["ActiveDevice"]] = so.relationship()
+    created_at: so.Mapped[datetime.datetime] = so.mapped_column(
+        sa.DateTime, server_default=sa.func.now()
+    )
+    locality_id: so.Mapped[int | None] = so.mapped_column(sa.ForeignKey("locality.id"))
+    locality: so.Mapped["Locality | None"] = so.relationship(back_populates="users")
+
+    @so.validates("email")
+    def email_validator(self, key, email: str) -> str:
+        return validate_email(email).normalized
+
+    @classmethod
+    def find_by_email(cls, email: str) -> "User | None":
+        return cls.query.filter_by(email=validate_email(email).normalized).one_or_none()
+
+    def __init__(self, password: str = "", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.set_password(password)
+
+    def __repr__(self):
+        return f"<User {self.email}>"
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        if not isinstance(password, str):
+            return False
+        return check_password_hash(self.password_hash, password)
+
+
+class ActiveDevice(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    refresh_jti: so.Mapped[str] = so.mapped_column(
+        sa.String(36), index=True, unique=True
+    )  # use sa.UUID instead?
+    access_jti: so.Mapped[str] = so.mapped_column(
+        sa.String(36), index=True, unique=True
+    )  # use sa.UUID instead?
+    login_time: so.Mapped[sa.DateTime] = so.mapped_column(
+        sa.DateTime, default=sa.func.now()
+    )
+    expires_at: so.Mapped[sa.DateTime] = so.mapped_column(
+        sa.DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC)
+        + current_app.config["JWT_REFRESH_TOKEN_EXPIRES"],
+    )  # to do: implement deletion of expired records
+    ip_address: so.Mapped[str | None] = so.mapped_column(
+        sa.String(15), nullable=True
+    )  # is there a better type?
+    device: so.Mapped[str | None] = so.mapped_column(sa.String(64), nullable=True)
+    os: so.Mapped[str | None] = so.mapped_column(sa.String(64), nullable=True)
+    browser: so.Mapped[str | None] = so.mapped_column(sa.String(64), nullable=True)
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id))
+
+    def __init__(
+        self, *args, user_agent: str = "", ip_address: str | None = None, **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        parsed_user_agent = parse(user_agent)
+        self.device = (
+            parsed_user_agent.device.family if parsed_user_agent.device else None
+        )
+        self.os = parsed_user_agent.os.family if parsed_user_agent.os else None
+        self.browser = (
+            parsed_user_agent.user_agent.family
+            if parsed_user_agent.user_agent
+            else None
+        )
+        self.ip_address = ip_address
+
+    def __repr__(self):
+        return f"<ActiveDevice {self.ip_address} {self.os} {self.browser}>"

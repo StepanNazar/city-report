@@ -1,6 +1,6 @@
 import requests
 
-from api.models import User
+from api.blueprints.auth.models import User
 
 
 class EmailService:  # replace with flask-mail?

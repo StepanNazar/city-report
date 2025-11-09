@@ -4,7 +4,7 @@ from config import TestConfig
 from werkzeug.test import TestResponse
 
 from api import create_app, db
-from api.models import User
+from api.blueprints.auth.models import User
 
 
 class TestAuth(unittest.TestCase):
