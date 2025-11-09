@@ -12,6 +12,11 @@ interface RegisterPayload {
   localityProvider: 'google' | 'nominatim' | undefined;
 }
 
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
 interface AccessTokenResponse {
   access_token: string;
 }
@@ -34,6 +39,13 @@ export class AuthenticationService {
   }
   register(payload: RegisterPayload): Observable<AccessTokenResponse> {
     return this.http.post<AccessTokenResponse>('/api/auth/register', payload).pipe(
+      tap(response => {
+        this.setAccessToken(response.access_token);
+      })
+    );
+  }
+  login(payload: LoginPayload): Observable<AccessTokenResponse> {
+    return this.http.post<AccessTokenResponse>('/api/auth/login', payload).pipe(
       tap(response => {
         this.setAccessToken(response.access_token);
       })
