@@ -181,7 +181,7 @@ def assert_jwt_tokens(response):
     assert not cookies["csrf_refresh_token"]["httponly"]
     assert cookies["csrf_refresh_token"]["secure"] is True
     assert cookies["csrf_refresh_token"]["samesite"].lower() == "strict"
-    assert cookies["csrf_refresh_token"]["path"] == "/auth/refresh"
+    assert cookies["csrf_refresh_token"]["path"] == "/"
 
 
 def get_cookie_value(response, cookie_name):

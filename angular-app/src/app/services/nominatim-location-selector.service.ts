@@ -1,6 +1,5 @@
 import {Injectable} from '@angular/core';
-import {LocationOption} from './location-option';
-import {LocationSelectorService} from './location-selector-service';
+import {LocationOption, LocationSelectorService} from './location-selector-service';
 
 @Injectable({
   providedIn: 'root'

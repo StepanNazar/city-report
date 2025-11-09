@@ -1,5 +1,11 @@
 import {Injectable} from '@angular/core';
-import {LocationOption} from './location-option';
+
+export interface LocationOption {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
 
 @Injectable({
   providedIn: 'root'
