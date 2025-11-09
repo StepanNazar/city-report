@@ -265,7 +265,7 @@
       },
       "CreateAdmin": {
         "properties": {
-          "admin_id": {
+          "adminId": {
             "type": "integer"
           },
           "password": {
@@ -277,7 +277,7 @@
           }
         },
         "required": [
-          "admin_id",
+          "adminId",
           "password"
         ],
         "type": "object"
@@ -297,7 +297,7 @@
             "type": "string",
             "x-faker": "internet.ip"
           },
-          "login_time": {
+          "loginTime": {
             "format": "date-time",
             "type": "string",
             "x-faker": "date.recent"
@@ -826,22 +826,22 @@
             "format": "email",
             "type": "string"
           },
-          "first_name": {
+          "firstName": {
             "description": "first name",
             "example": "John",
             "type": "string"
           },
-          "last_name": {
+          "lastName": {
             "description": "last name",
             "example": "Doe",
             "type": "string"
           },
-          "locality_id": {
+          "localityId": {
             "description": "provider's locality id",
             "example": 3167397,
             "type": "integer"
           },
-          "locality_provider": {
+          "localityProvider": {
             "enum": [
               "google",
               "nominatim"
@@ -859,8 +859,8 @@
         },
         "required": [
           "email",
-          "first_name",
-          "last_name",
+          "firstName",
+          "lastName",
           "password"
         ],
         "type": "object"
@@ -1618,7 +1618,7 @@
       },
       "WhoAmI": {
         "properties": {
-          "created_at": {
+          "createdAt": {
             "format": "date-time",
             "type": "string",
             "x-faker": "date.past"
@@ -1628,24 +1628,24 @@
             "type": "string",
             "x-faker": "internet.email"
           },
-          "first_name": {
+          "firstName": {
             "type": "string",
             "x-faker": "name.firstName"
           },
           "id": {
             "type": "integer"
           },
-          "is_activated": {
+          "isActivated": {
             "type": "boolean"
           },
-          "last_name": {
+          "lastName": {
             "type": "string",
             "x-faker": "name.lastName"
           },
-          "locality_google_id": {
+          "localityGoogleId": {
             "type": "integer"
           },
-          "locality_nominatim_id": {
+          "localityNominatimId": {
             "type": "integer"
           }
         },

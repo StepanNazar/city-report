@@ -1,6 +1,8 @@
 from apiflask import Schema, validators
 from apiflask.fields import Boolean, DateTime, Email, Integer, String
 
+from api.schemas.common import CamelCaseSchema
+
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128
 
@@ -9,7 +11,7 @@ class AccessTokenSchema(Schema):
     access_token = String()
 
 
-class PasswordSchema(Schema):
+class PasswordSchema(CamelCaseSchema):
     password = String(
         required=True,
         validate=[
@@ -58,7 +60,7 @@ class RegisterSchema(LoginSchema):
     )
 
 
-class WhoAmISchema(Schema):
+class WhoAmISchema(CamelCaseSchema):
     id = Integer()
     first_name = String(attribute="firstname", metadata={"x-faker": "name.firstName"})
     last_name = String(attribute="lastname", metadata={"x-faker": "name.lastName"})
@@ -69,7 +71,7 @@ class WhoAmISchema(Schema):
     created_at = DateTime(metadata={"x-faker": "date.past"})
 
 
-class DeviceSchema(Schema):
+class DeviceSchema(CamelCaseSchema):
     id = Integer()
     ip = String(attribute="ip_address", metadata={"x-faker": "internet.ip"})
     device = String()

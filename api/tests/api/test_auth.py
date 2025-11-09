@@ -82,12 +82,12 @@ def test_whoami(client, mocker):
     assert response.status_code == 200
     data = response.json
     assert data["email"] == "abcdemail@gmail.com"
-    assert data["first_name"] == "First"
-    assert data["last_name"] == "Last"
+    assert data["firstName"] == "First"
+    assert data["lastName"] == "Last"
     assert "id" in data
-    assert "is_activated" in data
-    assert "locality_nominatim_id" in data
-    assert "created_at" in data
+    assert "isActivated" in data
+    assert "localityNominatimId" in data
+    assert "createdAt" in data
 
 
 def test_whoami_unauthorized(client):
@@ -155,7 +155,7 @@ def test_logout(client):
     assert cookies["csrf_refresh_token"].value == ""
 
 
-def test_logout_without_token(client):
+def test_logout_without_tokeScheman(client):
     response = register_user(client)
 
     response = client.post("/auth/logout")
@@ -203,15 +203,15 @@ def register_user(
     locality_provider=None,
 ):
     json = {
-        "first_name": first_name,
-        "last_name": last_name,
+        "firstName": first_name,
+        "lastName": last_name,
         "email": email,
         "password": password,
     }
     if locality_id:
-        json["locality_id"] = locality_id
+        json["localityId"] = locality_id
     if locality_provider:
-        json["locality_provider"] = locality_provider
+        json["localityProvider"] = locality_provider
     return client.post("/auth/register", json=json)
 
 
