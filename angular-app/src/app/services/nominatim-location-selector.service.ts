@@ -1,6 +1,5 @@
 import {Injectable} from '@angular/core';
-import {LocationOption} from './location-option';
-import {LocationSelectorService} from './location-selector-service';
+import {LocationOption, LocationSelectorService} from './location-selector-service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,5 +17,8 @@ export class NominatimLocationSelectorService implements LocationSelectorService
         longitude: feature.geometry.coordinates[0],
       };
     });
+  }
+  getLocationProviderName(): string {
+    return 'nominatim';
   }
 }

@@ -1,18 +1,33 @@
-<input type="text" placeholder="Country" [(ngModel)]="typedInCountry" (keydown.enter)="onSearch()"/>
-<input type="text" placeholder="State" [(ngModel)]="typedInState" (keydown.enter)="onSearch()"/>
-<input type="text" placeholder="Locality" [(ngModel)]="typedInLocality" (keydown.enter)="onSearch()"/>
-<button (click)="onSearch()" [disabled]="isLoading()">
-  @if (isLoading()) {
-    Searching...
-  } @else {
-    Search
+<div class="location-selector">
+  <div class="location-search-group">
+    <label>Search Location</label>
+    <div class="search-inputs">
+      <input type="text" placeholder="Country" [(ngModel)]="typedInCountry" (keydown.enter)="$event.preventDefault(); onSearch()"/>
+      <input type="text" placeholder="State" [(ngModel)]="typedInState" (keydown.enter)="$event.preventDefault(); onSearch()"/>
+      <input type="text" placeholder="City" [(ngModel)]="typedInLocality" (keydown.enter)="$event.preventDefault(); onSearch()"/>
+    </div>
+    <button type="button" class="search-button" (click)="onSearch()" [disabled]="isLoading()">
+      @if (isLoading()) {
+        Searching...
+      } @else {
+        Search
+      }
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-message-box">{{ error() }}</div>
   }
-</button>
-@if (error()) {
-  {{ error() }}
-}
-<select [(ngModel)]="selectedLocation" (ngModelChange)="onSelectLocation()" required>
-  @for (locality of localityOptions; track locality.id) {
-    <option [ngValue]="locality">{{locality.name}}</option>
+
+  @if (localityOptions.length > 0) {
+    <div class="location-results">
+      <label for="location-select">Select Location</label>
+      <select id="location-select" [(ngModel)]="selectedLocation" (ngModelChange)="onSelectLocation()">
+        @for (locality of localityOptions; track locality.id) {
+          <option [ngValue]="locality">{{locality.name}}</option>
+        }
+      </select>
+    </div>
   }
-</select>
+</div>
+

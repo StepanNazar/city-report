@@ -1,9 +1,16 @@
 import {Injectable} from '@angular/core';
-import {LocationOption} from './location-option';
+
+export interface LocationOption {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export abstract class LocationSelectorService {
   abstract searchLocations(country: string, state: string, locality: string): Promise<LocationOption[]>;
+  abstract getLocationProviderName(): string;
 }

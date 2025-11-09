@@ -1,3 +1,4 @@
+import requests
 from apiflask import abort
 from email_validator import EmailNotValidError
 from flask import Response, jsonify, make_response, request, url_for
@@ -15,7 +16,7 @@ from flask_jwt_extended import (
 )
 
 from api import db, jwt
-from api.models import ActiveDevice, User
+from api.models import ActiveDevice, Locality, User
 from api.routes.common import CustomAPIBlueprint
 from api.schemas.auth import (
     AccessTokenSchema,
@@ -25,10 +26,10 @@ from api.schemas.auth import (
     RegisterSchema,
     WhoAmISchema,
 )
-from api.services import EmailService
+from api.services import EmailService, NominatimService
 
 auth = CustomAPIBlueprint(
-    "auth", __name__, tag="Authentication operations", url_prefix="/"
+    "auth", __name__, tag="Authentication operations", url_prefix="/auth"
 )
 
 
@@ -74,7 +75,7 @@ class Register(MethodView):
     @auth.output(AccessTokenSchema, status_code=201)
     @auth.doc(
         responses={
-            400: "Invalid email or password",
+            400: "Invalid email or locality_id",
             409: "Email already used",
             201: "User registered",
         },
@@ -86,16 +87,49 @@ class Register(MethodView):
             current_user = User.find_by_email(email)
             if current_user:
                 abort(409, message="Email already used")
+        except EmailNotValidError as e:
+            abort(400, message=f"Invalid email address: {e}")
+
+        locality_id = json_data.get("locality_id")
+        locality_provider = json_data.get("locality_provider")
+        inner_locality_id = None
+        if locality_id and locality_provider:
+            match locality_provider:
+                case "nominatim":
+                    locality = Locality.query.filter_by(osm_id=locality_id).first()
+                    if not locality:
+                        try:
+                            name, state, country = (
+                                NominatimService.get_locality_name_state_and_country(
+                                    locality_id
+                                )
+                            )
+                        except ValueError:
+                            abort(400, message="Invalid locality id")
+                        except requests.RequestException:
+                            abort(500, message="Nominatim service unavailable")
+                        locality = Locality(
+                            name=name,  # type: ignore[call-arg]
+                            state=state,  # type: ignore[call-arg]
+                            country=country,  # type: ignore[call-arg]
+                            osm_id=locality_id,  # type: ignore[call-arg]
+                        )
+                        db.session.add(locality)
+                        db.session.commit()
+                    inner_locality_id = locality.id
+                case "google":
+                    return {}, 501
+
+        try:
             new_user = User(
-                firstname=json_data.get("name"),
-                lastname=json_data.get("lastName"),
+                firstname=json_data.get("first_name"),
+                lastname=json_data.get("last_name"),
                 email=email,
                 password=json_data.get("password"),
+                locality_id=inner_locality_id,
             )
         except EmailNotValidError as e:
             abort(400, message=f"Invalid email address: {e}")
-        except ValueError as e:
-            abort(400, message=str(e))
         db.session.add(new_user)
         db.session.commit()
 
@@ -105,7 +139,7 @@ class Register(MethodView):
         response.headers["Location"] = url_for(
             "users.user", user_id=new_user.id, _external=True
         )
-        EmailService().send_activation_link(new_user)
+        # EmailService().send_activation_link(new_user)
         return response
 
 
@@ -276,7 +310,6 @@ class ResetPassword(MethodView):
         return {}, 501
 
 
-# to do make consistent case(camelCase or snake_case) in api
 auth.add_url_rule("/register", view_func=Register.as_view("register"))
 auth.add_url_rule("/login", view_func=Login.as_view("login"))
 auth.add_url_rule("/refresh", view_func=Refresh.as_view("refresh"))

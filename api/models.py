@@ -1,5 +1,4 @@
 import datetime
-import re
 from uuid import uuid4
 
 import sqlalchemy as sa
@@ -10,9 +9,6 @@ from ua_parser import parse
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from api import db
-
-PASSWORD_MIN_LENGTH = 8
-PASSWORD_MAX_LENGTH = 128  # prevent DoS attacks with long passwords
 
 
 class User(db.Model):
@@ -29,6 +25,11 @@ class User(db.Model):
         default=lambda: str(uuid4()),
     )
     active_devices: so.Mapped[list["ActiveDevice"]] = so.relationship()
+    created_at: so.Mapped[datetime.datetime] = so.mapped_column(
+        sa.DateTime, server_default=sa.func.now()
+    )
+    locality_id: so.Mapped[int | None] = so.mapped_column(sa.ForeignKey("locality.id"))
+    locality: so.Mapped["Locality | None"] = so.relationship(back_populates="users")
 
     @so.validates("email")
     def email_validator(self, key, email: str) -> str:
@@ -46,29 +47,10 @@ class User(db.Model):
         return f"<User {self.email}>"
 
     def set_password(self, password: str) -> None:
-        # prohibit non-ASCII characters?
-        if len(password) < PASSWORD_MIN_LENGTH:
-            raise ValueError(
-                f"Password must be at least {PASSWORD_MIN_LENGTH} characters long"
-            )
-        if len(password) > PASSWORD_MAX_LENGTH:
-            raise ValueError(
-                f"Password must be at most {PASSWORD_MAX_LENGTH} characters long"
-            )
-        if not re.search(r"\d", password):
-            raise ValueError("Password must contain at least one digit")
-        if not re.search(r"[A-Z]", password):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", password):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\W", password):
-            raise ValueError("Password must contain at least one special character")
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
         if not isinstance(password, str):
-            return False
-        if len(password) > PASSWORD_MAX_LENGTH:
             return False
         return check_password_hash(self.password_hash, password)
 
@@ -115,3 +97,15 @@ class ActiveDevice(db.Model):
 
     def __repr__(self):
         return f"<ActiveDevice {self.ip_address} {self.os} {self.browser}>"
+
+
+class Locality(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
+    state: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
+    country: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
+    osm_id: so.Mapped[int] = so.mapped_column(sa.Integer, unique=True, nullable=True)
+    users: so.Mapped[list["User"]] = so.relationship(back_populates="locality")
+
+    def __repr__(self):
+        return f"<Locality {self.name}, {self.state}, {self.country}>"

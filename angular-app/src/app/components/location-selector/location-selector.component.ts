@@ -1,7 +1,6 @@
 import {Component, signal, inject, output} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {LocationOption} from './location-option';
-import {LocationSelectorService} from './location-selector-service';
+import {LocationOption, LocationSelectorService} from '../../services/location-selector-service';
 
 
 @Component({
