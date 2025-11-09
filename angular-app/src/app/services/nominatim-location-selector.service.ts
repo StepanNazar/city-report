@@ -18,4 +18,7 @@ export class NominatimLocationSelectorService implements LocationSelectorService
       };
     });
   }
+  getLocationProviderName(): string {
+    return 'nominatim';
+  }
 }

@@ -12,4 +12,5 @@ export interface LocationOption {
 })
 export abstract class LocationSelectorService {
   abstract searchLocations(country: string, state: string, locality: string): Promise<LocationOption[]>;
+  abstract getLocationProviderName(): string;
 }

@@ -72,6 +72,10 @@
         </div>
       }
     </div>
+    <div class="form-group location-group">
+      <app-location-selector (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
+      <small class="optional-label">Optional - Select your location to see local posts</small>
+    </div>
     <button type="submit" class="submit-button">Sign Up</button>
   </form>
 </div>

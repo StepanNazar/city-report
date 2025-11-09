@@ -5,10 +5,12 @@ import {HttpClient} from '@angular/common/http';
 import {AuthenticationService} from '../../services/authentication-service';
 import { NotificationService } from '../../services/notification.service';
 import {passwordMatchValidator, passwordPatternValidator} from '../../validators/password.validator';
+import { LocationSelector } from '../location-selector/location-selector.component';
+import {LocationOption, LocationSelectorService} from '../../services/location-selector-service';
 
 @Component({
   selector: 'app-sign-up-component',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LocationSelector],
   templateUrl: './sign-up-component.html',
   styleUrl: './sign-up-component.scss'
 })
@@ -17,6 +19,9 @@ export class SignUpComponent {
   authService = inject(AuthenticationService);
   notificationService = inject(NotificationService);
   router = inject(Router);
+  locationSelectorService = inject(LocationSelectorService);
+
+  selectedLocationData: LocationOption | null = null;
 
   loginForm: FormGroup = new FormGroup({
     firstName: new FormControl('', [Validators.required]),
@@ -29,8 +34,11 @@ export class SignUpComponent {
       passwordPatternValidator()
     ]),
     confirmPassword: new FormControl('', [Validators.required]),
-    // locality_id: new FormControl(''),
   }, { validators: passwordMatchValidator() });
+
+  onLocationSelected(location: LocationOption | null) {
+    this.selectedLocationData = location;
+  }
 
   onSubmit() {
     if (this.loginForm.invalid) {
@@ -39,6 +47,12 @@ export class SignUpComponent {
     }
     const payload = this.loginForm.value;
     delete payload.confirmPassword;
+
+    if (this.selectedLocationData) {
+      payload.localityId = this.selectedLocationData.id;
+      payload.localityProvider = this.locationSelectorService.getLocationProviderName();
+    }
+
     this.authService.register(payload).subscribe({
       next: () => {
         this.notificationService.success('Account created successfully! Welcome to City Report.');
