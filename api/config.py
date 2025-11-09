@@ -33,7 +33,7 @@ class DevConfig(Config):
 
 class TestConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "test.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     JWT_COOKIE_SECURE = True
 
 
