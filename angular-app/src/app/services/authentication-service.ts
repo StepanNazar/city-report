@@ -21,6 +21,17 @@ interface AccessTokenResponse {
   access_token: string;
 }
 
+interface WhoAmIResponse {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  is_activated: boolean;
+  locality_nominatim_id: number | undefined;
+  locality_google_id: number | undefined;
+  created_at: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -77,5 +88,8 @@ export class AuthenticationService {
     let observable = this.http.post('/api/auth/logout', {});
     this.clearAccessToken();
     return observable;
+  }
+  whoami(): Observable<WhoAmIResponse> {
+    return this.http.get<WhoAmIResponse>('/api/auth/whoami');
   }
 }
