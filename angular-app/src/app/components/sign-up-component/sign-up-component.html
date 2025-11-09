@@ -1,9 +1,8 @@
 <div class="sign-up">
-  <h2 align="center">Sign Up</h2>
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
     <div class="form-group">
-      <label for="firstName">First Name <span style="color: red">*</span></label>
-      <input type="text" id="firstName" name="firstName" required formControlName="firstName">
+      <label for="firstName">First Name</label>
+      <input type="text" id="firstName" name="firstName" required formControlName="firstName" placeholder="Enter your first name">
       @if (loginForm.get('firstName')?.invalid && (loginForm.get('firstName')?.dirty || loginForm.get('firstName')?.touched)) {
         <div class="error-messages">
           @if (loginForm.get('firstName')?.errors?.['required']) {
@@ -13,8 +12,8 @@
       }
     </div>
     <div class="form-group">
-      <label for="lastName">Last Name <span style="color: red">*</span></label>
-      <input type="text" id="lastName" name="lastName" required formControlName="lastName">
+      <label for="lastName">Last Name</label>
+      <input type="text" id="lastName" name="lastName" required formControlName="lastName" placeholder="Enter your last name">
       @if (loginForm.get('lastName')?.invalid && (loginForm.get('lastName')?.dirty || loginForm.get('lastName')?.touched)) {
         <div class="error-messages">
           @if (loginForm.get('lastName')?.errors?.['required']) {
@@ -24,8 +23,8 @@
       }
     </div>
     <div class="form-group">
-      <label for="email">Email <span style="color: red">*</span></label>
-      <input type="email" id="email" name="email" required formControlName="email">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required formControlName="email" placeholder="Enter your email">
       @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
         <div class="error-messages">
           @if (loginForm.get('email')?.errors?.['required']) {
@@ -38,8 +37,8 @@
       }
     </div>
     <div class="form-group">
-      <label for="password">Password <span style="color: red">*</span></label>
-      <input type="password" id="password" name="password" required formControlName="password">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required formControlName="password" placeholder="Enter your password">
       @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
         <div class="error-messages">
           @if (loginForm.get('password')?.errors?.['required']) {
@@ -58,8 +57,8 @@
       }
     </div>
     <div class="form-group">
-      <label for="confirmPassword">Confirm Password <span style="color: red">*</span></label>
-      <input type="password" id="confirmPassword" name="confirmPassword" required formControlName="confirmPassword">
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" id="confirmPassword" name="confirmPassword" required formControlName="confirmPassword" placeholder="Confirm your password">
       @if (loginForm.get('confirmPassword')?.invalid && (loginForm.get('confirmPassword')?.dirty || loginForm.get('confirmPassword')?.touched)) {
         <div class="error-messages">
           @if (loginForm.get('confirmPassword')?.errors?.['required']) {
@@ -73,10 +72,6 @@
         </div>
       }
     </div>
-    <div class="form-group">
-      <label for="locality">Locality</label>
-      <app-location-selector></app-location-selector>
-    </div>
-    <button type="submit">Sign Up</button>
+    <button type="submit" class="submit-button">Sign Up</button>
   </form>
 </div>

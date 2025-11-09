@@ -1,11 +1,80 @@
+.sign-up {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group {
+    margin-bottom: 22px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #404040;
+      margin-bottom: 7px;
+    }
+
+    input {
+      width: 100%;
+      height: 48px;
+      background: #FFFFFF;
+      border: 1px solid #E1E5E9;
+      border-radius: 6px;
+      padding: 0 13px;
+      font-size: 15px;
+      color: #333333;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease;
+
+      &::placeholder {
+        color: #9EA3A9;
+        font-size: 14px;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #1A83C5;
+      }
+    }
+  }
+
+  .submit-button {
+    width: 100%;
+    height: 50px;
+    background: #1A83C5;
+    border: none;
+    border-radius: 7px;
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 26px;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #1570A8;
+    }
+
+    &:active {
+      background: #125D8F;
+    }
+  }
+}
+
 .error-messages {
   margin-top: 4px;
 }
 
 .error-message {
-  color: red;
+  color: #E03E3E;
   font-size: 0.875rem;
   display: block;
   margin-top: 2px;
 }
-
