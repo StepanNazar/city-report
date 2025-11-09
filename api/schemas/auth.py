@@ -49,10 +49,12 @@ class RegisterSchema(LoginSchema):
     last_name = String(
         required=True, metadata={"example": "Doe", "description": "last name"}
     )
-    locality_id = Integer(metadata={"description": "provider's locality id"})
+    locality_id = Integer(
+        metadata={"description": "provider's locality id", "example": 3167397}
+    )
     locality_provider = String(
         validate=validators.OneOf(["google", "nominatim"]),
-        metadata={"enum": ["google", "nominatim"]},
+        metadata={"enum": ["google", "nominatim"], "example": "nominatim"},
     )
 
 
@@ -62,7 +64,7 @@ class WhoAmISchema(Schema):
     last_name = String(attribute="lastname", metadata={"x-faker": "name.lastName"})
     email = Email(metadata={"x-faker": "internet.email"})
     is_activated = Boolean()
-    locality_nominatim_id = Integer()
+    locality_nominatim_id = Integer(attribute="locality.osm_id")
     locality_google_id = Integer()
     created_at = DateTime(metadata={"x-faker": "date.past"})
 

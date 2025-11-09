@@ -25,6 +25,11 @@ class User(db.Model):
         default=lambda: str(uuid4()),
     )
     active_devices: so.Mapped[list["ActiveDevice"]] = so.relationship()
+    created_at: so.Mapped[datetime.datetime] = so.mapped_column(
+        sa.DateTime, server_default=sa.func.now()
+    )
+    locality_id: so.Mapped[int | None] = so.mapped_column(sa.ForeignKey("locality.id"))
+    locality: so.Mapped["Locality | None"] = so.relationship(back_populates="users")
 
     @so.validates("email")
     def email_validator(self, key, email: str) -> str:
@@ -92,3 +97,15 @@ class ActiveDevice(db.Model):
 
     def __repr__(self):
         return f"<ActiveDevice {self.ip_address} {self.os} {self.browser}>"
+
+
+class Locality(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
+    state: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
+    country: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
+    osm_id: so.Mapped[int] = so.mapped_column(sa.Integer, unique=True, nullable=True)
+    users: so.Mapped[list["User"]] = so.relationship(back_populates="locality")
+
+    def __repr__(self):
+        return f"<Locality {self.name}, {self.state}, {self.country}>"

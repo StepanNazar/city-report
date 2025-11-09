@@ -59,9 +59,18 @@ def test_login_with_nonexistent_email(client):
     assert response.status_code == 401
 
 
-def test_whoami(client):
+def test_whoami(client, mocker):
+    mock = mocker.patch(
+        "api.routes.auth.NominatimService.get_locality_name_state_and_country",
+        return_value=("Test Locality", "Test State", "Test Country"),
+    )
     response = register_user(
-        client, first_name="First", last_name="Last", email="abcdemail@gmail.com"
+        client,
+        first_name="First",
+        last_name="Last",
+        email="abcdemail@gmail.com",
+        locality_id=3167397,
+        locality_provider="nominatim",
     )
     access_token = response.json["access_token"]
 
@@ -69,6 +78,7 @@ def test_whoami(client):
         "/auth/whoami", headers={"Authorization": f"Bearer {access_token}"}
     )
 
+    mock.assert_called_once_with(3167397)
     assert response.status_code == 200
     data = response.json
     assert data["email"] == "abcdemail@gmail.com"
@@ -189,20 +199,20 @@ def register_user(
     last_name="User",
     email="test@gmail.com",
     password="SecurePassw0rd!",  # noqa: S107
-    locality_id=3167397,
-    locality_provider="nominatim",
+    locality_id=None,
+    locality_provider=None,
 ):
-    return client.post(
-        "/auth/register",
-        json={
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
-            "password": password,
-            "locality_id": locality_id,
-            "locality_provider": locality_provider,
-        },
-    )
+    json = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "password": password,
+    }
+    if locality_id:
+        json["locality_id"] = locality_id
+    if locality_provider:
+        json["locality_provider"] = locality_provider
+    return client.post("/auth/register", json=json)
 
 
 def login_user(client, email="test@gmail.com", password="SecurePassw0rd!"):  # noqa: S107

@@ -838,6 +838,7 @@
           },
           "locality_id": {
             "description": "provider's locality id",
+            "example": 3167397,
             "type": "integer"
           },
           "locality_provider": {
@@ -845,6 +846,7 @@
               "google",
               "nominatim"
             ],
+            "example": "nominatim",
             "type": "string"
           },
           "password": {
@@ -2295,7 +2297,7 @@
                 }
               }
             },
-            "description": "Invalid email or password"
+            "description": "Invalid email or locality_id"
           },
           "409": {
             "content": {
