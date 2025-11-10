@@ -72,6 +72,13 @@ class PostSortingFilteringSchema(PostSortingSchema):
         metadata={"enum": ["google", "nominatim"], "example": "nominatim"},
     )
 
+    class Meta:
+        """Add OpenAPI metadata for interdependent fields."""
+        description = (
+            "Query parameters for filtering and sorting posts. "
+            "Note: localityId and localityProvider must be specified together or both omitted."
+        )
+
     @validates_schema
     def validate_locality_fields(self, data, **kwargs):
         """Validate that locality_id and locality_provider are both present or both absent."""

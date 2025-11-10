@@ -37,35 +37,7 @@ from api.blueprints.solutions.schemas import (
     SolutionSortingFilteringSchema,
 )
 from api.blueprints.users.schemas import ReactionSchema
-
-
-def get_or_create_locality(locality_id, locality_provider):
-    """Get or create a locality based on provider and ID."""
-    # Import here to avoid circular imports
-    from api.services import NominatimService
-
-    if locality_provider == "nominatim":
-        locality = Locality.query.filter_by(osm_id=locality_id).first()
-        if not locality:
-            try:
-                name, state, country = (
-                    NominatimService.get_locality_name_state_and_country(locality_id)
-                )
-            except ValueError:
-                abort(400, message="Invalid locality id")
-            except requests.RequestException:
-                abort(500, message="Nominatim service unavailable")
-            locality = Locality(
-                name=name,
-                state=state,
-                country=country,
-                osm_id=locality_id,
-            )
-            db.session.add(locality)
-            db.session.flush()
-        return locality
-    else:
-        abort(501, message="Only nominatim provider is supported")
+from api.services import LocationService
 
 
 class Posts(MethodView):
@@ -125,9 +97,16 @@ class Posts(MethodView):
         current_user = get_current_user()
 
         # Get or create locality
-        locality = get_or_create_locality(
-            json_data["locality_id"], json_data["locality_provider"]
-        )
+        try:
+            locality = LocationService.get_or_create_locality(
+                json_data["locality_id"], json_data["locality_provider"], db.session
+            )
+        except ValueError:
+            abort(400, message="Invalid locality id")
+        except requests.RequestException:
+            abort(500, message="Nominatim service unavailable")
+        except NotImplementedError as e:
+            abort(501, message=str(e))
 
         # Create post
         post_data = {k: v for k, v in json_data.items() if k not in ["locality_id", "locality_provider"]}
@@ -173,9 +152,17 @@ class Post(MethodView):
             abort(403, message="You can only update your own posts")
 
         # Update locality if changed
-        locality = get_or_create_locality(
-            json_data["locality_id"], json_data["locality_provider"]
-        )
+        try:
+            locality = LocationService.get_or_create_locality(
+                json_data["locality_id"], json_data["locality_provider"], db.session
+            )
+        except ValueError:
+            abort(400, message="Invalid locality id")
+        except requests.RequestException:
+            abort(500, message="Nominatim service unavailable")
+        except NotImplementedError as e:
+            abort(501, message=str(e))
+
         post.locality_id = locality.id
 
         # Update post fields dynamically

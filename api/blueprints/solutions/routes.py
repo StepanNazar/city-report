@@ -48,7 +48,6 @@ class Solution(MethodView):
         for key, value in json_data.items():
             if hasattr(solution, key):
                 setattr(solution, key, value)
-
         solution.edited_at = datetime.datetime.now(datetime.UTC)
 
         db.session.commit()
