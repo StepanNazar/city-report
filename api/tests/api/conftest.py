@@ -49,10 +49,10 @@ class AuthenticatedClient:
     def __init__(self, client, first_name, last_name, email, password):
         self.client = client
         response = client.post(
-            "/api/register",
+            "/auth/register",
             json={
-                "first_name": first_name,
-                "last_name": last_name,
+                "firstName": first_name,
+                "lastName": last_name,
                 "email": email,
                 "password": password,
             },
@@ -91,7 +91,7 @@ def authenticated_client(client) -> AuthenticatedClient:
         client,
         first_name="John",
         last_name="Doe",
-        email="john.doe@example.com",
+        email="john.doe@test.com",
         password="SecurePassw0rd!",  # noqa: S106
     )
 

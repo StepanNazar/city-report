@@ -23,7 +23,7 @@ class PostBaseSchema(CamelCaseSchema):
 
 
 class PostInSchema(PostBaseSchema):
-    locality_id = String(metadata={"x-faker": "address.city"}, required=True)
+    locality_id = Integer(metadata={"description": "provider's locality id", "example": 3167397}, required=True)
     locality_provider = locality_provider
 
 
