@@ -1,6 +1,10 @@
-from flask.views import MethodView
-from flask_jwt_extended import jwt_required
+import datetime
 
+from apiflask import abort
+from flask.views import MethodView
+from flask_jwt_extended import get_current_user, jwt_required
+
+from api import db
 from api.blueprints.comments.schemas import (
     CommentOutPaginationSchema,
     CommentOutSchema,
@@ -13,6 +17,7 @@ from api.blueprints.common.schemas import (
     pagination_query_schema,
 )
 from api.blueprints.solutions import solutions
+from api.blueprints.solutions.models import Solution as SolutionModel
 from api.blueprints.solutions.schemas import SolutionInSchema, SolutionOutSchema
 from api.blueprints.users.schemas import ReactionSchema
 
@@ -21,7 +26,8 @@ class Solution(MethodView):
     @solutions.output(SolutionOutSchema)
     def get(self, solution_id):
         """Get the solution by ID"""
-        return {}, 501
+        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
+        return solution
 
     @jwt_required()
     @solutions.input(SolutionInSchema)
@@ -30,9 +36,23 @@ class Solution(MethodView):
         security="jwt_access_token",
         responses={200: "Solution updated", 403: "Forbidden"},
     )
-    def put(self, solution_id):
+    def put(self, solution_id, json_data):
         """Update solution. Only the author of the solution can update it"""
-        return {}, 501
+        current_user = get_current_user()
+        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
+
+        if solution.author_id != current_user.id:
+            abort(403, message="You can only update your own solutions")
+
+        # Update solution fields dynamically
+        for key, value in json_data.items():
+            if hasattr(solution, key):
+                setattr(solution, key, value)
+        solution.edited_at = datetime.datetime.now(datetime.UTC)
+
+        db.session.commit()
+
+        return solution
 
     @jwt_required()
     @solutions.input(JSONPatchSchema)
@@ -52,7 +72,16 @@ class Solution(MethodView):
     )
     def delete(self, solution_id):
         """Delete the solution. Only the author of the solution can delete it."""
-        return {}, 501
+        current_user = get_current_user()
+        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
+
+        if solution.author_id != current_user.id:
+            abort(403, message="You can only delete your own solutions")
+
+        db.session.delete(solution)
+        db.session.commit()
+
+        return "", 204
 
 
 class SolutionApproval(MethodView):

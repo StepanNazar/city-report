@@ -26,8 +26,7 @@ from api.blueprints.auth.schemas import (
     RegisterSchema,
     WhoAmISchema,
 )
-from api.blueprints.locations.models import Locality
-from api.services import EmailService, NominatimService
+from api.services import EmailService, LocationService
 
 
 @jwt.user_lookup_loader
@@ -91,31 +90,18 @@ class Register(MethodView):
         locality_provider = json_data.get("locality_provider")
         inner_locality_id = None
         if locality_id and locality_provider:
-            match locality_provider:
-                case "nominatim":
-                    locality = Locality.query.filter_by(osm_id=locality_id).first()
-                    if not locality:
-                        try:
-                            name, state, country = (
-                                NominatimService.get_locality_name_state_and_country(
-                                    locality_id
-                                )
-                            )
-                        except ValueError:
-                            abort(400, message="Invalid locality id")
-                        except requests.RequestException:
-                            abort(500, message="Nominatim service unavailable")
-                        locality = Locality(
-                            name=name,  # type: ignore[call-arg]
-                            state=state,  # type: ignore[call-arg]
-                            country=country,  # type: ignore[call-arg]
-                            osm_id=locality_id,  # type: ignore[call-arg]
-                        )
-                        db.session.add(locality)
-                        db.session.commit()
-                    inner_locality_id = locality.id
-                case "google":
-                    return {}, 501
+            try:
+                locality = LocationService.get_or_create_locality(
+                    locality_id, locality_provider, db.session
+                )
+                db.session.commit()
+                inner_locality_id = locality.id
+            except ValueError:
+                abort(400, message="Invalid locality id")
+            except requests.RequestException:
+                abort(500, message="Nominatim service unavailable")
+            except NotImplementedError as e:
+                abort(501, message=str(e))
 
         try:
             new_user = User(

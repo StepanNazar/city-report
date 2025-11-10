@@ -16,18 +16,21 @@ def test_post_author_link_is_valid(authenticated_client, post):
 
 def test_get_posts(authenticated_client, authenticated_client2):
     posts = []
+    post_urls = []
     for i in range(3):
         new_post = post_data.copy()
         new_post["title"] = f"Post {3 - i}"
         posts.append(new_post)
-    for new_post in posts:
-        create_post(authenticated_client, new_post)
+        post_urls.append(create_post(authenticated_client, new_post))
     # create a post with another user to ensure posts from other users are included in the response
     posts.append(post_data)
-    create_post(authenticated_client2, post_data)
+    post_urls.append(create_post(authenticated_client2, post_data))
     # update post
     time.sleep(0.01)
-    authenticated_client.put(posts[0], json=post_data.copy())
+    updated_post = post_data.copy()
+    updated_post["localityId"] = 3167398
+    authenticated_client.put(post_urls[0], json=updated_post)
+    posts[0] = updated_post
 
     response = authenticated_client.get("/posts?order=asc&sort_by=created_at")
 
@@ -45,6 +48,18 @@ def test_get_posts(authenticated_client, authenticated_client2):
 
     assert_pagination_response(response, total=4, page=2, total_pages=2, items_count=2)
     assert_resources_order_match(response.json["items"], posts[2:])
+
+    # Test filtering by localityId
+    # Posts 1, 2, 3 have locality 3167397, post 0 has locality 3167398 after update
+    response_3167397 = authenticated_client.get("/posts?localityId=3167397&localityProvider=nominatim")
+    assert_pagination_response(response_3167397, total=3, page=1, total_pages=1, items_count=3)
+
+    response_3167398 = authenticated_client.get("/posts?localityId=3167398&localityProvider=nominatim")
+    assert_pagination_response(response_3167398, total=1, page=1, total_pages=1, items_count=1)
+
+    # Test with non-existent locality
+    response_none = authenticated_client.get("/posts?localityId=9999999&localityProvider=nominatim")
+    assert_pagination_response(response_none, total=0, page=1, total_pages=0, items_count=0)
 
 
 @pytest.mark.parametrize(

@@ -7,6 +7,7 @@ from api import db
 
 if TYPE_CHECKING:
     from api.blueprints.auth.models import User
+    from api.blueprints.posts.models import Post
 
 
 class Locality(db.Model):
@@ -16,6 +17,7 @@ class Locality(db.Model):
     country: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
     osm_id: so.Mapped[int] = so.mapped_column(sa.Integer, unique=True, nullable=True)
     users: so.Mapped[list["User"]] = so.relationship(back_populates="locality")
+    posts: so.Mapped[list["Post"]] = so.relationship(back_populates="locality")
 
     def __repr__(self):
         return f"<Locality {self.name}, {self.state}, {self.country}>"

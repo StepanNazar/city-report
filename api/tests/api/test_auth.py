@@ -61,7 +61,7 @@ def test_login_with_nonexistent_email(client):
 
 def test_whoami(client, mocker):
     mock = mocker.patch(
-        "api.blueprints.auth.routes.NominatimService.get_locality_name_state_and_country",
+        "api.services.NominatimService.get_locality_name_state_and_country",
         return_value=("Test Locality", "Test State", "Test Country"),
     )
     response = register_user(

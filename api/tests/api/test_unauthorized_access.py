@@ -54,12 +54,12 @@ def test_unauthorized_access(client, method, url, payload):
 
 
 @pytest.mark.parametrize(
-    "method,payload,cross_user_resources",
+    "method,payload,cross_user_resources,excluded_keys",
     [
-        ("put", updated_post_data.copy(), lf(cross_user_posts)),
-        ("delete", None, lf(cross_user_posts)),
-        ("put", updated_solution_data.copy(), lf(cross_user_solutions)),
-        ("delete", None, lf(cross_user_solutions)),
+        ("put", updated_post_data.copy(), lf(cross_user_posts), ["localityId", "localityProvider"]),
+        ("delete", None, lf(cross_user_posts), ["localityId", "localityProvider"]),
+        ("put", updated_solution_data.copy(), lf(cross_user_solutions), None),
+        ("delete", None, lf(cross_user_solutions), None),
     ],
 )
 def test_access_unowned_profile(
@@ -68,6 +68,7 @@ def test_access_unowned_profile(
     cross_user_resources,
     method,
     payload,
+    excluded_keys,
 ):
     client_resource, client2_resource, original_resource_data = cross_user_resources
 
@@ -81,16 +82,16 @@ def test_access_unowned_profile(
 
     if method != "get":
         assert_resource_unchanged(
-            authenticated_client, client_resource, original_resource_data
+            authenticated_client, client_resource, original_resource_data, excluded_keys
         )
         assert_resource_unchanged(
-            authenticated_client2, client2_resource, original_resource_data
+            authenticated_client2, client2_resource, original_resource_data, excluded_keys
         )
 
 
-def assert_resource_unchanged(client, url, expected_data):
+def assert_resource_unchanged(client, url, expected_data, excluded_keys=None):
     """Verify the resource wasn't modified."""
     response = client.get(url)
 
     assert response.status_code == 200
-    assert_response_matches_resource(response, expected_data)
+    assert_response_matches_resource(response, expected_data, excluded_keys=excluded_keys)

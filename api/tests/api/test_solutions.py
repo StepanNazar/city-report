@@ -18,21 +18,24 @@ def test_solution_author_link_is_valid(authenticated_client, solution):
 
 def test_get_solutions(authenticated_client, authenticated_client2, post):
     solutions = []
+    solution_urls = []
     for i in range(3):
         new_solution = solution_data.copy()
         new_solution["title"] = f"Solution {3 - i}"
         solutions.append(new_solution)
-    for new_solution in solutions:
-        create_solution(authenticated_client, post, new_solution)
+        solution_urls.append(create_solution(authenticated_client, post, new_solution))
     # create a solution with another user to ensure solutions from other users are included in the response
     solutions.append(solution_data)
-    create_solution(authenticated_client2, post, solution_data)
+    solution_urls.append(create_solution(authenticated_client2, post, solution_data))
     # create a solution to another post to ensure solutions from other posts are excluded
     another_post = create_post(authenticated_client, post_data)
     create_solution(authenticated_client, another_post, solution_data)
     # update solution
     time.sleep(0.01)
-    authenticated_client.put(solutions[0], json=solution_data.copy())
+    updated_solution = solution_data.copy()
+    updated_solution["title"] = "Updated Solution"
+    authenticated_client.put(solution_urls[0], json=updated_solution)
+    solutions[0] = updated_solution
 
     response = authenticated_client.get(
         f"{post}/solutions?order=asc&sort_by=created_at"
