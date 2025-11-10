@@ -81,17 +81,19 @@ class Posts(MethodView):
         sort_by = query_data.get("sort_by")
         order = query_data.get("order")
         locality_id = query_data.get("locality_id")
+        locality_provider = query_data.get("locality_provider")
 
         query = PostModel.query
 
         # Apply locality filtering if provided
-        if locality_id:
+        if locality_id and locality_provider and locality_provider == "nominatim":
             locality = Locality.query.filter_by(osm_id=int(locality_id)).first()
             if locality:
                 query = query.filter_by(locality_id=locality.id)
             else:
                 # If locality not found, return empty result by filtering for impossible ID
                 query = query.filter_by(locality_id=-1)
+        # Other providers can be added here in the future
 
         # Apply sorting
         if sort_by == "created_at":
@@ -138,9 +140,6 @@ class Posts(MethodView):
         db.session.add(new_post)
         db.session.commit()
 
-        # Refresh to load relationships
-        db.session.refresh(new_post)
-
         return new_post, 201, {
             "Location": url_for("posts.post", post_id=new_post.id)
         }
@@ -186,9 +185,6 @@ class Post(MethodView):
         post.edited_at = datetime.datetime.now(datetime.UTC)
 
         db.session.commit()
-
-        # Refresh to load relationships
-        db.session.refresh(post)
 
         return post
 
@@ -273,7 +269,7 @@ class PostSolutions(MethodView):
     @posts.output(SolutionOutPaginationSchema)
     def get(self, post_id, query_data):
         """Get solutions for post"""
-        _ = PostModel.query.get_or_404(post_id, description="Post not found")
+        PostModel.query.get_or_404(post_id, description="Post not found")
 
         sort_by = query_data.get("sort_by")
         order = query_data.get("order")
@@ -310,7 +306,7 @@ class PostSolutions(MethodView):
         current_user = get_current_user()
 
         # Check if post exists
-        _ = PostModel.query.get_or_404(post_id, description="Post not found")
+        PostModel.query.get_or_404(post_id, description="Post not found")
 
         # Create solution
         new_solution = SolutionModel(
