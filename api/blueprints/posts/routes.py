@@ -84,11 +84,9 @@ class Posts(MethodView):
             order_column = PostModel.created_at
 
         if order == "desc":
-            order_column = order_column.desc()
+            query = query.order_by(order_column.desc(), PostModel.id.desc())
         else:
-            order_column = order_column.asc()
-
-        query = query.order_by(order_column)
+            query = query.order_by(order_column.asc(), PostModel.id.asc())
 
         # Paginate
         pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -334,11 +332,9 @@ class PostSolutions(MethodView):
             order_column = SolutionModel.created_at
 
         if order == "desc":
-            order_column = order_column.desc()
+            query = query.order_by(order_column.desc(), SolutionModel.id.desc())
         else:
-            order_column = order_column.asc()
-
-        query = query.order_by(order_column)
+            query = query.order_by(order_column.asc(), SolutionModel.id.asc())
 
         # Paginate
         pagination = query.paginate(page=page, per_page=per_page, error_out=False)
