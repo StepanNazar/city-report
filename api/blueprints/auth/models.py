@@ -1,4 +1,5 @@
 import datetime
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import sqlalchemy as sa
@@ -10,6 +11,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from api import db
 from api.blueprints.locations.models import Locality
+
+if TYPE_CHECKING:
+    from api.blueprints.posts.models import Post
+    from api.blueprints.solutions.models import Solution
 
 
 class User(db.Model):
@@ -31,6 +36,8 @@ class User(db.Model):
     )
     locality_id: so.Mapped[int | None] = so.mapped_column(sa.ForeignKey("locality.id"))
     locality: so.Mapped["Locality | None"] = so.relationship(back_populates="users")
+    posts: so.Mapped[list["Post"]] = so.relationship(back_populates="author")
+    solutions: so.Mapped[list["Solution"]] = so.relationship(back_populates="author")
 
     @so.validates("email")
     def email_validator(self, key, email: str) -> str:

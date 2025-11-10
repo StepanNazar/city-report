@@ -1,6 +1,10 @@
+import datetime
+from apiflask import abort
+from flask import url_for
 from flask.views import MethodView
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_current_user, jwt_required
 
+from api import db
 from api.blueprints.comments.schemas import (
     CommentOutPaginationSchema,
     CommentOutSchema,
@@ -13,15 +17,41 @@ from api.blueprints.common.schemas import (
     pagination_query_schema,
 )
 from api.blueprints.solutions import solutions
+from api.blueprints.solutions.models import Solution as SolutionModel
 from api.blueprints.solutions.schemas import SolutionInSchema, SolutionOutSchema
 from api.blueprints.users.schemas import ReactionSchema
+
+
+def serialize_solution(solution: SolutionModel) -> dict:
+    """Serialize a solution to dict for response"""
+    return {
+        "id": solution.id,
+        "title": solution.title,
+        "body": solution.body,
+        "created_at": solution.created_at,
+        "updated_at": solution.edited_at,
+        "author_id": solution.author_id,
+        "author_link": url_for(
+            "users.user", user_id=solution.author_id
+        ),
+        "author_first_name": solution.author.firstname,
+        "author_last_name": solution.author.lastname,
+        "likes": 0,
+        "dislikes": 0,
+        "comments": 0,
+        "approved": False,
+        "approved_at": None,
+    }
 
 
 class Solution(MethodView):
     @solutions.output(SolutionOutSchema)
     def get(self, solution_id):
         """Get the solution by ID"""
-        return {}, 501
+        solution = SolutionModel.query.get(solution_id)
+        if not solution:
+            abort(404, message="Solution not found")
+        return serialize_solution(solution)
 
     @jwt_required()
     @solutions.input(SolutionInSchema)
@@ -30,9 +60,25 @@ class Solution(MethodView):
         security="jwt_access_token",
         responses={200: "Solution updated", 403: "Forbidden"},
     )
-    def put(self, solution_id):
+    def put(self, solution_id, json_data):
         """Update solution. Only the author of the solution can update it"""
-        return {}, 501
+        current_user = get_current_user()
+        solution = SolutionModel.query.get(solution_id)
+
+        if not solution:
+            abort(404, message="Solution not found")
+
+        if solution.author_id != current_user.id:
+            abort(403, message="You can only update your own solutions")
+
+        # Update solution fields
+        solution.title = json_data["title"]
+        solution.body = json_data["body"]
+        solution.edited_at = datetime.datetime.now(datetime.UTC)
+
+        db.session.commit()
+
+        return serialize_solution(solution)
 
     @jwt_required()
     @solutions.input(JSONPatchSchema)
@@ -52,7 +98,19 @@ class Solution(MethodView):
     )
     def delete(self, solution_id):
         """Delete the solution. Only the author of the solution can delete it."""
-        return {}, 501
+        current_user = get_current_user()
+        solution = SolutionModel.query.get(solution_id)
+
+        if not solution:
+            abort(404, message="Solution not found")
+
+        if solution.author_id != current_user.id:
+            abort(403, message="You can only delete your own solutions")
+
+        db.session.delete(solution)
+        db.session.commit()
+
+        return "", 204
 
 
 class SolutionApproval(MethodView):

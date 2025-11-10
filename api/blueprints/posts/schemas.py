@@ -36,7 +36,7 @@ class PostOutSchema(PostBaseSchema):
     locality_nominatim_id = Integer()
     locality_google_id = Integer()
     created_at = DateTime(metadata={"x-faker": "date.past"})
-    edited_at = DateTime(metadata={"x-faker": "date.recent"})
+    updated_at = DateTime(metadata={"x-faker": "date.recent"})
     likes = Integer()
     dislikes = Integer()
     comments = Integer()
@@ -54,8 +54,7 @@ class PostSortingSchema(Schema):
         load_default="desc",
         validate=OneOf(["asc", "desc"]),
     )
-    locality_id = String(required=True)
 
 
 class PostSortingFilteringSchema(PostSortingSchema):
-    locality_id = String(required=True)
+    locality_id = String()

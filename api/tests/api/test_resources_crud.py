@@ -31,7 +31,7 @@ def base_api_path():
             additional_post_keys,
             excluded_post_keys,
         ),
-        (lf(post), "sources", solution_data, additional_solution_keys, None),
+        (lf(post), "solutions", solution_data, additional_solution_keys, None),
     ],
 )
 def test_post_resource(
@@ -104,7 +104,7 @@ def test_put_resource(
         additional_keys=additional_keys,
         excluded_keys=excluded_keys,
     )
-    assert response.json["updated"] != response.json["created"]
+    assert response.json["updatedAt"] != response.json["createdAt"]
 
 
 @pytest.mark.parametrize(

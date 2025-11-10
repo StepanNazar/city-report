@@ -16,18 +16,20 @@ def test_post_author_link_is_valid(authenticated_client, post):
 
 def test_get_posts(authenticated_client, authenticated_client2):
     posts = []
+    post_urls = []
     for i in range(3):
         new_post = post_data.copy()
         new_post["title"] = f"Post {3 - i}"
         posts.append(new_post)
-    for new_post in posts:
-        create_post(authenticated_client, new_post)
+        post_urls.append(create_post(authenticated_client, new_post))
     # create a post with another user to ensure posts from other users are included in the response
     posts.append(post_data)
-    create_post(authenticated_client2, post_data)
+    post_urls.append(create_post(authenticated_client2, post_data))
     # update post
     time.sleep(0.01)
-    authenticated_client.put(posts[0], json=post_data.copy())
+    updated_data = post_data.copy()
+    authenticated_client.put(post_urls[0], json=updated_data)
+    posts[0] = updated_data
 
     response = authenticated_client.get("/posts?order=asc&sort_by=created_at")
 

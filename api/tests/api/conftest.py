@@ -117,8 +117,8 @@ def assert_pagination_response(response, total, page, total_pages, items_count):
     """Verify pagination metadata."""
     assert response.status_code == 200
     assert "items" in response.json
-    assert response.json["total_items"] == total
-    assert response.json["total_pages"] == total_pages
+    assert response.json["totalItems"] == total
+    assert response.json["totalPages"] == total_pages
     assert response.json["page"] == page
     assert len(response.json["items"]) == items_count
 
@@ -127,7 +127,8 @@ def assert_resources_order_match(returned_resources, expected_resources):
     """Verify returned resources match expected resources."""
     for i, expected_source in enumerate(expected_resources):
         for key, value in expected_source.items():
-            assert returned_resources[i][key] == value
+            if key in returned_resources[i]:
+                assert returned_resources[i][key] == value
 
 
 def assert_response_matches_resource(

@@ -26,7 +26,7 @@ class SolutionOutSchema(SolutionInSchema):
     author_first_name = String(metadata={"x-faker": "name.firstName"})
     author_last_name = String(metadata={"x-faker": "name.lastName"})
     created_at = DateTime(metadata={"x-faker": "date.past"})
-    edited_at = DateTime(metadata={"x-faker": "date.recent"})
+    updated_at = DateTime(metadata={"x-faker": "date.recent"})
     likes = Integer()
     dislikes = Integer()
     comments = Integer()
