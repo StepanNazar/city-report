@@ -32,9 +32,10 @@ def test_get_solutions(authenticated_client, authenticated_client2, post):
     create_solution(authenticated_client, another_post, solution_data)
     # update solution
     time.sleep(0.01)
-    updated_data = solution_data.copy()
-    authenticated_client.put(solution_urls[0], json=updated_data)
-    solutions[0] = updated_data
+    updated_solution = solution_data.copy()
+    updated_solution["title"] = "Updated Solution"
+    authenticated_client.put(solution_urls[0], json=updated_solution)
+    solutions[0] = updated_solution
 
     response = authenticated_client.get(
         f"{post}/solutions?order=asc&sort_by=created_at"

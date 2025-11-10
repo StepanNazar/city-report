@@ -1,7 +1,6 @@
 import datetime
 
 from apiflask import abort
-from flask import url_for
 from flask.views import MethodView
 from flask_jwt_extended import get_current_user, jwt_required
 
@@ -23,28 +22,6 @@ from api.blueprints.solutions.schemas import SolutionInSchema, SolutionOutSchema
 from api.blueprints.users.schemas import ReactionSchema
 
 
-def serialize_solution(solution: SolutionModel) -> dict:
-    """Serialize a solution to dict for response"""
-    return {
-        "id": solution.id,
-        "title": solution.title,
-        "body": solution.body,
-        "created_at": solution.created_at,
-        "updated_at": solution.edited_at,
-        "author_id": solution.author_id,
-        "author_link": url_for(
-            "users.user", user_id=solution.author_id
-        ),
-        "author_first_name": solution.author.firstname,
-        "author_last_name": solution.author.lastname,
-        "likes": 0,
-        "dislikes": 0,
-        "comments": 0,
-        "approved": False,
-        "approved_at": None,
-    }
-
-
 class Solution(MethodView):
     @solutions.output(SolutionOutSchema)
     def get(self, solution_id):
@@ -52,7 +29,7 @@ class Solution(MethodView):
         solution = SolutionModel.query.get(solution_id)
         if not solution:
             abort(404, message="Solution not found")
-        return serialize_solution(solution)
+        return solution
 
     @jwt_required()
     @solutions.input(SolutionInSchema)
@@ -72,14 +49,16 @@ class Solution(MethodView):
         if solution.author_id != current_user.id:
             abort(403, message="You can only update your own solutions")
 
-        # Update solution fields
-        solution.title = json_data["title"]
-        solution.body = json_data["body"]
+        # Update solution fields dynamically
+        for key, value in json_data.items():
+            if hasattr(solution, key):
+                setattr(solution, key, value)
+
         solution.edited_at = datetime.datetime.now(datetime.UTC)
 
         db.session.commit()
 
-        return serialize_solution(solution)
+        return solution
 
     @jwt_required()
     @solutions.input(JSONPatchSchema)

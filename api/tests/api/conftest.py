@@ -86,7 +86,7 @@ class AuthenticatedClient:
 
 
 @pytest.fixture
-def authenticated_client(client) -> AuthenticatedClient:
+def authenticated_client(client, mock_nominatim) -> AuthenticatedClient:
     return AuthenticatedClient(
         client,
         first_name="John",
@@ -97,7 +97,7 @@ def authenticated_client(client) -> AuthenticatedClient:
 
 
 @pytest.fixture
-def authenticated_client2(client) -> AuthenticatedClient:
+def authenticated_client2(client, mock_nominatim) -> AuthenticatedClient:
     return AuthenticatedClient(
         client,
         first_name="Test",
@@ -124,7 +124,13 @@ def assert_pagination_response(response, total, page, total_pages, items_count):
 
 
 def assert_resources_order_match(returned_resources, expected_resources):
-    """Verify returned resources match expected resources."""
+    """Verify returned resources match expected resources in the correct pagination order.
+
+    This helper checks that resources are returned in the expected order by comparing
+    each field in the expected resources with the corresponding field in the returned
+    resources. Only fields present in both the expected and returned resources are compared,
+    allowing for fields that may be excluded in pagination responses (like 'body').
+    """
     for i, expected_source in enumerate(expected_resources):
         for key, value in expected_source.items():
             if key in returned_resources[i]:
@@ -209,6 +215,15 @@ additional_solution_keys = [
 def create_post(client, post_data: dict | MappingProxyType = post_data):
     response = client.post("/posts", json=post_data.copy())
     return response.headers["Location"]
+
+
+@pytest.fixture
+def mock_nominatim(mocker):
+    """Mock NominatimService for tests."""
+    return mocker.patch(
+        "api.services.NominatimService.get_locality_name_state_and_country",
+        return_value=("Test Locality", "Test State", "Test Country"),
+    )
 
 
 @pytest.fixture

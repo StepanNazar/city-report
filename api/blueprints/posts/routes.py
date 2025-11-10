@@ -1,7 +1,8 @@
 import datetime
 
+import requests
 from apiflask import abort
-from flask import url_for
+from flask import request, url_for
 from flask.views import MethodView
 from flask_jwt_extended import get_current_user, jwt_required
 
@@ -11,6 +12,7 @@ from api.blueprints.comments.schemas import (
     CommentOutSchema,
     CommentSortingSchema,
 )
+from api.blueprints.common.routes import create_pagination_response
 from api.blueprints.common.schemas import (
     JSONPatchSchema,
     TextBodySchema,
@@ -36,26 +38,33 @@ from api.blueprints.solutions.schemas import (
 from api.blueprints.users.schemas import ReactionSchema
 
 
-def serialize_post(post: PostModel) -> dict:
-    """Serialize a post to dict for response"""
-    return {
-        "id": post.id,
-        "title": post.title,
-        "body": post.body,
-        "latitude": post.latitude,
-        "longitude": post.longitude,
-        "created_at": post.created_at,
-        "updated_at": post.edited_at,
-        "author_id": post.author_id,
-        "author_link": url_for("users.user", user_id=post.author_id),
-        "author_first_name": post.author.firstname,
-        "author_last_name": post.author.lastname,
-        "locality_nominatim_id": post.locality.osm_id if post.locality else None,
-        "locality_google_id": None,
-        "likes": 0,
-        "dislikes": 0,
-        "comments": 0,
-    }
+def get_or_create_locality(locality_id, locality_provider):
+    """Get or create a locality based on provider and ID."""
+    # Import here to avoid circular imports
+    from api.services import NominatimService
+
+    if locality_provider == "nominatim":
+        locality = Locality.query.filter_by(osm_id=locality_id).first()
+        if not locality:
+            try:
+                name, state, country = (
+                    NominatimService.get_locality_name_state_and_country(locality_id)
+                )
+            except ValueError:
+                abort(400, message="Invalid locality id")
+            except requests.RequestException:
+                abort(500, message="Nominatim service unavailable")
+            locality = Locality(
+                name=name,
+                state=state,
+                country=country,
+                osm_id=locality_id,
+            )
+            db.session.add(locality)
+            db.session.flush()
+        return locality
+    else:
+        abort(501, message="Only nominatim provider is supported")
 
 
 class Posts(MethodView):
@@ -68,12 +77,18 @@ class Posts(MethodView):
     @posts.output(PostOutPaginationSchema)
     def get(self, query_data):
         """Get all posts"""
-        page = query_data.get("page", 1)
-        per_page = query_data.get("per_page", 50)
-        sort_by = query_data.get("sort_by", "likes")
-        order = query_data.get("order", "desc")
+        sort_by = query_data.get("sort_by")
+        order = query_data.get("order")
+        locality_id = query_data.get("locality_id")
 
         query = PostModel.query
+
+        # Apply locality filtering if provided
+        if locality_id:
+            locality = Locality.query.filter_by(osm_id=int(locality_id)).first()
+            if locality:
+                query = query.filter_by(locality_id=locality.id)
+            # If locality not found, query will return no results naturally
 
         # Apply sorting
         if sort_by == "created_at":
@@ -81,7 +96,7 @@ class Posts(MethodView):
         elif sort_by == "edited_at":
             order_column = PostModel.edited_at
         else:
-            # For likes, dislikes, we'll just use created_at for now since we don't have those columns yet
+            # For likes, dislikes, we'll just use created_at for now
             order_column = PostModel.created_at
 
         if order == "desc":
@@ -90,18 +105,11 @@ class Posts(MethodView):
             query = query.order_by(order_column.asc(), PostModel.id.asc())
 
         # Paginate
-        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        pagination = query.paginate()
 
-        return {
-            "items": [serialize_post(post) for post in pagination.items],
-            "total_items": pagination.total,
-            "total_pages": pagination.pages,
-            "page": pagination.page,
-            "items_per_page": per_page,
-            "has_next": pagination.has_next,
-            "has_prev": pagination.has_prev,
-            "links": None,
-        }
+        return create_pagination_response(
+            pagination, "posts.posts", **request.args
+        )
 
     @jwt_required()
     @posts.input(PostInSchema)
@@ -112,40 +120,21 @@ class Posts(MethodView):
         current_user = get_current_user()
 
         # Get or create locality
-        locality_id_input = json_data.get("locality_id")
-        locality_provider = json_data.get("locality_provider")
-
-        if locality_provider == "nominatim":
-            locality = Locality.query.filter_by(osm_id=locality_id_input).first()
-            if not locality:
-                # For now, we'll just create a placeholder locality
-                # In production, you'd fetch from Nominatim service
-                locality = Locality(
-                    name="Unknown",
-                    state="Unknown",
-                    country="Unknown",
-                    osm_id=locality_id_input,
-                )
-                db.session.add(locality)
-                db.session.flush()
-        else:
-            abort(501, message="Only nominatim provider is supported")
+        locality = get_or_create_locality(
+            json_data["locality_id"], json_data["locality_provider"]
+        )
 
         # Create post
         new_post = PostModel(
-            title=json_data["title"],
-            body=json_data["body"],
-            latitude=json_data["latitude"],
-            longitude=json_data["longitude"],
             author_id=current_user.id,
             locality_id=locality.id,
+            **{k: v for k, v in json_data.items() if k not in ["locality_id", "locality_provider"]}
         )
 
         db.session.add(new_post)
         db.session.commit()
 
-        response_data = serialize_post(new_post)
-        return response_data, 201, {
+        return new_post, 201, {
             "Location": url_for("posts.post", post_id=new_post.id)
         }
 
@@ -157,7 +146,7 @@ class Post(MethodView):
         post = PostModel.query.get(post_id)
         if not post:
             abort(404, message="Post not found")
-        return serialize_post(post)
+        return post
 
     @jwt_required()
     @posts.input(PostInSchema)
@@ -177,34 +166,21 @@ class Post(MethodView):
             abort(403, message="You can only update your own posts")
 
         # Update locality if changed
-        locality_id_input = json_data.get("locality_id")
-        locality_provider = json_data.get("locality_provider")
+        locality = get_or_create_locality(
+            json_data["locality_id"], json_data["locality_provider"]
+        )
+        post.locality_id = locality.id
 
-        if locality_provider == "nominatim":
-            locality = Locality.query.filter_by(osm_id=locality_id_input).first()
-            if not locality:
-                locality = Locality(
-                    name="Unknown",
-                    state="Unknown",
-                    country="Unknown",
-                    osm_id=locality_id_input,
-                )
-                db.session.add(locality)
-                db.session.flush()
-            post.locality_id = locality.id
-        else:
-            abort(501, message="Only nominatim provider is supported")
+        # Update post fields dynamically
+        for key, value in json_data.items():
+            if key not in ["locality_id", "locality_provider"] and hasattr(post, key):
+                setattr(post, key, value)
 
-        # Update post fields
-        post.title = json_data["title"]
-        post.body = json_data["body"]
-        post.latitude = json_data["latitude"]
-        post.longitude = json_data["longitude"]
         post.edited_at = datetime.datetime.now(datetime.UTC)
 
         db.session.commit()
 
-        return serialize_post(post)
+        return post
 
     @jwt_required()
     @posts.input(JSONPatchSchema)
@@ -280,28 +256,6 @@ class PostComments(MethodView):
         return {}, 501
 
 
-def serialize_solution(solution: SolutionModel) -> dict:
-    """Serialize a solution to dict for response"""
-    return {
-        "id": solution.id,
-        "title": solution.title,
-        "body": solution.body,
-        "created_at": solution.created_at,
-        "updated_at": solution.edited_at,
-        "author_id": solution.author_id,
-        "author_link": url_for(
-            "users.user", user_id=solution.author_id
-        ),
-        "author_first_name": solution.author.firstname,
-        "author_last_name": solution.author.lastname,
-        "likes": 0,
-        "dislikes": 0,
-        "comments": 0,
-        "approved": False,
-        "approved_at": None,
-    }
-
-
 class PostSolutions(MethodView):
     @posts.input(
         merge_schemas(
@@ -316,10 +270,8 @@ class PostSolutions(MethodView):
         if not post:
             abort(404, message="Post not found")
 
-        page = query_data.get("page", 1)
-        per_page = query_data.get("per_page", 5)
-        sort_by = query_data.get("sort_by", "likes")
-        order = query_data.get("order", "desc")
+        sort_by = query_data.get("sort_by")
+        order = query_data.get("order")
 
         query = SolutionModel.query.filter_by(post_id=post_id)
 
@@ -338,18 +290,11 @@ class PostSolutions(MethodView):
             query = query.order_by(order_column.asc(), SolutionModel.id.asc())
 
         # Paginate
-        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        pagination = query.paginate()
 
-        return {
-            "items": [serialize_solution(sol) for sol in pagination.items],
-            "total_items": pagination.total,
-            "total_pages": pagination.pages,
-            "page": pagination.page,
-            "items_per_page": per_page,
-            "has_next": pagination.has_next,
-            "has_prev": pagination.has_prev,
-            "links": None,
-        }
+        return create_pagination_response(
+            pagination, "posts.post_solutions", post_id=post_id, **request.args
+        )
 
     @jwt_required()
     @posts.input(SolutionInSchema)
@@ -366,17 +311,15 @@ class PostSolutions(MethodView):
 
         # Create solution
         new_solution = SolutionModel(
-            title=json_data["title"],
-            body=json_data["body"],
             author_id=current_user.id,
             post_id=post_id,
+            **json_data
         )
 
         db.session.add(new_solution)
         db.session.commit()
 
-        response_data = serialize_solution(new_solution)
-        return response_data, 201, {
+        return new_solution, 201, {
             "Location": url_for(
                 "solutions.solution", solution_id=new_solution.id
             )

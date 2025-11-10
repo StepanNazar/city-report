@@ -1,6 +1,7 @@
 from apiflask import Schema
-from apiflask.fields import URL, DateTime, Float, Integer, List, String
+from apiflask.fields import URL, DateTime, Float, Integer, List, Method, String
 from apiflask.validators import Length, OneOf
+from flask import url_for
 
 from api.blueprints.common.schemas import CamelCaseSchema, pagination_schema
 from api.blueprints.locations.schemas import locality_provider
@@ -30,16 +31,19 @@ class PostInSchema(PostBaseSchema):
 class PostOutSchema(PostBaseSchema):
     id = Integer()
     author_id = Integer()
-    author_link = URL()
-    author_first_name = String(metadata={"x-faker": "name.firstName"})
-    author_last_name = String(metadata={"x-faker": "name.lastName"})
-    locality_nominatim_id = Integer()
+    author_link = Method("get_author_link")
+    author_first_name = String(attribute="author.firstname", metadata={"x-faker": "name.firstName"})
+    author_last_name = String(attribute="author.lastname", metadata={"x-faker": "name.lastName"})
+    locality_nominatim_id = Integer(attribute="locality.osm_id")
     locality_google_id = Integer()
     created_at = DateTime(metadata={"x-faker": "date.past"})
-    updated_at = DateTime(metadata={"x-faker": "date.recent"})
-    likes = Integer()
-    dislikes = Integer()
-    comments = Integer()
+    updated_at = DateTime(attribute="edited_at", metadata={"x-faker": "date.recent"})
+    likes = Integer(load_default=0, dump_default=0)
+    dislikes = Integer(load_default=0, dump_default=0)
+    comments = Integer(load_default=0, dump_default=0)
+
+    def get_author_link(self, obj):
+        return url_for("users.user", user_id=obj.author_id)
 
 
 PostOutPaginationSchema = pagination_schema(PostOutSchema, exclude=["body"])
@@ -58,3 +62,4 @@ class PostSortingSchema(Schema):
 
 class PostSortingFilteringSchema(PostSortingSchema):
     locality_id = String()
+    locality_provider = locality_provider
