@@ -558,6 +558,14 @@
             "type": "string",
             "x-faker": "address.city"
           },
+          "localityProvider": {
+            "enum": [
+              "google",
+              "nominatim"
+            ],
+            "example": "nominatim",
+            "type": "string"
+          },
           "longitude": {
             "type": "number",
             "x-faker": "address.longitude"
@@ -580,6 +588,10 @@
       },
       "PostOut": {
         "properties": {
+          "authorFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
           "authorId": {
             "type": "integer"
           },
@@ -587,28 +599,17 @@
             "type": "string",
             "x-faker": "name.lastName"
           },
-          "authorName": {
-            "type": "string",
-            "x-faker": "name.firstName"
+          "authorLink": {
+            "format": "url",
+            "type": "string"
           },
           "comments": {
             "type": "integer"
-          },
-          "country": {
-            "type": "string",
-            "x-faker": "address.country"
-          },
-          "countryId": {
-            "type": "string",
-            "x-faker": "address.country"
           },
           "createdAt": {
             "format": "date-time",
             "type": "string",
             "x-faker": "date.past"
-          },
-          "deleted": {
-            "type": "boolean"
           },
           "dislikes": {
             "type": "integer"
@@ -636,25 +637,15 @@
           "likes": {
             "type": "integer"
           },
-          "locality": {
-            "type": "string",
-            "x-faker": "address.city"
+          "localityGoogleId": {
+            "type": "integer"
           },
-          "localityId": {
-            "type": "string",
-            "x-faker": "address.city"
+          "localityNominatimId": {
+            "type": "integer"
           },
           "longitude": {
             "type": "number",
             "x-faker": "address.longitude"
-          },
-          "state": {
-            "type": "string",
-            "x-faker": "address.state"
-          },
-          "stateId": {
-            "type": "string",
-            "x-faker": "address.state"
           },
           "title": {
             "maxLength": 100,
@@ -664,17 +655,18 @@
           }
         },
         "required": [
-          "countryId",
           "latitude",
-          "localityId",
           "longitude",
-          "stateId",
           "title"
         ],
         "type": "object"
       },
       "PostOut1": {
         "properties": {
+          "authorFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
           "authorId": {
             "type": "integer"
           },
@@ -682,9 +674,9 @@
             "type": "string",
             "x-faker": "name.lastName"
           },
-          "authorName": {
-            "type": "string",
-            "x-faker": "name.firstName"
+          "authorLink": {
+            "format": "url",
+            "type": "string"
           },
           "body": {
             "maxLength": 10000,
@@ -695,21 +687,10 @@
           "comments": {
             "type": "integer"
           },
-          "country": {
-            "type": "string",
-            "x-faker": "address.country"
-          },
-          "countryId": {
-            "type": "string",
-            "x-faker": "address.country"
-          },
           "createdAt": {
             "format": "date-time",
             "type": "string",
             "x-faker": "date.past"
-          },
-          "deleted": {
-            "type": "boolean"
           },
           "dislikes": {
             "type": "integer"
@@ -737,25 +718,15 @@
           "likes": {
             "type": "integer"
           },
-          "locality": {
-            "type": "string",
-            "x-faker": "address.city"
+          "localityGoogleId": {
+            "type": "integer"
           },
-          "localityId": {
-            "type": "string",
-            "x-faker": "address.city"
+          "localityNominatimId": {
+            "type": "integer"
           },
           "longitude": {
             "type": "number",
             "x-faker": "address.longitude"
-          },
-          "state": {
-            "type": "string",
-            "x-faker": "address.state"
-          },
-          "stateId": {
-            "type": "string",
-            "x-faker": "address.state"
           },
           "title": {
             "maxLength": 100,
@@ -766,11 +737,8 @@
         },
         "required": [
           "body",
-          "countryId",
           "latitude",
-          "localityId",
           "longitude",
-          "stateId",
           "title"
         ],
         "type": "object"
@@ -985,6 +953,10 @@
             "type": "string",
             "x-faker": "date.recent"
           },
+          "authorFirstName": {
+            "type": "string",
+            "x-faker": "name.firstName"
+          },
           "authorId": {
             "type": "integer"
           },
@@ -992,9 +964,9 @@
             "type": "string",
             "x-faker": "name.lastName"
           },
-          "authorName": {
-            "type": "string",
-            "x-faker": "name.firstName"
+          "authorLink": {
+            "format": "url",
+            "type": "string"
           },
           "body": {
             "maxLength": 10000,
@@ -1009,9 +981,6 @@
             "format": "date-time",
             "type": "string",
             "x-faker": "date.past"
-          },
-          "deleted": {
-            "type": "boolean"
           },
           "dislikes": {
             "type": "integer"

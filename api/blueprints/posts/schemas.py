@@ -1,15 +1,14 @@
 from apiflask import Schema
-from apiflask.fields import URL, Boolean, DateTime, Float, Integer, List, String
-from apiflask.validators import OneOf
-from marshmallow.validate import Length
+from apiflask.fields import URL, DateTime, Float, Integer, List, String
+from apiflask.validators import Length, OneOf
 
 from api.blueprints.common.schemas import CamelCaseSchema, pagination_schema
+from api.blueprints.locations.schemas import locality_provider
 
 
-class PostInSchema(CamelCaseSchema):
+class PostBaseSchema(CamelCaseSchema):
     latitude = Float(metadata={"x-faker": "address.latitude"}, required=True)
     longitude = Float(metadata={"x-faker": "address.longitude"}, required=True)
-    locality_id = String(metadata={"x-faker": "address.city"}, required=True)
     title = String(
         metadata={"x-faker": "lorem.sentences"},
         required=True,
@@ -23,21 +22,23 @@ class PostInSchema(CamelCaseSchema):
     images_links = List(URL(metadata={"x-faker": "image.city"}))
 
 
-class PostOutSchema(PostInSchema):
+class PostInSchema(PostBaseSchema):
+    locality_id = String(metadata={"x-faker": "address.city"}, required=True)
+    locality_provider = locality_provider
+
+
+class PostOutSchema(PostBaseSchema):
     id = Integer()
     author_id = Integer()
-    author_name = String(metadata={"x-faker": "name.firstName"})
+    author_link = URL()
+    author_first_name = String(metadata={"x-faker": "name.firstName"})
     author_last_name = String(metadata={"x-faker": "name.lastName"})
-    country_id = String(metadata={"x-faker": "address.country"}, required=True)
-    state_id = String(metadata={"x-faker": "address.state"}, required=True)
-    country = String(metadata={"x-faker": "address.country"})
-    state = String(metadata={"x-faker": "address.state"})
-    locality = String(metadata={"x-faker": "address.city"})
+    locality_nominatim_id = Integer()
+    locality_google_id = Integer()
     created_at = DateTime(metadata={"x-faker": "date.past"})
     edited_at = DateTime(metadata={"x-faker": "date.recent"})
     likes = Integer()
     dislikes = Integer()
-    deleted = Boolean()
     comments = Integer()
 
 

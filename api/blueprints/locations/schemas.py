@@ -1,3 +1,4 @@
+from apiflask import validators
 from apiflask.fields import DateTime, Integer, String
 from apiflask.validators import Length
 
@@ -47,3 +48,8 @@ class LocationNameInputSchema(CamelCaseSchema):
 CountryPaginationSchema = pagination_schema(CountrySchema)
 StatePaginationSchema = pagination_schema(StateSchema)
 LocalityPaginationSchema = pagination_schema(LocalitySchema)
+
+locality_provider = String(
+    validate=validators.OneOf(["google", "nominatim"]),
+    metadata={"enum": ["google", "nominatim"], "example": "nominatim"},
+)

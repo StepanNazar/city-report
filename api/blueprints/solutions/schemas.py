@@ -1,7 +1,6 @@
 from apiflask import Schema
 from apiflask.fields import URL, Boolean, DateTime, Integer, List, String
-from apiflask.validators import OneOf
-from marshmallow.validate import Length
+from apiflask.validators import Length, OneOf
 
 from api.blueprints.common.schemas import CamelCaseSchema, pagination_schema
 
@@ -23,13 +22,13 @@ class SolutionInSchema(CamelCaseSchema):
 class SolutionOutSchema(SolutionInSchema):
     id = Integer()
     author_id = Integer()
-    author_name = String(metadata={"x-faker": "name.firstName"})
+    author_link = URL()
+    author_first_name = String(metadata={"x-faker": "name.firstName"})
     author_last_name = String(metadata={"x-faker": "name.lastName"})
     created_at = DateTime(metadata={"x-faker": "date.past"})
     edited_at = DateTime(metadata={"x-faker": "date.recent"})
     likes = Integer()
     dislikes = Integer()
-    deleted = Boolean()
     comments = Integer()
     approved = Boolean()
     approved_at = DateTime(metadata={"x-faker": "date.recent"})

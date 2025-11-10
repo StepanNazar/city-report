@@ -2,6 +2,7 @@ from apiflask import Schema, validators
 from apiflask.fields import Boolean, DateTime, Email, Integer, String
 
 from api.blueprints.common.schemas import CamelCaseSchema
+from api.blueprints.locations.schemas import locality_provider
 
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128
@@ -54,10 +55,7 @@ class RegisterSchema(LoginSchema):
     locality_id = Integer(
         metadata={"description": "provider's locality id", "example": 3167397}
     )
-    locality_provider = String(
-        validate=validators.OneOf(["google", "nominatim"]),
-        metadata={"enum": ["google", "nominatim"], "example": "nominatim"},
-    )
+    locality_provider = locality_provider
 
 
 class WhoAmISchema(CamelCaseSchema):
