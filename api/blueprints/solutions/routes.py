@@ -26,9 +26,7 @@ class Solution(MethodView):
     @solutions.output(SolutionOutSchema)
     def get(self, solution_id):
         """Get the solution by ID"""
-        solution = SolutionModel.query.get(solution_id)
-        if not solution:
-            abort(404, message="Solution not found")
+        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
         return solution
 
     @jwt_required()
@@ -41,10 +39,7 @@ class Solution(MethodView):
     def put(self, solution_id, json_data):
         """Update solution. Only the author of the solution can update it"""
         current_user = get_current_user()
-        solution = SolutionModel.query.get(solution_id)
-
-        if not solution:
-            abort(404, message="Solution not found")
+        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
 
         if solution.author_id != current_user.id:
             abort(403, message="You can only update your own solutions")
@@ -79,10 +74,7 @@ class Solution(MethodView):
     def delete(self, solution_id):
         """Delete the solution. Only the author of the solution can delete it."""
         current_user = get_current_user()
-        solution = SolutionModel.query.get(solution_id)
-
-        if not solution:
-            abort(404, message="Solution not found")
+        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
 
         if solution.author_id != current_user.id:
             abort(403, message="You can only delete your own solutions")

@@ -2,9 +2,10 @@ import datetime
 
 import requests
 from apiflask import abort
-from flask import request, url_for
+from flask import url_for
 from flask.views import MethodView
 from flask_jwt_extended import get_current_user, jwt_required
+from sqlalchemy.orm import joinedload
 
 from api import db
 from api.blueprints.comments.schemas import (
@@ -88,7 +89,9 @@ class Posts(MethodView):
             locality = Locality.query.filter_by(osm_id=int(locality_id)).first()
             if locality:
                 query = query.filter_by(locality_id=locality.id)
-            # If locality not found, query will return no results naturally
+            else:
+                # If locality not found, return empty result by filtering for impossible ID
+                query = query.filter_by(locality_id=-1)
 
         # Apply sorting
         if sort_by == "created_at":
@@ -108,7 +111,7 @@ class Posts(MethodView):
         pagination = query.paginate()
 
         return create_pagination_response(
-            pagination, "posts.posts", **request.args
+            pagination, "posts.posts", **query_data
         )
 
     @jwt_required()
@@ -125,14 +128,18 @@ class Posts(MethodView):
         )
 
         # Create post
+        post_data = {k: v for k, v in json_data.items() if k not in ["locality_id", "locality_provider"]}
         new_post = PostModel(
             author_id=current_user.id,
             locality_id=locality.id,
-            **{k: v for k, v in json_data.items() if k not in ["locality_id", "locality_provider"]}
+            **post_data
         )
 
         db.session.add(new_post)
         db.session.commit()
+
+        # Refresh to load relationships
+        db.session.refresh(new_post)
 
         return new_post, 201, {
             "Location": url_for("posts.post", post_id=new_post.id)
@@ -143,9 +150,10 @@ class Post(MethodView):
     @posts.output(PostOutSchema)
     def get(self, post_id):
         """Get a post by ID"""
-        post = PostModel.query.get(post_id)
-        if not post:
-            abort(404, message="Post not found")
+        post = PostModel.query.options(
+            joinedload(PostModel.locality),
+            joinedload(PostModel.author)
+        ).get_or_404(post_id, description="Post not found")
         return post
 
     @jwt_required()
@@ -157,10 +165,10 @@ class Post(MethodView):
     def put(self, post_id, json_data):
         """Update a post by ID. Only the author can update the post."""
         current_user = get_current_user()
-        post = PostModel.query.get(post_id)
-
-        if not post:
-            abort(404, message="Post not found")
+        post = PostModel.query.options(
+            joinedload(PostModel.locality),
+            joinedload(PostModel.author)
+        ).get_or_404(post_id, description="Post not found")
 
         if post.author_id != current_user.id:
             abort(403, message="You can only update your own posts")
@@ -175,10 +183,12 @@ class Post(MethodView):
         for key, value in json_data.items():
             if key not in ["locality_id", "locality_provider"] and hasattr(post, key):
                 setattr(post, key, value)
-
         post.edited_at = datetime.datetime.now(datetime.UTC)
 
         db.session.commit()
+
+        # Refresh to load relationships
+        db.session.refresh(post)
 
         return post
 
@@ -200,10 +210,7 @@ class Post(MethodView):
     def delete(self, post_id):
         """Delete a post by ID. Only the author can delete the post."""
         current_user = get_current_user()
-        post = PostModel.query.get(post_id)
-
-        if not post:
-            abort(404, message="Post not found")
+        post = PostModel.query.get_or_404(post_id, description="Post not found")
 
         if post.author_id != current_user.id:
             abort(403, message="You can only delete your own posts")
@@ -266,9 +273,7 @@ class PostSolutions(MethodView):
     @posts.output(SolutionOutPaginationSchema)
     def get(self, post_id, query_data):
         """Get solutions for post"""
-        post = PostModel.query.get(post_id)
-        if not post:
-            abort(404, message="Post not found")
+        _ = PostModel.query.get_or_404(post_id, description="Post not found")
 
         sort_by = query_data.get("sort_by")
         order = query_data.get("order")
@@ -293,7 +298,7 @@ class PostSolutions(MethodView):
         pagination = query.paginate()
 
         return create_pagination_response(
-            pagination, "posts.post_solutions", post_id=post_id, **request.args
+            pagination, "posts.post_solutions", post_id=post_id, **query_data
         )
 
     @jwt_required()
@@ -305,9 +310,7 @@ class PostSolutions(MethodView):
         current_user = get_current_user()
 
         # Check if post exists
-        post = PostModel.query.get(post_id)
-        if not post:
-            abort(404, message="Post not found")
+        _ = PostModel.query.get_or_404(post_id, description="Post not found")
 
         # Create solution
         new_solution = SolutionModel(

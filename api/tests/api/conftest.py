@@ -86,7 +86,7 @@ class AuthenticatedClient:
 
 
 @pytest.fixture
-def authenticated_client(client, mock_nominatim) -> AuthenticatedClient:
+def authenticated_client(client) -> AuthenticatedClient:
     return AuthenticatedClient(
         client,
         first_name="John",
@@ -97,7 +97,7 @@ def authenticated_client(client, mock_nominatim) -> AuthenticatedClient:
 
 
 @pytest.fixture
-def authenticated_client2(client, mock_nominatim) -> AuthenticatedClient:
+def authenticated_client2(client) -> AuthenticatedClient:
     return AuthenticatedClient(
         client,
         first_name="Test",
@@ -217,7 +217,7 @@ def create_post(client, post_data: dict | MappingProxyType = post_data):
     return response.headers["Location"]
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_nominatim(mocker):
     """Mock NominatimService for tests."""
     return mocker.patch(

@@ -34,8 +34,8 @@ class PostOutSchema(PostBaseSchema):
     author_link = Method("get_author_link")
     author_first_name = String(attribute="author.firstname", metadata={"x-faker": "name.firstName"})
     author_last_name = String(attribute="author.lastname", metadata={"x-faker": "name.lastName"})
-    locality_nominatim_id = Integer(attribute="locality.osm_id")
-    locality_google_id = Integer()
+    locality_nominatim_id = Method("get_locality_nominatim_id")
+    locality_google_id = Method("get_locality_google_id")
     created_at = DateTime(metadata={"x-faker": "date.past"})
     updated_at = DateTime(attribute="edited_at", metadata={"x-faker": "date.recent"})
     likes = Integer(load_default=0, dump_default=0)
@@ -44,6 +44,12 @@ class PostOutSchema(PostBaseSchema):
 
     def get_author_link(self, obj):
         return url_for("users.user", user_id=obj.author_id)
+
+    def get_locality_nominatim_id(self, obj):
+        return obj.locality.osm_id if obj.locality else None
+
+    def get_locality_google_id(self, obj):
+        return None  # Not implemented yet
 
 
 PostOutPaginationSchema = pagination_schema(PostOutSchema, exclude=["body"])
@@ -61,5 +67,5 @@ class PostSortingSchema(Schema):
 
 
 class PostSortingFilteringSchema(PostSortingSchema):
-    locality_id = String()
+    locality_id = String(data_key="localityId")
     locality_provider = locality_provider
