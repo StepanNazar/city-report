@@ -106,9 +106,7 @@ class Register(MethodView):
         # what if exceptions happens below and user is saved to db, but no link and token sent?
         response = generate_jwt_tokens(new_user)
         response.status_code = 201
-        response.headers["Location"] = url_for(
-            "users.user", user_id=new_user.id, _external=True
-        )
+        response.headers["Location"] = url_for("users.user", user_id=new_user.id)
         # EmailService().send_activation_link(new_user)
         return response
 
