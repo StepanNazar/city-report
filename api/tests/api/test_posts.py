@@ -50,16 +50,27 @@ def test_get_posts(authenticated_client, authenticated_client2):
     assert_resources_order_match(response.json["items"], posts[2:])
 
     # Test filtering by localityId
-    # Posts 1, 2, 3 have locality 3167397, post 0 has locality 3167398 after update
-    response_3167397 = authenticated_client.get("/posts?localityId=3167397&localityProvider=nominatim")
-    assert_pagination_response(response_3167397, total=3, page=1, total_pages=1, items_count=3)
+    response_3167397 = authenticated_client.get(
+        "/posts?localityId=3167397&localityProvider=nominatim"
+    )
+    assert_pagination_response(
+        response_3167397, total=3, page=1, total_pages=1, items_count=3
+    )
 
-    response_3167398 = authenticated_client.get("/posts?localityId=3167398&localityProvider=nominatim")
-    assert_pagination_response(response_3167398, total=1, page=1, total_pages=1, items_count=1)
+    response_3167398 = authenticated_client.get(
+        "/posts?localityId=3167398&localityProvider=nominatim"
+    )
+    assert_pagination_response(
+        response_3167398, total=1, page=1, total_pages=1, items_count=1
+    )
 
     # Test with non-existent locality
-    response_none = authenticated_client.get("/posts?localityId=9999999&localityProvider=nominatim")
-    assert_pagination_response(response_none, total=0, page=1, total_pages=0, items_count=0)
+    response_none = authenticated_client.get(
+        "/posts?localityId=9999999&localityProvider=nominatim"
+    )
+    assert_pagination_response(
+        response_none, total=0, page=1, total_pages=0, items_count=0
+    )
 
 
 @pytest.mark.parametrize(

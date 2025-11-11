@@ -18,9 +18,13 @@ class Post(TimestampMixin, db.Model):
     body: so.Mapped[str] = so.mapped_column(sa.String(10000), nullable=False)
     latitude: so.Mapped[float] = so.mapped_column(sa.Float, nullable=False)
     longitude: so.Mapped[float] = so.mapped_column(sa.Float, nullable=False)
-    author_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("user.id"), nullable=False)
+    author_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("user.id"), nullable=False
+    )
     author: so.Mapped["User"] = so.relationship(back_populates="posts")
-    locality_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("locality.id"), nullable=False)
+    locality_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("locality.id"), nullable=False
+    )
     locality: so.Mapped["Locality"] = so.relationship(back_populates="posts")
     solutions: so.Mapped[list["Solution"]] = so.relationship(
         back_populates="post", cascade="all, delete-orphan"

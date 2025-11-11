@@ -1,4 +1,3 @@
-import requests
 from apiflask import abort
 from email_validator import EmailNotValidError
 from flask import Response, jsonify, make_response, request, url_for
@@ -26,7 +25,8 @@ from api.blueprints.auth.schemas import (
     RegisterSchema,
     WhoAmISchema,
 )
-from api.services import EmailService, LocationService
+from api.blueprints.common.helpers import get_or_create_locality
+from api.services import EmailService
 
 
 @jwt.user_lookup_loader
@@ -90,29 +90,16 @@ class Register(MethodView):
         locality_provider = json_data.get("locality_provider")
         inner_locality_id = None
         if locality_id and locality_provider:
-            try:
-                locality = LocationService.get_or_create_locality(
-                    locality_id, locality_provider, db.session
-                )
-                db.session.commit()
-                inner_locality_id = locality.id
-            except ValueError:
-                abort(400, message="Invalid locality id")
-            except requests.RequestException:
-                abort(500, message="Nominatim service unavailable")
-            except NotImplementedError as e:
-                abort(501, message=str(e))
+            locality = get_or_create_locality(locality_id, locality_provider)
+            inner_locality_id = locality.id
 
-        try:
-            new_user = User(
-                firstname=json_data.get("first_name"),
-                lastname=json_data.get("last_name"),
-                email=email,
-                password=json_data.get("password"),
-                locality_id=inner_locality_id,
-            )
-        except EmailNotValidError as e:
-            abort(400, message=f"Invalid email address: {e}")
+        new_user = User(
+            firstname=json_data.get("first_name"),
+            lastname=json_data.get("last_name"),
+            email=email,
+            password=json_data.get("password"),
+            locality_id=inner_locality_id,
+        )
         db.session.add(new_user)
         db.session.commit()
 

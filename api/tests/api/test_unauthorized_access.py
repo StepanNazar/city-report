@@ -56,7 +56,12 @@ def test_unauthorized_access(client, method, url, payload):
 @pytest.mark.parametrize(
     "method,payload,cross_user_resources,excluded_keys",
     [
-        ("put", updated_post_data.copy(), lf(cross_user_posts), ["localityId", "localityProvider"]),
+        (
+            "put",
+            updated_post_data.copy(),
+            lf(cross_user_posts),
+            ["localityId", "localityProvider"],
+        ),
         ("delete", None, lf(cross_user_posts), ["localityId", "localityProvider"]),
         ("put", updated_solution_data.copy(), lf(cross_user_solutions), None),
         ("delete", None, lf(cross_user_solutions), None),
@@ -85,7 +90,10 @@ def test_access_unowned_profile(
             authenticated_client, client_resource, original_resource_data, excluded_keys
         )
         assert_resource_unchanged(
-            authenticated_client2, client2_resource, original_resource_data, excluded_keys
+            authenticated_client2,
+            client2_resource,
+            original_resource_data,
+            excluded_keys,
         )
 
 
@@ -94,4 +102,6 @@ def assert_resource_unchanged(client, url, expected_data, excluded_keys=None):
     response = client.get(url)
 
     assert response.status_code == 200
-    assert_response_matches_resource(response, expected_data, excluded_keys=excluded_keys)
+    assert_response_matches_resource(
+        response, expected_data, excluded_keys=excluded_keys
+    )

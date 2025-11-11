@@ -1,5 +1,6 @@
 from types import MappingProxyType
 
+import email_validator
 import pytest
 from pytest_lazy_fixtures import lf as _lf
 
@@ -217,15 +218,6 @@ def create_post(client, post_data: dict | MappingProxyType = post_data):
     return response.headers["Location"]
 
 
-@pytest.fixture(autouse=True)
-def mock_nominatim(mocker):
-    """Mock NominatimService for tests."""
-    return mocker.patch(
-        "api.services.NominatimService.get_locality_name_state_and_country",
-        return_value=("Test Locality", "Test State", "Test Country"),
-    )
-
-
 @pytest.fixture
 def post(authenticated_client):
     """Sets up a test case with a post with post_data. Returns the post's url."""
@@ -243,3 +235,17 @@ def create_solution(
 def solution(authenticated_client, post):
     """Sets up a test case with a solution with solution_data. Returns the solution's url."""
     return create_solution(authenticated_client, post)
+
+
+@pytest.fixture(autouse=True)
+def mock_nominatim(mocker):
+    """Mock NominatimService for tests."""
+    return mocker.patch(
+        "api.services.NominatimService.get_locality_name_state_and_country",
+        return_value=("Test Locality", "Test State", "Test Country"),
+    )
+
+
+@pytest.fixture(autouse=True, scope="session")
+def specify_testing_environment_for_email_validator():
+    email_validator.TEST_ENVIRONMENT = True

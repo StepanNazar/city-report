@@ -61,4 +61,3 @@ def create_pagination_response(pagination: Pagination, endpoint: str, **kwargs) 
         "total_items": pagination.total,
         "total_pages": pagination.pages,
     }
-

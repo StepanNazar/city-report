@@ -3,7 +3,11 @@ from apiflask.fields import URL, Boolean, DateTime, Integer, List, Method, Strin
 from apiflask.validators import Length, OneOf
 from flask import url_for
 
-from api.blueprints.common.schemas import CamelCaseSchema, pagination_schema
+from api.blueprints.common.schemas import (
+    URL_METADATA,
+    CamelCaseSchema,
+    pagination_schema,
+)
 
 
 class SolutionInSchema(CamelCaseSchema):
@@ -23,9 +27,13 @@ class SolutionInSchema(CamelCaseSchema):
 class SolutionOutSchema(SolutionInSchema):
     id = Integer()
     author_id = Integer()
-    author_link = Method("get_author_link")
-    author_first_name = String(attribute="author.firstname", metadata={"x-faker": "name.firstName"})
-    author_last_name = String(attribute="author.lastname", metadata={"x-faker": "name.lastName"})
+    author_link = Method("get_author_link", metadata=URL_METADATA)
+    author_first_name = String(
+        attribute="author.firstname", metadata={"x-faker": "name.firstName"}
+    )
+    author_last_name = String(
+        attribute="author.lastname", metadata={"x-faker": "name.lastName"}
+    )
     created_at = DateTime(metadata={"x-faker": "date.past"})
     updated_at = DateTime(attribute="edited_at", metadata={"x-faker": "date.recent"})
     likes = Integer(load_default=0, dump_default=0)

@@ -555,8 +555,9 @@
             "x-faker": "address.latitude"
           },
           "localityId": {
-            "type": "string",
-            "x-faker": "address.city"
+            "description": "provider's locality id",
+            "example": 3167397,
+            "type": "integer"
           },
           "localityProvider": {
             "enum": [
@@ -581,6 +582,7 @@
           "body",
           "latitude",
           "localityId",
+          "localityProvider",
           "longitude",
           "title"
         ],
@@ -601,9 +603,11 @@
           },
           "authorLink": {
             "format": "url",
+            "readOnly": true,
             "type": "string"
           },
           "comments": {
+            "default": 0,
             "type": "integer"
           },
           "createdAt": {
@@ -612,12 +616,8 @@
             "x-faker": "date.past"
           },
           "dislikes": {
+            "default": 0,
             "type": "integer"
-          },
-          "editedAt": {
-            "format": "date-time",
-            "type": "string",
-            "x-faker": "date.recent"
           },
           "id": {
             "type": "integer"
@@ -635,6 +635,7 @@
             "x-faker": "address.latitude"
           },
           "likes": {
+            "default": 0,
             "type": "integer"
           },
           "localityGoogleId": {
@@ -652,6 +653,11 @@
             "minLength": 1,
             "type": "string",
             "x-faker": "lorem.sentences"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
           }
         },
         "required": [
@@ -676,6 +682,7 @@
           },
           "authorLink": {
             "format": "url",
+            "readOnly": true,
             "type": "string"
           },
           "body": {
@@ -685,6 +692,7 @@
             "x-faker": "lorem.paragraphs"
           },
           "comments": {
+            "default": 0,
             "type": "integer"
           },
           "createdAt": {
@@ -693,12 +701,8 @@
             "x-faker": "date.past"
           },
           "dislikes": {
+            "default": 0,
             "type": "integer"
-          },
-          "editedAt": {
-            "format": "date-time",
-            "type": "string",
-            "x-faker": "date.recent"
           },
           "id": {
             "type": "integer"
@@ -716,6 +720,7 @@
             "x-faker": "address.latitude"
           },
           "likes": {
+            "default": 0,
             "type": "integer"
           },
           "localityGoogleId": {
@@ -733,6 +738,11 @@
             "minLength": 1,
             "type": "string",
             "x-faker": "lorem.sentences"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
           }
         },
         "required": [
@@ -946,6 +956,7 @@
       "SolutionOut": {
         "properties": {
           "approved": {
+            "default": false,
             "type": "boolean"
           },
           "approvedAt": {
@@ -966,6 +977,7 @@
           },
           "authorLink": {
             "format": "url",
+            "readOnly": true,
             "type": "string"
           },
           "body": {
@@ -975,6 +987,7 @@
             "x-faker": "lorem.paragraphs"
           },
           "comments": {
+            "default": 0,
             "type": "integer"
           },
           "createdAt": {
@@ -983,12 +996,8 @@
             "x-faker": "date.past"
           },
           "dislikes": {
+            "default": 0,
             "type": "integer"
-          },
-          "editedAt": {
-            "format": "date-time",
-            "type": "string",
-            "x-faker": "date.recent"
           },
           "id": {
             "type": "integer"
@@ -1002,6 +1011,7 @@
             "type": "array"
           },
           "likes": {
+            "default": 0,
             "type": "integer"
           },
           "title": {
@@ -1009,6 +1019,11 @@
             "minLength": 1,
             "type": "string",
             "x-faker": "lorem.sentences"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "x-faker": "date.recent"
           }
         },
         "required": [
@@ -3908,10 +3923,24 @@
             }
           },
           {
+            "description": "should be used together with localityProvider",
             "in": "query",
-            "name": "locality_id",
-            "required": true,
+            "name": "localityId",
+            "required": false,
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "should be used together with localityId",
+            "in": "query",
+            "name": "localityProvider",
+            "required": false,
+            "schema": {
+              "enum": [
+                "google",
+                "nominatim"
+              ],
               "type": "string"
             }
           },
@@ -6999,14 +7028,6 @@
                 "asc",
                 "desc"
               ],
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "locality_id",
-            "required": true,
-            "schema": {
               "type": "string"
             }
           },

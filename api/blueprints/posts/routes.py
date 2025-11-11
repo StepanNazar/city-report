@@ -1,6 +1,3 @@
-import datetime
-
-import requests
 from apiflask import abort
 from flask import url_for
 from flask.views import MethodView
@@ -13,6 +10,7 @@ from api.blueprints.comments.schemas import (
     CommentOutSchema,
     CommentSortingSchema,
 )
+from api.blueprints.common.helpers import get_or_create_locality
 from api.blueprints.common.routes import create_pagination_response
 from api.blueprints.common.schemas import (
     JSONPatchSchema,
@@ -37,7 +35,6 @@ from api.blueprints.solutions.schemas import (
     SolutionSortingFilteringSchema,
 )
 from api.blueprints.users.schemas import ReactionSchema
-from api.services import LocationService
 
 
 class Posts(MethodView):
@@ -57,17 +54,14 @@ class Posts(MethodView):
 
         query = PostModel.query
 
-        # Apply locality filtering if provided
         if locality_id and locality_provider and locality_provider == "nominatim":
             locality = Locality.query.filter_by(osm_id=int(locality_id)).first()
             if locality:
                 query = query.filter_by(locality_id=locality.id)
             else:
-                # If locality not found, return empty result by filtering for impossible ID
+                # If locality not found, return an empty result by filtering for impossible ID
                 query = query.filter_by(locality_id=-1)
-        # Other providers can be added here in the future
 
-        # Apply sorting
         if sort_by == "created_at":
             order_column = PostModel.created_at
         elif sort_by == "edited_at":
@@ -81,12 +75,8 @@ class Posts(MethodView):
         else:
             query = query.order_by(order_column.asc(), PostModel.id.asc())
 
-        # Paginate
         pagination = query.paginate()
-
-        return create_pagination_response(
-            pagination, "posts.posts", **query_data
-        )
+        return create_pagination_response(pagination, "posts.posts", **query_data)
 
     @jwt_required()
     @posts.input(PostInSchema)
@@ -95,44 +85,34 @@ class Posts(MethodView):
     def post(self, json_data):
         """Create a new post. Activated account required."""
         current_user = get_current_user()
+        locality = get_or_create_locality(
+            json_data["locality_id"], json_data["locality_provider"]
+        )
 
-        # Get or create locality
-        try:
-            locality = LocationService.get_or_create_locality(
-                json_data["locality_id"], json_data["locality_provider"], db.session
-            )
-        except ValueError:
-            abort(400, message="Invalid locality id")
-        except requests.RequestException:
-            abort(500, message="Nominatim service unavailable")
-        except NotImplementedError as e:
-            abort(501, message=str(e))
-
-        # Create post
-        post_data = {k: v for k, v in json_data.items() if k not in ["locality_id", "locality_provider"]}
+        post_data = {
+            k: v
+            for k, v in json_data.items()
+            if k not in ["locality_id", "locality_provider"]
+        }
         new_post = PostModel(
-            author_id=current_user.id,
-            locality_id=locality.id,
-            **post_data
+            author_id=current_user.id,  # type: ignore
+            locality_id=locality.id,  # type: ignore
+            **post_data,
         )
 
         db.session.add(new_post)
         db.session.commit()
 
-        return new_post, 201, {
-            "Location": url_for("posts.post", post_id=new_post.id)
-        }
+        return new_post, 201, {"Location": url_for("posts.post", post_id=new_post.id)}
 
 
 class Post(MethodView):
     @posts.output(PostOutSchema)
     def get(self, post_id):
         """Get a post by ID"""
-        post = PostModel.query.options(
-            joinedload(PostModel.locality),
-            joinedload(PostModel.author)
+        return PostModel.query.options(
+            joinedload(PostModel.locality), joinedload(PostModel.author)
         ).get_or_404(post_id, description="Post not found")
-        return post
 
     @jwt_required()
     @posts.input(PostInSchema)
@@ -144,32 +124,20 @@ class Post(MethodView):
         """Update a post by ID. Only the author can update the post."""
         current_user = get_current_user()
         post = PostModel.query.options(
-            joinedload(PostModel.locality),
-            joinedload(PostModel.author)
+            joinedload(PostModel.locality), joinedload(PostModel.author)
         ).get_or_404(post_id, description="Post not found")
 
         if post.author_id != current_user.id:
             abort(403, message="You can only update your own posts")
 
-        # Update locality if changed
-        try:
-            locality = LocationService.get_or_create_locality(
-                json_data["locality_id"], json_data["locality_provider"], db.session
-            )
-        except ValueError:
-            abort(400, message="Invalid locality id")
-        except requests.RequestException:
-            abort(500, message="Nominatim service unavailable")
-        except NotImplementedError as e:
-            abort(501, message=str(e))
+        locality = get_or_create_locality(
+            json_data["locality_id"], json_data["locality_provider"]
+        )
+        post.locality = locality
 
-        post.locality_id = locality.id
-
-        # Update post fields dynamically
         for key, value in json_data.items():
             if key not in ["locality_id", "locality_provider"] and hasattr(post, key):
                 setattr(post, key, value)
-        post.edited_at = datetime.datetime.now(datetime.UTC)
 
         db.session.commit()
 
@@ -263,7 +231,6 @@ class PostSolutions(MethodView):
 
         query = SolutionModel.query.filter_by(post_id=post_id)
 
-        # Apply sorting
         if sort_by == "created_at":
             order_column = SolutionModel.created_at
         elif sort_by == "edited_at":
@@ -277,9 +244,7 @@ class PostSolutions(MethodView):
         else:
             query = query.order_by(order_column.asc(), SolutionModel.id.asc())
 
-        # Paginate
         pagination = query.paginate()
-
         return create_pagination_response(
             pagination, "posts.post_solutions", post_id=post_id, **query_data
         )
@@ -291,25 +256,21 @@ class PostSolutions(MethodView):
     def post(self, post_id, json_data):
         """Create a new solution for post. Activated account required."""
         current_user = get_current_user()
-
-        # Check if post exists
         PostModel.query.get_or_404(post_id, description="Post not found")
 
-        # Create solution
         new_solution = SolutionModel(
-            author_id=current_user.id,
-            post_id=post_id,
-            **json_data
+            author_id=current_user.id,  # type: ignore
+            post_id=post_id,  # type: ignore
+            **json_data,
         )
-
         db.session.add(new_solution)
         db.session.commit()
 
-        return new_solution, 201, {
-            "Location": url_for(
-                "solutions.solution", solution_id=new_solution.id
-            )
-        }
+        return (
+            new_solution,
+            201,
+            {"Location": url_for("solutions.solution", solution_id=new_solution.id)},
+        )
 
 
 posts.add_url_rule("/posts", view_func=Posts.as_view("posts"))

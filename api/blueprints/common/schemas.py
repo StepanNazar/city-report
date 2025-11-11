@@ -112,3 +112,6 @@ class JSONPatchSchema(Schema):
         data_key="from",
         metadata={"description": "The source path for move/copy operations"},
     )
+
+
+URL_METADATA = {"type": "string", "format": "url"}

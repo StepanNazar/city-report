@@ -86,7 +86,7 @@ def test_whoami(client, mocker):
     assert data["lastName"] == "Last"
     assert "id" in data
     assert "isActivated" in data
-    assert "localityNominatimId" in data
+    assert data["localityNominatimId"] == 3167397
     assert "createdAt" in data
 
 

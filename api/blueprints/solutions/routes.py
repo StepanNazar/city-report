@@ -1,5 +1,3 @@
-import datetime
-
 from apiflask import abort
 from flask.views import MethodView
 from flask_jwt_extended import get_current_user, jwt_required
@@ -26,8 +24,9 @@ class Solution(MethodView):
     @solutions.output(SolutionOutSchema)
     def get(self, solution_id):
         """Get the solution by ID"""
-        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
-        return solution
+        return SolutionModel.query.get_or_404(
+            solution_id, description="Solution not found"
+        )
 
     @jwt_required()
     @solutions.input(SolutionInSchema)
@@ -39,16 +38,16 @@ class Solution(MethodView):
     def put(self, solution_id, json_data):
         """Update solution. Only the author of the solution can update it"""
         current_user = get_current_user()
-        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
+        solution = SolutionModel.query.get_or_404(
+            solution_id, description="Solution not found"
+        )
 
         if solution.author_id != current_user.id:
             abort(403, message="You can only update your own solutions")
 
-        # Update solution fields dynamically
         for key, value in json_data.items():
             if hasattr(solution, key):
                 setattr(solution, key, value)
-        solution.edited_at = datetime.datetime.now(datetime.UTC)
 
         db.session.commit()
 
@@ -73,7 +72,9 @@ class Solution(MethodView):
     def delete(self, solution_id):
         """Delete the solution. Only the author of the solution can delete it."""
         current_user = get_current_user()
-        solution = SolutionModel.query.get_or_404(solution_id, description="Solution not found")
+        solution = SolutionModel.query.get_or_404(
+            solution_id, description="Solution not found"
+        )
 
         if solution.author_id != current_user.id:
             abort(403, message="You can only delete your own solutions")
