@@ -1,6 +1,7 @@
 import requests
 
-from api.models import User
+from api.blueprints.auth.models import User
+from api.blueprints.locations.models import Locality
 
 
 class EmailService:  # replace with flask-mail?
@@ -35,3 +36,48 @@ class NominatimService:
         state = json["features"][0]["properties"]["geocoding"]["state"]
         country = json["features"][0]["properties"]["geocoding"]["country"]
         return name, state, country
+
+
+class LocationService:
+    """Service for handling locality operations across different providers."""
+
+    @staticmethod
+    def get_or_create_locality(
+        locality_id: int, locality_provider: str, db_session
+    ) -> Locality:
+        """
+        Get or create a locality based on provider and ID.
+
+        Args:
+            locality_id: The ID of the locality in the provider's system
+            locality_provider: The provider name (e.g., "nominatim", "google")
+            db_session: The database session to use for queries and commits
+
+        Returns:
+            Locality: The locality object
+
+        Raises:
+            ValueError: If locality_id is invalid
+            requests.RequestException: If the external service is unavailable
+            NotImplementedError: If the provider is not supported
+        """
+
+        if locality_provider == "nominatim":
+            locality = Locality.query.filter_by(osm_id=locality_id).first()
+            if not locality:
+                name, state, country = (
+                    NominatimService.get_locality_name_state_and_country(locality_id)
+                )
+                locality = Locality(
+                    name=name,  # type: ignore
+                    state=state,  # type: ignore
+                    country=country,  # type: ignore
+                    osm_id=locality_id,  # type: ignore
+                )
+                db_session.add(locality)
+                db_session.flush()
+            return locality
+        elif locality_provider == "google":
+            raise NotImplementedError("Google location provider not yet implemented")
+        else:
+            raise NotImplementedError("Unsupported locality provider")
