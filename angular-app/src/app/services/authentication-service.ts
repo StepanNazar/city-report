@@ -1,7 +1,7 @@
-import {inject, Injectable} from '@angular/core';
-import {Observable, tap} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import {CookieService} from 'ngx-cookie-service';
+import { inject, Injectable } from '@angular/core';
+import { Observable, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { CookieService } from 'ngx-cookie-service';
 
 interface RegisterPayload {
   firstName: string;
@@ -17,16 +17,18 @@ interface LoginPayload {
   password: string;
 }
 
-interface AccessTokenResponse {
+export interface AccessTokenResponse {
   access_token: string;
 }
 
-interface WhoAmIResponse {
+export interface WhoAmIResponse {
   id: number;
   first_name: string;
   last_name: string;
   email: string;
   is_activated: boolean;
+  localityLongitude: number | undefined;
+  localityLatitude: number | undefined;
   locality_nominatim_id: number | undefined;
   locality_google_id: number | undefined;
   created_at: string;

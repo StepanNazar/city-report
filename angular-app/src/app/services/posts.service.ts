@@ -7,8 +7,7 @@ export interface CreatePostPayload {
     longitude: number;
     title: string;
     body: string;
-    imageIds?: string[];
-    imagesLinks?: string[];
+    imagesIds?: string[];
     localityId: number;
     localityProvider: 'google' | 'nominatim';
 }
@@ -16,13 +15,14 @@ export interface CreatePostPayload {
 export interface PostResponse {
     id: number;
     authorId: number;
+    authorLink: string;
     authorFirstName: string;
     authorLastName: string;
     latitude: number;
     longitude: number;
     title: string;
     body: string;
-    imagesLinks: string[];
+    images: string[];
     localityNominatimId?: number;
     localityGoogleId?: number;
     createdAt: string;

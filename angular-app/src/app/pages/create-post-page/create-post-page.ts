@@ -149,7 +149,7 @@ export class CreatePostPage implements OnInit {
         longitude: coords.longitude,
         title: formValue.title!,
         body: formValue.body!,
-        imageIds: uploadedImageIds.length > 0 ? uploadedImageIds : undefined,
+        imagesIds: uploadedImageIds.length > 0 ? uploadedImageIds : undefined,
         localityId: placeId,
         localityProvider: this.locationSelectorService.getLocationProviderName() as 'google' | 'nominatim'
       }).toPromise();
