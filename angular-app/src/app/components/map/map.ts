@@ -117,7 +117,7 @@ export class Map implements AfterViewInit, OnDestroy {
   private setMapCenter(lat: number, lng: number) {
     if (!this.map) return;
 
-    this.map.setView([lat, lng], 15);
+    this.map.setView([lat, lng]);
     this.addOrUpdateMarker(lat, lng);
   }
 }
