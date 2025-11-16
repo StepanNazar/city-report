@@ -84,6 +84,8 @@ class Posts(MethodView):
     @posts.doc(security="jwt_access_token", responses={201: "Post created"})
     def post(self, json_data):
         """Create a new post. Activated account required."""
+        from api.blueprints.uploads.models import Image
+
         current_user = get_current_user()
         locality = get_or_create_locality(
             json_data["locality_id"], json_data["locality_provider"]
@@ -92,13 +94,17 @@ class Posts(MethodView):
         post_data = {
             k: v
             for k, v in json_data.items()
-            if k not in ["locality_id", "locality_provider"]
+            if k not in ["locality_id", "locality_provider", "images_ids"]
         }
         new_post = PostModel(
             author_id=current_user.id,  # type: ignore
             locality_id=locality.id,  # type: ignore
             **post_data,
         )
+
+        if json_data.get("images_ids"):
+            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
+            new_post.images = images
 
         db.session.add(new_post)
         db.session.commit()
@@ -122,6 +128,8 @@ class Post(MethodView):
     )
     def put(self, post_id, json_data):
         """Update a post by ID. Only the author can update the post."""
+        from api.blueprints.uploads.models import Image
+
         current_user = get_current_user()
         post = PostModel.query.options(
             joinedload(PostModel.locality), joinedload(PostModel.author)
@@ -136,8 +144,18 @@ class Post(MethodView):
         post.locality = locality
 
         for key, value in json_data.items():
-            if key not in ["locality_id", "locality_provider"] and hasattr(post, key):
+            if key not in [
+                "locality_id",
+                "locality_provider",
+                "images_ids",
+            ] and hasattr(post, key):
                 setattr(post, key, value)
+
+        if json_data.get("images_ids"):
+            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
+            post.images = images
+        else:
+            post.images = []
 
         db.session.commit()
 
