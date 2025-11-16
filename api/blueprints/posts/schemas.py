@@ -1,5 +1,5 @@
 from apiflask import Schema, validators
-from apiflask.fields import URL, DateTime, Float, Integer, List, Method, String
+from apiflask.fields import UUID, DateTime, Float, Integer, List, Method, String
 from apiflask.validators import Length, OneOf
 from flask import url_for
 from marshmallow import ValidationError, validates_schema
@@ -24,7 +24,6 @@ class PostBaseSchema(CamelCaseSchema):
         required=True,
         validate=Length(min=1, max=10000),
     )
-    images_links = List(URL(metadata={"x-faker": "image.city"}))
 
 
 class PostInSchema(PostBaseSchema):
@@ -37,6 +36,7 @@ class PostInSchema(PostBaseSchema):
         metadata={"enum": ["google", "nominatim"], "example": "nominatim"},
         required=True,
     )
+    images_ids = List(UUID())
 
 
 class PostOutSchema(PostBaseSchema):
@@ -56,9 +56,16 @@ class PostOutSchema(PostBaseSchema):
     likes = Integer(load_default=0, dump_default=0)
     dislikes = Integer(load_default=0, dump_default=0)
     comments = Integer(load_default=0, dump_default=0)
+    images = Method(
+        "get_images",
+        metadata={"type": "array", "items": {"type": "string", "format": "uri"}},
+    )
 
     def get_author_link(self, obj):
         return url_for("users.user", user_id=obj.author_id)
+
+    def get_images(self, obj):
+        return [image.url for image in obj.images]
 
 
 PostOutPaginationSchema = pagination_schema(PostOutSchema, exclude=["body"])

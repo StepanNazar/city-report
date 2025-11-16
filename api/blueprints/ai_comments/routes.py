@@ -1,4 +1,4 @@
-from flask.views import MethodView
+from apiflask.views import MethodView
 from flask_jwt_extended import jwt_required
 
 from api.blueprints.ai_comments import ai_comments

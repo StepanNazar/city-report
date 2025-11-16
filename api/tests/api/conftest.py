@@ -1,11 +1,16 @@
+import uuid
 from types import MappingProxyType
 
 import email_validator
 import pytest
+from flask import Response, url_for
 from pytest_lazy_fixtures import lf as _lf
+from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 
 from api import create_app
 from api import db as _db
+from api.blueprints.uploads.services import StorageService
 from api.config import TestConfig
 
 
@@ -18,6 +23,7 @@ def app():
     2) Create database tables, yield the app for individual tests
     3) Final tear down logic at the end of the session
     """
+    TestConfig.STORAGE_SERVICE = TestStorageService()
     app = create_app(TestConfig)
 
     with app.app_context():
@@ -241,11 +247,30 @@ def solution(authenticated_client, post):
 def mock_nominatim(mocker):
     """Mock NominatimService for tests."""
     return mocker.patch(
-        "api.services.NominatimService.get_locality_name_state_and_country",
-        return_value=("Test Locality", "Test State", "Test Country"),
+        "api.services.NominatimService.get_latitude_longitude",
+        return_value=(40.7128, -74.0060),
     )
 
 
 @pytest.fixture(autouse=True, scope="session")
 def specify_testing_environment_for_email_validator():
     email_validator.TEST_ENVIRONMENT = True
+
+
+class TestStorageService(StorageService):
+    def __init__(self):
+        self.uploaded_images = {}
+
+    def _upload(self, file: FileStorage) -> str:
+        """Upload a file to a local folder and return its URL"""
+        filename = uuid.uuid4().hex + secure_filename(file.filename or "")
+        self.uploaded_images[filename] = file.read()
+        return url_for("uploads.image", filename=filename)
+
+    def send_file(self, filename: str):
+        image_data = self.uploaded_images[filename]
+        return Response(image_data, mimetype="image/jpeg")
+
+    @staticmethod
+    def _check_file_is_image(file: FileStorage) -> bool:
+        return True

@@ -2,6 +2,11 @@ import datetime
 import os
 import re
 
+from api.blueprints.uploads.services import (
+    LocalFolderStorageService,
+    StorageService,
+)
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -22,6 +27,7 @@ class Config:
     # path to which cookies are sent
     JWT_REFRESH_COOKIE_PATH = "/auth/refresh"
     JWT_REFRESH_CSRF_COOKIE_PATH = "/"
+    STORAGE_SERVICE: StorageService
 
 
 class DevConfig(Config):
@@ -29,6 +35,7 @@ class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
     SQLALCHEMY_ECHO = True
     CORS_ORIGINS = re.compile(r"^https?://(localhost|127\.0\.0\.1):4200$")
+    STORAGE_SERVICE = LocalFolderStorageService()
 
 
 class TestConfig(Config):

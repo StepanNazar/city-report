@@ -1,4 +1,7 @@
+from typing import TYPE_CHECKING
+
 from apiflask import APIFlask
+from flask import current_app
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import JWTExtendedException
@@ -8,6 +11,9 @@ from jwt import PyJWTError
 from sqlalchemy import MetaData
 
 from api.config import DevConfig
+
+if TYPE_CHECKING:
+    from api.blueprints.uploads.services import StorageService
 
 metadata = MetaData(
     naming_convention={
@@ -36,15 +42,15 @@ authorizations = {
 def register_routes(app):
     """Register all routes for the API."""
 
-    from api.blueprints.admin import admin
-    from api.blueprints.ai_comments import ai_comments
-    from api.blueprints.auth import auth
-    from api.blueprints.comments import comments
-    from api.blueprints.locations import locations
-    from api.blueprints.posts import posts
-    from api.blueprints.solutions import solutions
-    from api.blueprints.uploads import uploads
-    from api.blueprints.users import users
+    from api.blueprints.admin import admin, models, routes
+    from api.blueprints.ai_comments import ai_comments, models, routes  # noqa: F811
+    from api.blueprints.auth import auth, models, routes  # noqa: F811
+    from api.blueprints.comments import comments, models, routes  # noqa: F811
+    from api.blueprints.locations import locations, models, routes  # noqa: F811
+    from api.blueprints.posts import models, posts, routes  # noqa: F811
+    from api.blueprints.solutions import models, routes, solutions  # noqa: F811
+    from api.blueprints.uploads import models, routes, uploads_bp  # noqa: F811
+    from api.blueprints.users import models, routes, users  # noqa: F401, F811
 
     app.security_schemes = authorizations
     app.register_blueprint(admin)
@@ -54,13 +60,21 @@ def register_routes(app):
     app.register_blueprint(locations)
     app.register_blueprint(posts)
     app.register_blueprint(solutions)
-    app.register_blueprint(uploads)
+    app.register_blueprint(uploads_bp)
     app.register_blueprint(users)
 
 
 db = SQLAlchemy(metadata=metadata)
 migrate = Migrate()
 jwt = JWTManager()
+
+
+class CustomAPIFlask(APIFlask):
+    storage_service: "StorageService"
+
+
+def get_app() -> CustomAPIFlask:
+    return current_app  # type: ignore[return-value]
 
 
 def create_app(config):
@@ -72,6 +86,7 @@ def create_app(config):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    app.storage_service = config.STORAGE_SERVICE  # type: ignore[attr-defined]
 
     register_routes(app)
 

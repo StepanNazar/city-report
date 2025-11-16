@@ -61,8 +61,8 @@ def test_login_with_nonexistent_email(client):
 
 def test_whoami(client, mocker):
     mock = mocker.patch(
-        "api.services.NominatimService.get_locality_name_state_and_country",
-        return_value=("Test Locality", "Test State", "Test Country"),
+        "api.services.NominatimService.get_latitude_longitude",
+        return_value=(40.7128, -74.0060),
     )
     response = register_user(
         client,
@@ -88,6 +88,8 @@ def test_whoami(client, mocker):
     assert "isActivated" in data
     assert data["localityNominatimId"] == 3167397
     assert "createdAt" in data
+    assert data["localityLatitude"] == 40.7128
+    assert data["localityLongitude"] == -74.0060
 
 
 def test_whoami_unauthorized(client):

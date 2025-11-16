@@ -1,7 +1,7 @@
 from apiflask import abort
+from apiflask.views import MethodView
 from email_validator import EmailNotValidError
 from flask import Response, jsonify, make_response, request, url_for
-from flask.views import MethodView
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -25,7 +25,7 @@ from api.blueprints.auth.schemas import (
     RegisterSchema,
     WhoAmISchema,
 )
-from api.blueprints.common.helpers import get_or_create_locality
+from api.blueprints.locations.routes import get_or_create_locality
 from api.services import EmailService
 
 

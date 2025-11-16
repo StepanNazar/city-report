@@ -1,6 +1,6 @@
 from apiflask import abort
+from apiflask.views import MethodView
 from flask import url_for
-from flask.views import MethodView
 from flask_jwt_extended import get_current_user, jwt_required
 from sqlalchemy.orm import joinedload
 
@@ -10,7 +10,6 @@ from api.blueprints.comments.schemas import (
     CommentOutSchema,
     CommentSortingSchema,
 )
-from api.blueprints.common.helpers import get_or_create_locality
 from api.blueprints.common.routes import create_pagination_response
 from api.blueprints.common.schemas import (
     JSONPatchSchema,
@@ -19,6 +18,7 @@ from api.blueprints.common.schemas import (
     pagination_query_schema,
 )
 from api.blueprints.locations.models import Locality
+from api.blueprints.locations.routes import get_or_create_locality
 from api.blueprints.posts import posts
 from api.blueprints.posts.models import Post as PostModel
 from api.blueprints.posts.schemas import (
@@ -84,6 +84,8 @@ class Posts(MethodView):
     @posts.doc(security="jwt_access_token", responses={201: "Post created"})
     def post(self, json_data):
         """Create a new post. Activated account required."""
+        from api.blueprints.uploads.models import Image
+
         current_user = get_current_user()
         locality = get_or_create_locality(
             json_data["locality_id"], json_data["locality_provider"]
@@ -92,13 +94,17 @@ class Posts(MethodView):
         post_data = {
             k: v
             for k, v in json_data.items()
-            if k not in ["locality_id", "locality_provider"]
+            if k not in ["locality_id", "locality_provider", "images_ids"]
         }
         new_post = PostModel(
             author_id=current_user.id,  # type: ignore
             locality_id=locality.id,  # type: ignore
             **post_data,
         )
+
+        if json_data.get("images_ids"):
+            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
+            new_post.images = images
 
         db.session.add(new_post)
         db.session.commit()
@@ -122,6 +128,8 @@ class Post(MethodView):
     )
     def put(self, post_id, json_data):
         """Update a post by ID. Only the author can update the post."""
+        from api.blueprints.uploads.models import Image
+
         current_user = get_current_user()
         post = PostModel.query.options(
             joinedload(PostModel.locality), joinedload(PostModel.author)
@@ -136,8 +144,18 @@ class Post(MethodView):
         post.locality = locality
 
         for key, value in json_data.items():
-            if key not in ["locality_id", "locality_provider"] and hasattr(post, key):
+            if key not in [
+                "locality_id",
+                "locality_provider",
+                "images_ids",
+            ] and hasattr(post, key):
                 setattr(post, key, value)
+
+        if json_data.get("images_ids"):
+            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
+            post.images = images
+        else:
+            post.images = []
 
         db.session.commit()
 
@@ -255,14 +273,23 @@ class PostSolutions(MethodView):
     @posts.doc(security="jwt_access_token", responses={201: "Solution created"})
     def post(self, post_id, json_data):
         """Create a new solution for post. Activated account required."""
+        from api.blueprints.uploads.models import Image
+
         current_user = get_current_user()
         PostModel.query.get_or_404(post_id, description="Post not found")
 
+        solution_data = {k: v for k, v in json_data.items() if k != "images_ids"}
         new_solution = SolutionModel(
             author_id=current_user.id,  # type: ignore
             post_id=post_id,  # type: ignore
-            **json_data,
+            **solution_data,
         )
+
+        # Handle images if provided
+        if json_data.get("images_ids"):
+            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
+            new_solution.images = images
+
         db.session.add(new_solution)
         db.session.commit()
 

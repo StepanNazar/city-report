@@ -1,6 +1,9 @@
-from flask.views import MethodView
+import requests
+from apiflask import abort
+from apiflask.views import MethodView
 from flask_jwt_extended import jwt_required
 
+from api import db
 from api.blueprints.common.schemas import pagination_query_schema
 from api.blueprints.locations import locations
 from api.blueprints.locations.schemas import (
@@ -12,6 +15,7 @@ from api.blueprints.locations.schemas import (
     StatePaginationSchema,
     StateSchema,
 )
+from api.services import LocationService
 
 
 class Countries(MethodView):
@@ -124,3 +128,16 @@ locations.add_url_rule("/localities", view_func=Localities.as_view("localities")
 locations.add_url_rule(
     "/localities/<int:locality_id>", view_func=Locality.as_view("locality")
 )
+
+
+def get_or_create_locality(locality_id, locality_provider):
+    try:
+        return LocationService.get_or_create_locality(
+            locality_id, locality_provider, db.session
+        )
+    except ValueError:
+        abort(400, message="Invalid locality id")
+    except requests.RequestException:
+        abort(500, message="Location service unavailable")
+    except NotImplementedError as e:
+        abort(501, message=str(e))

@@ -1,5 +1,5 @@
 from apiflask import abort
-from flask.views import MethodView
+from apiflask.views import MethodView
 from flask_jwt_extended import get_current_user, jwt_required
 
 from api import db
@@ -37,6 +37,8 @@ class Solution(MethodView):
     )
     def put(self, solution_id, json_data):
         """Update solution. Only the author of the solution can update it"""
+        from api.blueprints.uploads.models import Image
+
         current_user = get_current_user()
         solution = SolutionModel.query.get_or_404(
             solution_id, description="Solution not found"
@@ -46,8 +48,16 @@ class Solution(MethodView):
             abort(403, message="You can only update your own solutions")
 
         for key, value in json_data.items():
-            if hasattr(solution, key):
+            if key != "images_ids" and hasattr(solution, key):
                 setattr(solution, key, value)
+
+        # Handle images if provided
+        if "images_ids" in json_data:
+            if json_data["images_ids"]:
+                images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
+                solution.images = images
+            else:
+                solution.images = []
 
         db.session.commit()
 

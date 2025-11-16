@@ -542,11 +542,10 @@
             "type": "string",
             "x-faker": "lorem.paragraphs"
           },
-          "imagesLinks": {
+          "imagesIds": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "format": "uuid",
+              "type": "string"
             },
             "type": "array"
           },
@@ -622,12 +621,12 @@
           "id": {
             "type": "integer"
           },
-          "imagesLinks": {
+          "images": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "format": "uri",
+              "type": "string"
             },
+            "readOnly": true,
             "type": "array"
           },
           "latitude": {
@@ -707,12 +706,12 @@
           "id": {
             "type": "integer"
           },
-          "imagesLinks": {
+          "images": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "format": "uri",
+              "type": "string"
             },
+            "readOnly": true,
             "type": "array"
           },
           "latitude": {
@@ -932,11 +931,10 @@
             "type": "string",
             "x-faker": "lorem.paragraphs"
           },
-          "imagesLinks": {
+          "imagesIds": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "format": "uuid",
+              "type": "string"
             },
             "type": "array"
           },
@@ -1002,11 +1000,18 @@
           "id": {
             "type": "integer"
           },
-          "imagesLinks": {
+          "images": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "format": "uri",
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "imagesIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
             },
             "type": "array"
           },
@@ -1628,6 +1633,12 @@
           },
           "localityGoogleId": {
             "type": "integer"
+          },
+          "localityLatitude": {
+            "type": "number"
+          },
+          "localityLongitude": {
+            "type": "number"
           },
           "localityNominatimId": {
             "type": "integer"
@@ -6329,12 +6340,12 @@
         ]
       }
     },
-    "/uploads/images/{image_id}": {
+    "/uploads/images/{filename}": {
       "get": {
         "parameters": [
           {
             "in": "path",
-            "name": "image_id",
+            "name": "filename",
             "required": true,
             "schema": {
               "type": "string"
