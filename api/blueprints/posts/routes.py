@@ -273,14 +273,23 @@ class PostSolutions(MethodView):
     @posts.doc(security="jwt_access_token", responses={201: "Solution created"})
     def post(self, post_id, json_data):
         """Create a new solution for post. Activated account required."""
+        from api.blueprints.uploads.models import Image
+
         current_user = get_current_user()
         PostModel.query.get_or_404(post_id, description="Post not found")
 
+        solution_data = {k: v for k, v in json_data.items() if k != "images_ids"}
         new_solution = SolutionModel(
             author_id=current_user.id,  # type: ignore
             post_id=post_id,  # type: ignore
-            **json_data,
+            **solution_data,
         )
+
+        # Handle images if provided
+        if json_data.get("images_ids"):
+            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
+            new_solution.images = images
+
         db.session.add(new_solution)
         db.session.commit()
 

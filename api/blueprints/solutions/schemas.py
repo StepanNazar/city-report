@@ -1,5 +1,5 @@
 from apiflask import Schema
-from apiflask.fields import URL, Boolean, DateTime, Integer, List, Method, String
+from apiflask.fields import UUID, Boolean, DateTime, Integer, List, Method, String
 from apiflask.validators import Length, OneOf
 from flask import url_for
 
@@ -21,7 +21,7 @@ class SolutionInSchema(CamelCaseSchema):
         required=True,
         validate=Length(min=1, max=10000),
     )
-    images_links = List(URL(metadata={"x-faker": "image.city"}))
+    images_ids = List(UUID())
 
 
 class SolutionOutSchema(SolutionInSchema):
@@ -41,9 +41,16 @@ class SolutionOutSchema(SolutionInSchema):
     comments = Integer(load_default=0, dump_default=0)
     approved = Boolean(load_default=False, dump_default=False)
     approved_at = DateTime(metadata={"x-faker": "date.recent"})
+    images = Method(
+        "get_images",
+        metadata={"type": "array", "items": {"type": "string", "format": "uri"}},
+    )
 
     def get_author_link(self, obj):
         return url_for("users.user", user_id=obj.author_id)
+
+    def get_images(self, obj):
+        return [image.url for image in obj.images]
 
 
 SolutionOutPaginationSchema = pagination_schema(SolutionOutSchema)
