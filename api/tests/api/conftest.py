@@ -247,8 +247,8 @@ def solution(authenticated_client, post):
 def mock_nominatim(mocker):
     """Mock NominatimService for tests."""
     return mocker.patch(
-        "api.services.NominatimService.get_locality_name_state_and_country",
-        return_value=("Test Locality", "Test State", "Test Country"),
+        "api.services.NominatimService.get_latitude_longitude",
+        return_value=(40.7128, -74.0060),
     )
 
 

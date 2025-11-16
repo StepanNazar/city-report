@@ -1,5 +1,5 @@
 from apiflask import Schema, validators
-from apiflask.fields import Boolean, DateTime, Email, Integer, String
+from apiflask.fields import Boolean, DateTime, Email, Float, Integer, String
 
 from api.blueprints.common.schemas import CamelCaseSchema
 
@@ -66,6 +66,8 @@ class WhoAmISchema(CamelCaseSchema):
     last_name = String(attribute="lastname", metadata={"x-faker": "name.lastName"})
     email = Email(metadata={"x-faker": "internet.email"})
     is_activated = Boolean()
+    locality_latitude = Float(attribute="locality.latitude")
+    locality_longitude = Float(attribute="locality.longitude")
     locality_nominatim_id = Integer(attribute="locality.osm_id")
     locality_google_id = Integer()
     created_at = DateTime(metadata={"x-faker": "date.past"})

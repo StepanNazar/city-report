@@ -23,7 +23,7 @@ class EmailService:  # replace with flask-mail?
 
 class NominatimService:
     @staticmethod
-    def get_locality_name_state_and_country(locality_id: int) -> tuple[str, str, str]:
+    def get_latitude_longitude(locality_id: int) -> tuple[float, float]:
         url = "https://nominatim.openstreetmap.org/lookup?osm_ids=N{},W{},R{}&format=geocodejson"
         url = url.format(locality_id, locality_id, locality_id)
         headers = {"User-Agent": "City Report", "Accept-language": "en"}
@@ -32,10 +32,9 @@ class NominatimService:
         json = r.json()
         if len(json["features"]) == 0:
             raise ValueError("Invalid locality id")
-        name = json["features"][0]["properties"]["geocoding"]["name"]
-        state = json["features"][0]["properties"]["geocoding"]["state"]
-        country = json["features"][0]["properties"]["geocoding"]["country"]
-        return name, state, country
+        latitude = json["features"][0]["geometry"]["coordinates"][1]
+        longitude = json["features"][0]["geometry"]["coordinates"][0]
+        return latitude, longitude
 
 
 class LocationService:
@@ -65,14 +64,13 @@ class LocationService:
         if locality_provider == "nominatim":
             locality = Locality.query.filter_by(osm_id=locality_id).first()
             if not locality:
-                name, state, country = (
-                    NominatimService.get_locality_name_state_and_country(locality_id)
+                latitude, longitude = NominatimService.get_latitude_longitude(
+                    locality_id
                 )
                 locality = Locality(
-                    name=name,  # type: ignore
-                    state=state,  # type: ignore
-                    country=country,  # type: ignore
                     osm_id=locality_id,  # type: ignore
+                    latitude=latitude,  # type: ignore
+                    longitude=longitude,  # type: ignore
                 )
                 db_session.add(locality)
                 db_session.flush()
