@@ -7,6 +7,7 @@ export interface CreatePostPayload {
     longitude: number;
     title: string;
     body: string;
+    imageIds?: string[];
     imagesLinks?: string[];
     localityId: number;
     localityProvider: 'google' | 'nominatim';

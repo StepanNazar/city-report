@@ -26,12 +26,14 @@ export class CreatePostPage implements OnInit {
   private locationSelectorService = inject(LocationSelectorService);
 
   @ViewChild(ImageUpload) imageUploadComponent?: ImageUpload;
+  @ViewChild(LocationSelector) locationSelectorComponent?: LocationSelector;
 
   readonly isSubmitting = signal<boolean>(false);
   readonly selectedLocation = signal<LocationOption | null>(null);
   readonly selectedCoordinates = signal<Coordinates | null>(null);
-  readonly imageFiles = signal<File[]>([]);
+  readonly imageIds = signal<string[]>([]);
   readonly reverseGeocodedLocation = signal<ReverseGeocodingResult | null>(null);
+  readonly locationSelectionError = signal<string | null>(null);
 
   postForm = new FormGroup({
     title: new FormControl('', [
@@ -56,35 +58,33 @@ export class CreatePostPage implements OnInit {
   }
 
   onLocationSelected(location: LocationOption | null) {
+    // Only store the selected location for its OSM ID
+    // Do NOT change the map coordinates - those come from Step 1 only
     this.selectedLocation.set(location);
-    if (location) {
-      // Set coordinates from selected location
-      this.selectedCoordinates.set({
-        latitude: location.latitude,
-        longitude: location.longitude
-      });
-      // Clear reverse geocoded location since we're using manual selection
-      this.reverseGeocodedLocation.set(null);
-    }
   }
 
   async onCoordinatesSelected(coords: Coordinates) {
     this.selectedCoordinates.set(coords);
 
-    // Only perform reverse geocoding if no location was manually selected
-    if (!this.selectedLocation()) {
-      try {
-        const locationData = await this.locationSelectorService.reverseGeocode(coords.latitude, coords.longitude);
-        this.reverseGeocodedLocation.set(locationData);
-      } catch (error) {
-        console.error('Error reverse geocoding:', error);
-        this.notificationService.error('Failed to get location details', 3000);
+    // Always perform reverse geocoding when coordinates are selected
+    try {
+      const locationData = await this.locationSelectorService.reverseGeocode(coords.latitude, coords.longitude);
+      this.reverseGeocodedLocation.set(locationData);
+      this.locationSelectionError.set(null);
+
+      // Auto-populate location selector (Step 2) with reverse geocoded data
+      if (this.locationSelectorComponent) {
+        await this.locationSelectorComponent.populateFromReverseGeocode(locationData);
       }
+    } catch (error) {
+      console.error('Error reverse geocoding:', error);
+      this.notificationService.error('Failed to get location details', 3000);
+      this.locationSelectionError.set('Failed to retrieve location details. Please try selecting a different point.');
     }
   }
 
-  onFilesChanged(files: File[]) {
-    this.imageFiles.set(files);
+  onImageIdsChanged(ids: string[]) {
+    this.imageIds.set(ids);
   }
 
   async onSubmit() {
@@ -98,7 +98,7 @@ export class CreatePostPage implements OnInit {
       return;
     }
 
-    // Validate coordinates (location will be auto-filled via reverse geocoding)
+    // Validate coordinates
     if (!this.selectedCoordinates()) {
       this.notificationService.error('Please select coordinates on the map', 5000);
       return;
@@ -110,44 +110,46 @@ export class CreatePostPage implements OnInit {
     const formValue = this.postForm.value;
 
     try {
-      // Use placeId from location selector (step 1) if available
+      // Determine place ID: Priority 1 is manual location selector, Priority 2 is reverse geocoded
       let placeId: number;
       const manualLocation = this.selectedLocation();
 
       if (manualLocation) {
-        // Priority 1: Use placeId from location selector (manual search)
+        // User manually selected a location from search
         placeId = manualLocation.id;
       } else {
-        // Priority 2: Use reverse geocoded location
+        // Use reverse geocoded location
         let locationData = this.reverseGeocodedLocation();
         if (!locationData) {
           // Fallback: Get location from coordinates if not already done
-          locationData = await this.locationSelectorService.reverseGeocode(coords.latitude, coords.longitude);
-          this.reverseGeocodedLocation.set(locationData);
+          try {
+            locationData = await this.locationSelectorService.reverseGeocode(coords.latitude, coords.longitude);
+            this.reverseGeocodedLocation.set(locationData);
+          } catch (error) {
+            console.error('Error getting location:', error);
+            this.notificationService.error(
+              'Failed to identify location. Please use the location search to select a specific place.',
+              5000
+            );
+            this.locationSelectionError.set(
+              'Could not identify location from coordinates. Please use the search above to select a specific place.'
+            );
+            this.isSubmitting.set(false);
+            return;
+          }
         }
         placeId = locationData.placeId;
       }
 
-      // Upload images first if any
-      let imageUrls: string[] = [];
-      const files = this.imageFiles();
-
-      if (files.length > 0) {
-        try {
-          const uploadResults = await this.uploadsService.uploadMultipleImages(files).toPromise();
-          imageUrls = uploadResults?.map(result => result.url) || [];
-        } catch (error) {
-          console.error('Error uploading images:', error);
-          this.notificationService.error('Failed to upload images. Creating post without images.', 5000);
-        }
-      }
+      // Get uploaded image IDs
+      const uploadedImageIds = this.imageIds();
 
       const response = await this.postsService.createPost({
         latitude: coords.latitude,
         longitude: coords.longitude,
         title: formValue.title!,
         body: formValue.body!,
-        imagesLinks: imageUrls.length > 0 ? imageUrls : undefined,
+        imageIds: uploadedImageIds.length > 0 ? uploadedImageIds : undefined,
         localityId: placeId,
         localityProvider: this.locationSelectorService.getLocationProviderName() as 'google' | 'nominatim'
       }).toPromise();

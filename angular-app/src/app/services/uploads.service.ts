@@ -28,5 +28,9 @@ export class UploadsService {
         const uploadObservables = files.map(file => this.uploadImage(file));
         return forkJoin(uploadObservables);
     }
+
+    deleteImage(imageId: string): Observable<void> {
+        return this.http.delete<void>(`/api/uploads/images/${imageId}`);
+    }
 }
 

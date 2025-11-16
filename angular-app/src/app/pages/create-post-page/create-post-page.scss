@@ -121,6 +121,13 @@
                 font-size: 13px;
             }
 
+            .info-note {
+                font-size: 12px;
+                font-style: italic;
+                margin-top: 4px;
+                opacity: 0.8;
+            }
+
             // Manually selected via search
             &.location-selected {
                 background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
@@ -132,6 +139,10 @@
 
                 .info-value {
                     color: #064E3B;
+                }
+
+                .info-note {
+                    color: #047857;
                 }
             }
 
@@ -152,6 +163,46 @@
                     color: #0369A1;
                 }
             }
+
+            // Detected location (reverse geocoded)
+            &.location-detected {
+                background: linear-gradient(135deg, #E0F2FE 0%, #DBEAFE 100%);
+                border: 1px solid #BAE6FD;
+
+                .info-label {
+                    color: #0369A1;
+                }
+
+                .info-value {
+                    color: #0C4A6E;
+                }
+
+                .info-details {
+                    color: #0369A1;
+                }
+            }
+        }
+
+        .info-hint {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            color: #1E40AF;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .error-message-box {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            background: #FEE2E2;
+            border: 1px solid #FCA5A5;
+            color: #991B1B;
+            font-size: 14px;
+            font-weight: 500;
         }
     }
 

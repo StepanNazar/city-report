@@ -1,24 +1,28 @@
-import { Component, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, output, signal, inject } from '@angular/core';
+import { UploadsService } from '../../services/uploads.service';
 
 export interface ImageFile {
+  id: string;
   file: File;
   previewUrl: string;
+  isUploading: boolean;
+  uploadError?: string;
 }
 
 @Component({
   selector: 'app-image-upload',
-  imports: [FormsModule],
+  imports: [],
   templateUrl: './image-upload.html',
   styleUrl: './image-upload.scss'
 })
 export class ImageUpload {
+  private uploadsService = inject(UploadsService);
+
   readonly imageFiles = signal<ImageFile[]>([]);
-  readonly filesChanged = output<File[]>();
-  readonly newImageUrl = signal<string>('');
+  readonly imageIdsChanged = output<string[]>();
   readonly error = signal<string | null>(null);
 
-  onFileSelect(event: Event) {
+  async onFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
 
@@ -44,52 +48,89 @@ export class ImageUpload {
 
     this.error.set(null);
 
-    // Convert files to data URLs for preview and store File objects
-    files.forEach(file => {
+    // Convert files to data URLs for preview and upload to backend
+    for (const file of files) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const previewUrl = e.target?.result as string;
-        this.addImageFile(file, previewUrl);
+        await this.addImageFileAndUpload(file, previewUrl);
       };
       reader.readAsDataURL(file);
-    });
+    }
 
     // Reset input
     input.value = '';
   }
 
-  addImageUrlFromInput() {
-    const url = this.newImageUrl().trim();
-    if (!url) return;
-
-    // Basic URL validation
-    try {
-      new URL(url);
-      // Create a fake file object for URL-based images (not recommended but supported)
-      this.error.set('Please upload files directly instead of using URLs for better quality');
-      this.newImageUrl.set('');
-    } catch {
-      this.error.set('Please enter a valid URL');
-    }
-  }
-
-  private addImageFile(file: File, previewUrl: string) {
+  private async addImageFileAndUpload(file: File, previewUrl: string) {
     const current = this.imageFiles();
     if (current.length >= 10) {
       this.error.set('Maximum 10 images allowed');
       return;
     }
-    const newFiles = [...current, { file, previewUrl }];
+
+    // Add image with temporary ID and uploading state
+    const tempImageFile: ImageFile = {
+      id: '',
+      file,
+      previewUrl,
+      isUploading: true
+    };
+
+    const newFiles = [...current, tempImageFile];
     this.imageFiles.set(newFiles);
-    this.filesChanged.emit(newFiles.map(f => f.file));
+
+    // Upload to backend
+    try {
+      const uploadResult = await this.uploadsService.uploadImage(file).toPromise();
+
+      // Update with real ID from backend
+      const updatedFiles = this.imageFiles().map(img =>
+        img.file === file
+          ? { ...img, id: uploadResult!.id, isUploading: false }
+          : img
+      );
+      this.imageFiles.set(updatedFiles);
+
+      // Emit updated IDs
+      this.emitImageIds();
+    } catch (error) {
+      console.error('Error uploading image:', error);
+
+      // Mark upload as failed
+      const updatedFiles = this.imageFiles().map(img =>
+        img.file === file
+          ? { ...img, isUploading: false, uploadError: 'Upload failed' }
+          : img
+      );
+      this.imageFiles.set(updatedFiles);
+    }
   }
 
-  removeImage(index: number) {
+  async removeImage(index: number) {
     const current = this.imageFiles();
+    const imageToRemove = current[index];
+
+    // If image was uploaded, delete from backend
+    if (imageToRemove.id) {
+      try {
+        // await this.uploadsService.deleteImage(imageToRemove.id).toPromise();
+      } catch (error) {
+        console.error('Error deleting image from backend:', error);
+      }
+    }
+
+    // Remove from local array
     const newFiles = current.filter((_, i) => i !== index);
     this.imageFiles.set(newFiles);
-    this.filesChanged.emit(newFiles.map(f => f.file));
-    this.error.set(null);
+    this.emitImageIds();
+  }
+
+  private emitImageIds() {
+    const ids = this.imageFiles()
+      .filter(img => img.id && !img.uploadError)
+      .map(img => img.id);
+    this.imageIdsChanged.emit(ids);
   }
 
   clearError() {

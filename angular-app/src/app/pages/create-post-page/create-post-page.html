@@ -5,53 +5,37 @@
   </div>
 
   <form [formGroup]="postForm" (ngSubmit)="onSubmit()" class="post-form">
-    <!-- Location Selection Section -->
+    <!-- Map Selection Section - NOW STEP 1 -->
     <section class="form-section">
       <div class="section-header">
         <div class="section-number">1</div>
         <div>
-          <h2>Select Location</h2>
-          <p class="section-description">Search for your location and select it from the results</p>
-        </div>
-      </div>
-      <div class="section-content">
-        <app-location-selector (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
-        @if (selectedLocation()) {
-        <div class="location-info location-selected">
-          <div class="info-label">✅ Selected Location (PlaceID: {{ selectedLocation()!.id }}):</div>
-          <div class="info-value">{{ selectedLocation()!.name }}</div>
-        </div>
-        }
-        @if (reverseGeocodedLocation() && !selectedLocation()) {
-        <div class="location-info location-detected">
-          <div class="info-label">📍 Detected Location (PlaceID: {{ reverseGeocodedLocation()!.placeId }}):</div>
-          <div class="info-value">{{ reverseGeocodedLocation()!.displayName }}</div>
-          @if (reverseGeocodedLocation()!.address.city) {
-          <div class="info-details">
-            City: {{ reverseGeocodedLocation()!.address.city }}
-            @if (reverseGeocodedLocation()!.address.country) {
-            , {{ reverseGeocodedLocation()!.address.country }}
-            }
-          </div>
-          }
-        </div>
-        }
-      </div>
-    </section>
-
-    <!-- Map Selection Section -->
-    <section class="form-section">
-      <div class="section-header">
-        <div class="section-number">2</div>
-        <div>
           <h2>Pinpoint Exact Location</h2>
-          <p class="section-description">Click on the map to select the exact coordinates</p>
+          <p class="section-description">Click on the map to select the exact coordinates of the problem</p>
         </div>
       </div>
       <div class="section-content">
         <app-map [initialCoordinates]="selectedCoordinates()"
           (coordinatesSelected)="onCoordinatesSelected($event)"></app-map>
-        @if (!selectedCoordinates()) {
+        @if (selectedCoordinates()) {
+        @if (reverseGeocodedLocation()) {
+        <div class="location-info location-detected">
+          <div class="info-label">📍 Location Details:</div>
+          <div class="info-value">{{ reverseGeocodedLocation()!.displayName }}</div>
+          <div class="info-details">
+            @if (reverseGeocodedLocation()!.address.city) {
+            <span>City: {{ reverseGeocodedLocation()!.address.city }}</span>
+            }
+            @if (reverseGeocodedLocation()!.address.state) {
+            <span> • State/Region: {{ reverseGeocodedLocation()!.address.state }}</span>
+            }
+            @if (reverseGeocodedLocation()!.address.country) {
+            <span> • Country: {{ reverseGeocodedLocation()!.address.country }}</span>
+            }
+          </div>
+        </div>
+        }
+        } @else {
         <div class="validation-hint">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="7" stroke="#F59E0B" stroke-width="2" />
@@ -63,17 +47,48 @@
       </div>
     </section>
 
+    <!-- Location Search Section - NOW STEP 2 (AUTO-POPULATED) -->
+    <section class="form-section">
+      <div class="section-header">
+        <div class="section-number">2</div>
+        <div>
+          <h2>Select City/Location</h2>
+          <p class="section-description">Fields are auto-filled from the map. Select the correct city/place from the
+            list for filtering.</p>
+        </div>
+      </div>
+      <div class="section-content">
+        <div class="info-hint">
+          ℹ️ The pin coordinates from Step 1 will be saved as the exact problem location. Here you select the city/area
+          for filtering posts.
+        </div>
+        <app-location-selector (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
+        @if (selectedLocation()) {
+        <div class="location-info location-selected">
+          <div class="info-label">✅ Selected City/Place (OSM ID: {{ selectedLocation()!.id }}):</div>
+          <div class="info-value">{{ selectedLocation()!.name }}</div>
+          <div class="info-note">Used for filtering posts by location</div>
+        </div>
+        }
+        @if (locationSelectionError()) {
+        <div class="error-message-box">
+          {{ locationSelectionError() }}
+        </div>
+        }
+      </div>
+    </section>
+
     <!-- Images Section -->
     <section class="form-section">
       <div class="section-header">
         <div class="section-number">3</div>
         <div>
           <h2>Add Images (Optional)</h2>
-          <p class="section-description">Upload images to help illustrate the problem</p>
+          <p class="section-description">Upload images from your computer to help illustrate the problem</p>
         </div>
       </div>
       <div class="section-content">
-        <app-image-upload (filesChanged)="onFilesChanged($event)"></app-image-upload>
+        <app-image-upload (imageIdsChanged)="onImageIdsChanged($event)"></app-image-upload>
       </div>
     </section>
 

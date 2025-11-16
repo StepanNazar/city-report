@@ -16,19 +16,8 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
         </svg>
-        <span>Choose Images</span>
+        <span>Choose Images from Computer</span>
       </label>
-    </div>
-
-    <div class="url-input-area">
-      <label for="imageUrl">Or paste image URL</label>
-      <div class="url-input-group">
-        <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg" [(ngModel)]="newImageUrl"
-          (keydown.enter)="$event.preventDefault(); addImageUrlFromInput()">
-        <button type="button" class="add-url-btn" (click)="addImageUrlFromInput()" [disabled]="!newImageUrl()">
-          Add
-        </button>
-      </div>
     </div>
   </div>
 
@@ -37,11 +26,18 @@
     @for (imageFile of imageFiles(); track imageFile.file.name; let i = $index) {
     <div class="image-preview-item">
       <img [src]="imageFile.previewUrl" [alt]="'Preview ' + (i + 1)">
-      <button type="button" class="remove-btn" (click)="removeImage(i)" title="Remove image">
+      <button type="button" class="remove-btn" (click)="removeImage(i)" title="Remove image"
+        [disabled]="imageFile.isUploading">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
         </svg>
       </button>
+      @if (imageFile.isUploading) {
+      <div class="upload-spinner"></div>
+      }
+      @if (imageFile.uploadError) {
+      <div class="upload-error">{{ imageFile.uploadError }}</div>
+      }
       <div class="image-number">{{ i + 1 }}</div>
       <div class="file-name">{{ imageFile.file.name }}</div>
     </div>

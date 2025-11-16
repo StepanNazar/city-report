@@ -1,5 +1,6 @@
-import { Component, output, signal, effect, input, AfterViewInit, OnDestroy, ElementRef, viewChild } from '@angular/core';
+import { Component, output, signal, input, AfterViewInit, OnDestroy, ElementRef, viewChild, inject } from '@angular/core';
 import * as L from 'leaflet';
+import { GeolocationService } from '../../services/geolocation.service';
 
 export interface Coordinates {
   latitude: number;
@@ -15,27 +16,23 @@ export interface Coordinates {
 export class Map implements AfterViewInit, OnDestroy {
   private map?: L.Map;
   private marker?: L.Marker;
+  private geolocationService = inject(GeolocationService);
 
   readonly mapContainer = viewChild<ElementRef>('mapContainer');
   readonly coordinates = signal<Coordinates | null>(null);
   readonly coordinatesSelected = output<Coordinates>();
   readonly initialCoordinates = input<Coordinates | null>(null);
+  readonly isLoadingLocation = signal<boolean>(false);
 
   constructor() {
-    // When initial coordinates are provided (from location selector), update the map
-    effect(() => {
-      const initial = this.initialCoordinates();
-      if (initial && this.map) {
-        this.setMapCenter(initial.latitude, initial.longitude);
-        this.coordinates.set(initial);
-      }
-    });
+    // Note: initialCoordinates are only used once during map initialization
+    // They do NOT update the map after initial load
   }
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
     // Initialize map after view is ready
-    setTimeout(() => {
-      this.initMap();
+    setTimeout(async () => {
+      await this.initMap();
     }, 0);
   }
 
@@ -45,19 +42,28 @@ export class Map implements AfterViewInit, OnDestroy {
     }
   }
 
-  private initMap() {
+  private async initMap() {
     const container = this.mapContainer()?.nativeElement;
     if (!container) {
       console.error('Map container not found');
       return;
     }
 
-    // Default center (can be changed based on user location)
-    const defaultLat = 50.4501;
-    const defaultLng = 30.5234; // Kyiv coordinates
+    // Get user location or use default (Kyiv)
+    this.isLoadingLocation.set(true);
+    let userCoords: Coordinates;
+
+    // Check if initial coordinates are provided
+    const initial = this.initialCoordinates();
+    if (initial) {
+      userCoords = initial;
+    } else {
+      userCoords = await this.geolocationService.getCurrentCoordinates();
+    }
+    this.isLoadingLocation.set(false);
 
     try {
-      this.map = L.map(container).setView([defaultLat, defaultLng], 13);
+      this.map = L.map(container).setView([userCoords.latitude, userCoords.longitude], 13);
     } catch (error) {
       console.error('Error initializing map:', error);
       return;
@@ -73,12 +79,6 @@ export class Map implements AfterViewInit, OnDestroy {
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       this.onMapClick(e.latlng.lat, e.latlng.lng);
     });
-
-    // Set initial coordinates if provided
-    const initial = this.initialCoordinates();
-    if (initial) {
-      this.setMapCenter(initial.latitude, initial.longitude);
-    }
   }
 
   private onMapClick(lat: number, lng: number) {
