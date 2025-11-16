@@ -1,7 +1,7 @@
 from apiflask import abort
+from apiflask.views import MethodView
 from email_validator import EmailNotValidError
 from flask import Response, jsonify, make_response, request, url_for
-from flask.views import MethodView
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,

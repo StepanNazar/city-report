@@ -1,6 +1,6 @@
 from apiflask import abort
+from apiflask.views import MethodView
 from flask import url_for
-from flask.views import MethodView
 from flask_jwt_extended import get_current_user, jwt_required
 from sqlalchemy.orm import joinedload
 
