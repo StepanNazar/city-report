@@ -138,6 +138,6 @@ def get_or_create_locality(locality_id, locality_provider):
     except ValueError:
         abort(400, message="Invalid locality id")
     except requests.RequestException:
-        abort(500, message="Nominatim service unavailable")
+        abort(500, message="Location service unavailable")
     except NotImplementedError as e:
         abort(501, message=str(e))
