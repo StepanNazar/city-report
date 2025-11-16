@@ -25,7 +25,7 @@ from api.blueprints.auth.schemas import (
     RegisterSchema,
     WhoAmISchema,
 )
-from api.blueprints.common.helpers import get_or_create_locality
+from api.blueprints.locations.routes import get_or_create_locality
 from api.services import EmailService
 
 

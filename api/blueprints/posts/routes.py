@@ -10,7 +10,6 @@ from api.blueprints.comments.schemas import (
     CommentOutSchema,
     CommentSortingSchema,
 )
-from api.blueprints.common.helpers import get_or_create_locality
 from api.blueprints.common.routes import create_pagination_response
 from api.blueprints.common.schemas import (
     JSONPatchSchema,
@@ -19,6 +18,7 @@ from api.blueprints.common.schemas import (
     pagination_query_schema,
 )
 from api.blueprints.locations.models import Locality
+from api.blueprints.locations.routes import get_or_create_locality
 from api.blueprints.posts import posts
 from api.blueprints.posts.models import Post as PostModel
 from api.blueprints.posts.schemas import (
