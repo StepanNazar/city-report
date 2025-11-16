@@ -1,5 +1,5 @@
-import {Injectable} from '@angular/core';
-import {LocationOption, LocationSelectorService} from './location-selector-service';
+import { Injectable } from '@angular/core';
+import { LocationOption, LocationSelectorService, ReverseGeocodingResult } from './location-selector-service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +18,30 @@ export class NominatimLocationSelectorService implements LocationSelectorService
       };
     });
   }
+
+  async reverseGeocode(latitude: number, longitude: number): Promise<ReverseGeocodingResult> {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    return {
+      placeId: data.place_id,
+      name: data.name || data.display_name,
+      displayName: data.display_name,
+      latitude: parseFloat(data.lat),
+      longitude: parseFloat(data.lon),
+      address: {
+        road: data.address?.road,
+        suburb: data.address?.suburb,
+        city: data.address?.city || data.address?.town || data.address?.village,
+        county: data.address?.county,
+        state: data.address?.state,
+        country: data.address?.country,
+        postcode: data.address?.postcode
+      }
+    };
+  }
+
   getLocationProviderName(): string {
     return 'nominatim';
   }

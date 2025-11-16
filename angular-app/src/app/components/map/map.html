@@ -1,9 +1,9 @@
 <div class="map">
-  <div class="map-container">
-    <!-- Map will be rendered here -->
-    <app-post-pin></app-post-pin>
-    <app-post-pin></app-post-pin>
-    <app-post-pin></app-post-pin>
+  <div class="map-container" #mapContainer></div>
+  @if (coordinates()) {
+  <div class="coordinates-display">
+    <span>📍 Lat: {{ coordinates()!.latitude }}</span>
+    <span>Lng: {{ coordinates()!.longitude }}</span>
   </div>
+  }
 </div>
-
