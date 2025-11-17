@@ -2,17 +2,18 @@ import { Component, inject, OnInit, signal, ViewChild, ChangeDetectionStrategy }
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LocationSelector } from '../../components/location-selector/location-selector.component';
-import { Map, Coordinates } from '../../components/map/map';
+import { MapComponent } from '../../components/map/map.component';
 import { ImageUpload } from '../../components/image-upload/image-upload';
 import { AuthenticationService } from '../../services/authentication-service';
 import { PostsService } from '../../services/posts.service';
 import { UploadsService } from '../../services/uploads.service';
 import { NotificationService } from '../../services/notification.service';
 import { LocationOption, LocationSelectorService, ReverseGeocodingResult } from '../../services/location-selector-service';
+import {Coordinates} from '../../services/geolocation.service';
 
 @Component({
   selector: 'app-create-post-page',
-  imports: [LocationSelector, Map, ImageUpload, ReactiveFormsModule],
+  imports: [LocationSelector, MapComponent, ImageUpload, ReactiveFormsModule],
   templateUrl: './create-post-page.html',
   styleUrl: './create-post-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
