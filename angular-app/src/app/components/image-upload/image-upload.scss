@@ -76,7 +76,16 @@
                 color: #9EA3A9;
             }
 
-            &:hover {
+            .processing-spinner {
+                width: 24px;
+                height: 24px;
+                border: 3px solid #E1E5E9;
+                border-top-color: #1A83C5;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            &:hover:not(.disabled) {
                 background: #F3F4F6;
                 border-color: #1A83C5;
                 color: #1A83C5;
@@ -84,6 +93,11 @@
                 svg {
                     color: #1A83C5;
                 }
+            }
+
+            &.disabled {
+                cursor: not-allowed;
+                opacity: 0.6;
             }
         }
     }
