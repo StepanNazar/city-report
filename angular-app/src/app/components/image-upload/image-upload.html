@@ -33,8 +33,9 @@
       <img [src]="imageFile.previewUrl" [alt]="'Preview ' + (i + 1)">
       <button type="button" class="remove-btn" (click)="removeImage(i)" title="Remove image"
         [disabled]="imageFile.isUploading">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="3" x2="13" y2="13" />
+          <line x1="13" y1="3" x2="3" y2="13" />
         </svg>
       </button>
       @if (imageFile.isUploading) {
