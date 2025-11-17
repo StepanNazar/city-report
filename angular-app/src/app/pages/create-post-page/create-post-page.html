@@ -53,19 +53,16 @@
         <div class="section-number">2</div>
         <div>
           <h2>Select City/Location</h2>
-          <p class="section-description">Fields are auto-filled from the map. Select the correct city/place from the
-            list for filtering.</p>
+          <p class="section-description">
+            Adjust if auto-detected location is not accurate. This will be used to search your post by city.
+          </p>
         </div>
       </div>
       <div class="section-content">
-        <div class="info-hint">
-          ℹ️ The pin coordinates from Step 1 will be saved as the exact problem location. Here you select the city/area
-          for filtering posts.
-        </div>
         <app-location-selector (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
         @if (selectedLocation()) {
         <div class="location-info location-selected">
-          <div class="info-label">✅ Selected City/Place (OSM ID: {{ selectedLocation()!.id }}):</div>
+          <div class="info-label">✅ Selected City/Place:</div>
           <div class="info-value">{{ selectedLocation()!.name }}</div>
           <div class="info-note">Used for filtering posts by location</div>
         </div>
@@ -84,7 +81,7 @@
         <div class="section-number">3</div>
         <div>
           <h2>Add Images (Optional)</h2>
-          <p class="section-description">Upload images from your computer to help illustrate the problem</p>
+          <p class="section-description">Upload images to illustrate the problem</p>
         </div>
       </div>
       <div class="section-content">
