@@ -111,13 +111,13 @@ export class CreatePostPage implements OnInit {
     const formValue = this.postForm.value;
 
     try {
-      // Determine place ID: Priority 1 is manual location selector, Priority 2 is reverse geocoded
-      let placeId: number;
+      // Determine OSM ID: Priority 1 is manual location selector, Priority 2 is reverse geocoded
+      let osmId: number;
       const manualLocation = this.selectedLocation();
 
       if (manualLocation) {
         // User manually selected a location from search
-        placeId = manualLocation.id;
+        osmId = manualLocation.id;
       } else {
         // Use reverse geocoded location
         let locationData = this.reverseGeocodedLocation();
@@ -139,7 +139,7 @@ export class CreatePostPage implements OnInit {
             return;
           }
         }
-        placeId = locationData.placeId;
+        osmId = locationData.osmId;
       }
 
       // Get uploaded image IDs
@@ -151,7 +151,7 @@ export class CreatePostPage implements OnInit {
         title: formValue.title!,
         body: formValue.body!,
         imagesIds: uploadedImageIds.length > 0 ? uploadedImageIds : undefined,
-        localityId: placeId,
+        localityId: osmId,
         localityProvider: this.locationSelectorService.getLocationProviderName() as 'google' | 'nominatim'
       }).toPromise();
 

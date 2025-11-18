@@ -20,25 +20,23 @@ export class NominatimLocationSelectorService implements LocationSelectorService
   }
 
   async reverseGeocode(latitude: number, longitude: number): Promise<ReverseGeocodingResult> {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=geocodejson&lat=${latitude}&lon=${longitude}`;
     const response = await fetch(url);
     const data = await response.json();
 
+    const feature = data.features?.[0];
+    if (!feature) {
+      throw new Error('No results found for the given coordinates');
+    }
+
+    const geocoding = feature.properties.geocoding;
+
     return {
-      placeId: data.place_id,
-      name: data.name || data.display_name,
-      displayName: data.display_name,
-      latitude: parseFloat(data.lat),
-      longitude: parseFloat(data.lon),
-      address: {
-        road: data.address?.road,
-        suburb: data.address?.suburb,
-        city: data.address?.city || data.address?.town || data.address?.village,
-        county: data.address?.county,
-        state: data.address?.state,
-        country: data.address?.country,
-        postcode: data.address?.postcode
-      }
+      osmId: geocoding.osm_id,
+      displayName: geocoding.label,
+      city: geocoding.city,
+      state: geocoding.state || '',
+      country: geocoding.country || '',
     };
   }
 

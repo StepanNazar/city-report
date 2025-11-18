@@ -25,9 +25,9 @@ export class LocationSelector {
    * Populate fields with reverse geocoded data and trigger search
    */
   async populateFromReverseGeocode(geocodeData: ReverseGeocodingResult) {
-    const country = geocodeData.address.country || '';
-    const state = geocodeData.address.state || '';
-    const city = geocodeData.address.city || '';
+    const country = geocodeData.country;
+    const state = geocodeData.state;
+    const city = geocodeData.city;
 
     this.typedInCountry.set(country);
     this.typedInState.set(state);

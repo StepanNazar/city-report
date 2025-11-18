@@ -8,20 +8,11 @@ export interface LocationOption {
 }
 
 export interface ReverseGeocodingResult {
-  placeId: number;
-  name: string;
-  displayName: string;
-  latitude: number;
-  longitude: number;
-  address: {
-    road?: string;
-    suburb?: string;
-    city?: string;
-    county?: string;
-    state?: string;
-    country?: string;
-    postcode?: string;
-  };
+  osmId: number;
+  displayName?: string;
+  city: string;
+  state: string;
+  country: string;
 }
 
 @Injectable({

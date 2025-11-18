@@ -23,14 +23,14 @@
           <div class="info-label">📍 Location Details:</div>
           <div class="info-value">{{ reverseGeocodedLocation()!.displayName }}</div>
           <div class="info-details">
-            @if (reverseGeocodedLocation()!.address.city) {
-            <span>City: {{ reverseGeocodedLocation()!.address.city }}</span>
+            @if (reverseGeocodedLocation()!.city) {
+            <span>City: {{ reverseGeocodedLocation()!.city }}</span>
             }
-            @if (reverseGeocodedLocation()!.address.state) {
-            <span> • State/Region: {{ reverseGeocodedLocation()!.address.state }}</span>
+            @if (reverseGeocodedLocation()!.state) {
+            <span> • State/Region: {{ reverseGeocodedLocation()!.state }}</span>
             }
-            @if (reverseGeocodedLocation()!.address.country) {
-            <span> • Country: {{ reverseGeocodedLocation()!.address.country }}</span>
+            @if (reverseGeocodedLocation()!.country) {
+            <span> • Country: {{ reverseGeocodedLocation()!.country }}</span>
             }
           </div>
         </div>
