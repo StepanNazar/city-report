@@ -18,7 +18,14 @@
         <app-map [initialCoordinates]="selectedCoordinates()"
           (coordinatesSelected)="onCoordinatesSelected($event)"></app-map>
         @if (selectedCoordinates()) {
-        @if (reverseGeocodedLocation()) {
+        @if (isReverseGeocoding()) {
+        <div class="location-info location-loading">
+          <div class="info-label">
+            <span class="spinner"></span>
+            <span>Identifying location...</span>
+          </div>
+        </div>
+        } @else if (reverseGeocodedLocation()) {
         <div class="location-info location-detected">
           <div class="info-label">📍 Location Details:</div>
           <div class="info-value">{{ reverseGeocodedLocation()!.displayName }}</div>
@@ -65,6 +72,14 @@
           <div class="info-label">✅ Selected City/Place:</div>
           <div class="info-value">{{ selectedLocation()!.name }}</div>
           <div class="info-note">Used for filtering posts by location</div>
+        </div>
+        } @else {
+        <div class="validation-hint">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7" stroke="#F59E0B" stroke-width="2" />
+            <path d="M8 4v5M8 11v1" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>Please select a location from the dropdown</span>
         </div>
         }
         @if (locationSelectionError()) {
@@ -151,7 +166,7 @@
     <!-- Submit Section -->
     <div class="submit-section">
       <button type="submit" class="submit-button"
-        [disabled]="isSubmitting() || postForm.invalid || !selectedCoordinates()">
+        [disabled]="isSubmitting() || postForm.invalid || !selectedCoordinates() || !selectedLocation() || isReverseGeocoding()">
         @if (isSubmitting()) {
         <span class="spinner"></span>
         <span>Creating Post...</span>

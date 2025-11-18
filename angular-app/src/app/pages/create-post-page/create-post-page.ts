@@ -1,12 +1,14 @@
-import { Component, inject, OnInit, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, switchMap } from 'rxjs/operators';
 import { LocationSelector } from '../../components/location-selector/location-selector.component';
 import { MapComponent } from '../../components/map/map.component';
 import { ImageUpload } from '../../components/image-upload/image-upload';
 import { AuthenticationService } from '../../services/authentication-service';
 import { PostsService } from '../../services/posts.service';
-import { UploadsService } from '../../services/uploads.service';
 import { NotificationService } from '../../services/notification.service';
 import { LocationOption, LocationSelectorService, ReverseGeocodingResult } from '../../services/location-selector-service';
 import {Coordinates} from '../../services/geolocation.service';
@@ -21,20 +23,23 @@ import {Coordinates} from '../../services/geolocation.service';
 export class CreatePostPage implements OnInit {
   private authService = inject(AuthenticationService);
   private postsService = inject(PostsService);
-  private uploadsService = inject(UploadsService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private locationSelectorService = inject(LocationSelectorService);
+  private destroyRef = inject(DestroyRef);
 
-  @ViewChild(ImageUpload) imageUploadComponent?: ImageUpload;
   @ViewChild(LocationSelector) locationSelectorComponent?: LocationSelector;
 
   readonly isSubmitting = signal<boolean>(false);
+  readonly isReverseGeocoding = signal<boolean>(false);
   readonly selectedLocation = signal<LocationOption | null>(null);
   readonly selectedCoordinates = signal<Coordinates | null>(null);
   readonly imageIds = signal<string[]>([]);
   readonly reverseGeocodedLocation = signal<ReverseGeocodingResult | null>(null);
   readonly locationSelectionError = signal<string | null>(null);
+
+  // Subject for debouncing coordinate selection
+  private coordinatesSubject = new Subject<Coordinates>();
 
   postForm = new FormGroup({
     title: new FormControl('', [
@@ -55,33 +60,52 @@ export class CreatePostPage implements OnInit {
     if (!token) {
       this.notificationService.error('You must be logged in to create a post', 5000);
       this.router.navigate(['/signin']);
+      return;
     }
+
+    // Setup debounced reverse geocoding with race condition prevention
+    this.coordinatesSubject.pipe(
+      debounceTime(500), // Wait 500 ms after last coordinate change
+      switchMap(coords => {
+        this.isReverseGeocoding.set(true);
+        this.locationSelectionError.set(null);
+        return this.locationSelectorService.reverseGeocode(coords.latitude, coords.longitude);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: async (locationData) => {
+        this.reverseGeocodedLocation.set(locationData);
+        this.isReverseGeocoding.set(false);
+
+        // Auto-populate location selector with reverse geocoded data
+        if (this.locationSelectorComponent) {
+          await this.locationSelectorComponent.populateFromReverseGeocode(locationData);
+        }
+      },
+      error: (error) => {
+        console.error('Error reverse geocoding:', error);
+        this.isReverseGeocoding.set(false);
+        this.notificationService.error(
+          'Failed to get location details. Please try selecting a different point.',
+          5000
+        );
+      }
+    });
   }
 
   onLocationSelected(location: LocationOption | null) {
     // Only store the selected location for its OSM ID
     // Do NOT change the map coordinates - those come from Step 1 only
     this.selectedLocation.set(location);
+    if (location) {
+      this.locationSelectionError.set(null);
+    }
   }
 
-  async onCoordinatesSelected(coords: Coordinates) {
+  onCoordinatesSelected(coords: Coordinates) {
     this.selectedCoordinates.set(coords);
-
-    // Always perform reverse geocoding when coordinates are selected
-    try {
-      const locationData = await this.locationSelectorService.reverseGeocode(coords.latitude, coords.longitude);
-      this.reverseGeocodedLocation.set(locationData);
-      this.locationSelectionError.set(null);
-
-      // Auto-populate location selector (Step 2) with reverse geocoded data
-      if (this.locationSelectorComponent) {
-        await this.locationSelectorComponent.populateFromReverseGeocode(locationData);
-      }
-    } catch (error) {
-      console.error('Error reverse geocoding:', error);
-      this.notificationService.error('Failed to get location details', 3000);
-      this.locationSelectionError.set('Failed to retrieve location details. Please try selecting a different point.');
-    }
+    // Emit to debounced subject - this prevents race conditions
+    this.coordinatesSubject.next(coords);
   }
 
   onImageIdsChanged(ids: string[]) {
@@ -89,19 +113,29 @@ export class CreatePostPage implements OnInit {
   }
 
   async onSubmit() {
-    // Validate form
     if (this.postForm.invalid) {
       Object.keys(this.postForm.controls).forEach(key => {
         const control = this.postForm.get(key);
-        control?.markAsTouched();
+        if (control?.invalid) {
+          control.markAsTouched();
+        }
       });
       this.notificationService.error('Please fill in all required fields correctly', 5000);
       return;
     }
 
-    // Validate coordinates
     if (!this.selectedCoordinates()) {
       this.notificationService.error('Please select coordinates on the map', 5000);
+      return;
+    }
+
+    if (!this.selectedLocation()) {
+      this.notificationService.error('Please select a city/location from the dropdown', 5000);
+      return;
+    }
+
+    if (this.isReverseGeocoding()) {
+      this.notificationService.error('Please wait while we identify the location', 5000);
       return;
     }
 
@@ -116,36 +150,22 @@ export class CreatePostPage implements OnInit {
       const manualLocation = this.selectedLocation();
 
       if (manualLocation) {
-        // User manually selected a location from search
         osmId = manualLocation.id;
       } else {
-        // Use reverse geocoded location
-        let locationData = this.reverseGeocodedLocation();
+        const locationData = this.reverseGeocodedLocation();
         if (!locationData) {
-          // Fallback: Get location from coordinates if not already done
-          try {
-            locationData = await this.locationSelectorService.reverseGeocode(coords.latitude, coords.longitude);
-            this.reverseGeocodedLocation.set(locationData);
-          } catch (error) {
-            console.error('Error getting location:', error);
-            this.notificationService.error(
-              'Failed to identify location. Please use the location search to select a specific place.',
-              5000
-            );
-            this.locationSelectionError.set(
-              'Could not identify location from coordinates. Please use the search above to select a specific place.'
-            );
-            this.isSubmitting.set(false);
-            return;
-          }
+          this.locationSelectionError.set(
+            'Could not identify location from coordinates. Please use the search above to select a specific place.',
+          );
+          this.isSubmitting.set(false);
+          return;
         }
         osmId = locationData.osmId;
       }
 
-      // Get uploaded image IDs
       const uploadedImageIds = this.imageIds();
 
-      const response = await this.postsService.createPost({
+      this.postsService.createPost({
         latitude: coords.latitude,
         longitude: coords.longitude,
         title: formValue.title!,
@@ -153,21 +173,24 @@ export class CreatePostPage implements OnInit {
         imagesIds: uploadedImageIds.length > 0 ? uploadedImageIds : undefined,
         localityId: osmId,
         localityProvider: this.locationSelectorService.getLocationProviderName() as 'google' | 'nominatim'
-      }).toPromise();
-
-      this.notificationService.success('Post created successfully!', 5000);
-
-      // Navigate to the created post
-      if (response?.id) {
-        this.router.navigate(['/post', response.id]);
-      } else {
-        this.router.navigate(['/']);
-      }
+      }).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
+        next: (response) => {
+          this.notificationService.success('Post created successfully!', 5000);
+          this.router.navigate(['/post', response.id]);
+        },
+        error: (error) => {
+          console.error('Error creating post:', error);
+          const errorMessage = error?.error?.message || 'Failed to create post. Please try again.';
+          this.notificationService.error(errorMessage, 5000);
+          this.isSubmitting.set(false);
+        }
+      });
     } catch (error: any) {
       console.error('Error creating post:', error);
       const errorMessage = error?.error?.message || 'Failed to create post. Please try again.';
       this.notificationService.error(errorMessage, 5000);
-    } finally {
       this.isSubmitting.set(false);
     }
   }
