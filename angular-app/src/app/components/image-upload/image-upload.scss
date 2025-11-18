@@ -196,6 +196,7 @@
             justify-content: center;
             transition: all 0.2s ease;
             opacity: 0;
+            pointer-events: none;
             z-index: 2;
 
             svg {
@@ -253,12 +254,14 @@
         &:hover .remove-btn,
         &:focus-within .remove-btn {
             opacity: 1;
+            pointer-events: auto;
         }
 
         // Touch devices - always show remove button
         @media (hover: none) {
             .remove-btn {
                 opacity: 0.8;
+                pointer-events: auto;
             }
         }
     }
@@ -327,4 +330,3 @@
         }
     }
 }
-
