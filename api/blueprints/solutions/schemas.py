@@ -10,7 +10,7 @@ from api.blueprints.common.schemas import (
 )
 
 
-class SolutionInSchema(CamelCaseSchema):
+class SolutionBaseSchema(CamelCaseSchema):
     title = String(
         metadata={"x-faker": "lorem.sentences"},
         required=True,
@@ -21,10 +21,13 @@ class SolutionInSchema(CamelCaseSchema):
         required=True,
         validate=Length(min=1, max=10000),
     )
-    images_ids = List(UUID())
 
 
-class SolutionOutSchema(SolutionInSchema):
+class SolutionInSchema(SolutionBaseSchema):
+    images_ids = List(UUID(), validate=Length(max=10))
+
+
+class SolutionOutSchema(SolutionBaseSchema):
     id = Integer()
     author_id = Integer()
     author_link = Method("get_author_link", metadata=URL_METADATA)

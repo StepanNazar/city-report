@@ -242,3 +242,14 @@ def test_create_post_with_nonexistent_image_id(authenticated_client):
     # since the image ID doesn't exist in the database
     assert response.status_code == 201
     assert len(response.json["images"]) == 0
+
+
+def test_create_post_with_too_much_images(authenticated_client):
+    import uuid
+
+    post_data_with_images: dict[str, Any] = dict(post_data)
+    post_data_with_images["imagesIds"] = [str(uuid.uuid4()) for _ in range(11)]
+
+    response = authenticated_client.post("/posts", json=post_data_with_images)
+
+    assert response.status_code == 422

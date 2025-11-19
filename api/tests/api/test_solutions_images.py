@@ -326,3 +326,18 @@ def test_create_solution_with_nonexistent_image_id(authenticated_client):
     # The solution should be created successfully but with no images
     assert response.status_code == 201
     assert len(response.json["images"]) == 0
+
+
+def test_create_solution_with_too_much_images(authenticated_client):
+    """Test creating a solution with too many images."""
+    import uuid
+
+    post_url = create_post(authenticated_client)
+    solution_data_with_images: dict[str, Any] = dict(solution_data)
+    solution_data_with_images["imagesIds"] = [str(uuid.uuid4()) for _ in range(11)]
+
+    response = authenticated_client.post(
+        f"{post_url}/solutions", json=solution_data_with_images
+    )
+
+    assert response.status_code == 422

@@ -547,6 +547,7 @@
               "format": "uuid",
               "type": "string"
             },
+            "maxItems": 10,
             "type": "array"
           },
           "latitude": {
@@ -936,6 +937,7 @@
               "format": "uuid",
               "type": "string"
             },
+            "maxItems": 10,
             "type": "array"
           },
           "title": {
@@ -1006,13 +1008,6 @@
               "type": "string"
             },
             "readOnly": true,
-            "type": "array"
-          },
-          "imagesIds": {
-            "items": {
-              "format": "uuid",
-              "type": "string"
-            },
             "type": "array"
           },
           "likes": {

@@ -36,7 +36,7 @@ class PostInSchema(PostBaseSchema):
         metadata={"enum": ["google", "nominatim"], "example": "nominatim"},
         required=True,
     )
-    images_ids = List(UUID())
+    images_ids = List(UUID(), validate=Length(max=10))
 
 
 class PostOutSchema(PostBaseSchema):
