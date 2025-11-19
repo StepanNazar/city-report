@@ -19,6 +19,10 @@ import {Coordinates, GeolocationService} from '../../services/geolocation.servic
   styleUrl: './map.component.scss'
 })
 export class MapComponent implements OnDestroy {
+  // used for initial map settings before getting user location
+  private readonly PREVIEW_COORDS: Coordinates = { latitude: 50.4501, longitude: 30.5234 };
+  private readonly PREVIEW_ZOOM = 0;
+
   private readonly DEFAULT_ZOOM = 13;
   private readonly MAX_ZOOM = 19;
   private readonly COORDINATE_PRECISION = 6;
@@ -65,16 +69,13 @@ export class MapComponent implements OnDestroy {
       return;
     }
 
-    let userCoords: Coordinates;
-    const initial = this.initialCoordinates();
-    if (initial) {
-      userCoords = initial;
-    } else {
-      userCoords = await this.geolocationService.getCurrentCoordinates();
-    }
+    // Use initial coordinates if provided, otherwise use default coordinates to show map immediately
+    const initialCoordinates = this.initialCoordinates();
+    const coordinates: Coordinates = initialCoordinates || this.PREVIEW_COORDS;
 
     try {
-      this.map = L.map(container).setView([userCoords.latitude, userCoords.longitude], this.DEFAULT_ZOOM);
+      // Initialize map immediately with default/initial coordinates
+      this.map = L.map(container).setView([coordinates.latitude, coordinates.longitude], this.PREVIEW_ZOOM);
     } catch (error) {
       this.mapError.set('Failed to initialize map');
       console.error('Error initializing map:', error);
@@ -92,6 +93,23 @@ export class MapComponent implements OnDestroy {
       this.onMapClick(e.latlng.lat, e.latlng.lng);
     }
     this.map.on('click', this.mapClickHandler);
+
+    // If no initial coordinates were provided, get user coordinates asynchronously and update map
+    if (!initialCoordinates) {
+      await this.getUserCoordinatesAndUpdateMap();
+    }
+  }
+
+  private async getUserCoordinatesAndUpdateMap() {
+    try {
+      const userCoords = await this.geolocationService.getCurrentCoordinates();
+      if (this.map) {
+        // Smoothly pan to user's actual coordinates
+        this.map.setView([userCoords.latitude, userCoords.longitude], this.DEFAULT_ZOOM);
+      }
+    } catch (error) {
+      console.warn('Could not get user coordinates, keeping default location:', error);
+    }
   }
 
   private onMapClick(lat: number, lng: number) {
