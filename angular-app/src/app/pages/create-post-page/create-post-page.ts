@@ -55,9 +55,7 @@ export class CreatePostPage implements OnInit {
   });
 
   ngOnInit() {
-    // Check if user is logged in
-    const token = this.authService.getAccessToken();
-    if (!token) {
+    if (!this.authService.isAuthenticated()) {
       this.notificationService.error('You must be logged in to create a post', 5000);
       this.router.navigate(['/signin']);
       return;

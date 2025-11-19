@@ -1,7 +1,7 @@
 <header class="top-nav">
   <div class="nav-left">
     <div class="logo">
-      <h1 class="brand-title">City Report</h1>
+      <h1 class="brand-title"><a routerLink="/">City Report</a></h1>
     </div>
     <nav class="nav-links desktop-nav">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
@@ -12,9 +12,12 @@
     <div class="desktop-nav">
       <a routerLink="/account-settings" routerLinkActive="active" class="nav-link">Account</a>
       <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>
-      <a routerLink="/signin" routerLinkActive="active" class="nav-link">Sign In</a>
     </div>
-    <a routerLink="/create-post" class="btn-primary">Create Report</a>
+    @if (isLoggedIn()) {
+      <a routerLink="/create-post" class="btn-primary">Create Report</a>
+    } @else {
+      <a routerLink="/signin" routerLinkActive="active" class="nav-link" [class.highlighted]="!isLoggedIn()">Sign In</a>
+    }
     <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen" aria-label="Toggle menu">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
@@ -35,15 +38,22 @@
     <a routerLink="/locations" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
       <span>Locations</span>
     </a>
+    @if (isLoggedIn()) {
+      <a routerLink="/create-post" class="mobile-nav-link" (click)="closeMobileMenu()">
+        <span>Create Report</span>
+      </a>
+    }
     <a routerLink="/account-settings" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
       <span>Account</span>
     </a>
     <a routerLink="/admin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
       <span>Admin</span>
     </a>
-    <a routerLink="/signin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
-      <span>Sign In</span>
-    </a>
+    @if (!isLoggedIn()) {
+      <a routerLink="/signin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
+        <span>Sign In</span>
+      </a>
+    }
   </div>
 </nav>
 
