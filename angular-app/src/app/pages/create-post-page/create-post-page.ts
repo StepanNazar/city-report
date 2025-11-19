@@ -170,7 +170,7 @@ export class CreatePostPage implements OnInit {
         body: formValue.body!,
         imagesIds: uploadedImageIds.length > 0 ? uploadedImageIds : undefined,
         localityId: osmId,
-        localityProvider: this.locationSelectorService.getLocationProviderName() as 'google' | 'nominatim'
+        localityProvider: this.locationSelectorService.locationProviderName
       }).pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe({

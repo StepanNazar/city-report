@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { LocationProvider } from './location-selector-service';
 
 export interface CreatePostPayload {
     latitude: number;
@@ -9,7 +10,7 @@ export interface CreatePostPayload {
     body: string;
     imagesIds?: string[];
     localityId: number;
-    localityProvider: 'google' | 'nominatim';
+    localityProvider: LocationProvider;
 }
 
 export interface PostResponse {

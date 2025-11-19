@@ -15,11 +15,13 @@ export interface ReverseGeocodingResult {
   country: string;
 }
 
+export type LocationProvider = 'google' | 'nominatim';
+
 @Injectable({
   providedIn: 'root'
 })
 export abstract class LocationSelectorService {
   abstract searchLocations(country: string, state: string, locality: string): Promise<LocationOption[]>;
   abstract reverseGeocode(latitude: number, longitude: number): Promise<ReverseGeocodingResult>;
-  abstract getLocationProviderName(): string;
+  abstract locationProviderName: LocationProvider;
 }

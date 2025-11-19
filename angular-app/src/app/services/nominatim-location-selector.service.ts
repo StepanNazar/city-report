@@ -1,10 +1,17 @@
 import { Injectable } from '@angular/core';
-import { LocationOption, LocationSelectorService, ReverseGeocodingResult } from './location-selector-service';
+import {
+  LocationOption,
+  LocationProvider,
+  LocationSelectorService,
+  ReverseGeocodingResult
+} from './location-selector-service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NominatimLocationSelectorService implements LocationSelectorService {
+  locationProviderName: LocationProvider = 'nominatim';
+
   async searchLocations(country: string, state: string, locality: string): Promise<LocationOption[]> {
     const url = `https://nominatim.openstreetmap.org/search?city=${locality}&country=${country}&state=${state}&format=geocodejson&featureType=settlement`;
     const response = await fetch(url);
@@ -38,9 +45,5 @@ export class NominatimLocationSelectorService implements LocationSelectorService
       state: geocoding.state || '',
       country: geocoding.country || '',
     };
-  }
-
-  getLocationProviderName(): string {
-    return 'nominatim';
   }
 }

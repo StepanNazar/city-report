@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CookieService } from 'ngx-cookie-service';
+import { LocationProvider } from './location-selector-service';
 
 interface RegisterPayload {
   firstName: string;
@@ -9,7 +10,7 @@ interface RegisterPayload {
   email: string;
   password: string;
   localityId: number | undefined;
-  localityProvider: 'google' | 'nominatim' | undefined;
+  localityProvider: LocationProvider | undefined;
 }
 
 interface LoginPayload {
