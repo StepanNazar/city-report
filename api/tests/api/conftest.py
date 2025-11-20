@@ -1,5 +1,6 @@
 import uuid
 from types import MappingProxyType
+from typing import Any
 
 import email_validator
 import pytest
@@ -193,6 +194,77 @@ excluded_post_keys = [  # keys present in post's input schema, but not present i
     "localityId",
     "localityProvider",
 ]
+
+
+def upload_image(
+    client, filename="test.png", content=b"fake image content"
+) -> tuple[str, str]:
+    """Helper function to upload an image and return its ID and URL."""
+    from io import BytesIO
+
+    data = {"image": (BytesIO(content), filename)}
+    response = client.post(
+        "/uploads/images", data=data, content_type="multipart/form-data"
+    )
+    return response.json["id"], response.json["url"]
+
+
+@pytest.fixture
+def image(authenticated_client) -> tuple[str, str]:
+    """Upload a single test image and return its ID and URL."""
+    return upload_image(authenticated_client)
+
+
+@pytest.fixture
+def images(authenticated_client) -> list[tuple[str, str]]:
+    """Upload multiple test images and return list of tuples (id, url)."""
+    return [
+        upload_image(authenticated_client, f"test{i}.png", f"image {i}".encode())
+        for i in range(3)
+    ]
+
+
+def create_post_with_images(
+    client, images_ids, post_data: dict | MappingProxyType = post_data
+):
+    """Create a post with specified images and return its URL."""
+    data = dict(post_data)
+    data["imagesIds"] = images_ids
+    return create_post(client, data)
+
+
+@pytest.fixture
+def post_with_images(authenticated_client, images):
+    """Create a post with 3 test images and return its URL."""
+    images_ids = [img_id for img_id, _ in images]
+    return create_post_with_images(authenticated_client, images_ids)
+
+
+def assert_resource_images(
+    response, expected_images: list[tuple[str, str] | dict[str, Any]]
+):
+    """Assert that response contains expected image objects {id, url} in correct order.
+
+    Args:
+        response: Flask response object
+        expected_images: List of tuples (id, url) or list of dicts with 'id' and 'url' keys
+    """
+    assert "images" in response.json
+    assert len(response.json["images"]) == len(expected_images)
+
+    for i, expected in enumerate(expected_images):
+        actual_image = response.json["images"][i]
+        assert "id" in actual_image
+        assert "url" in actual_image
+
+        if isinstance(expected, tuple):
+            expected_id, expected_url = expected
+        else:
+            expected_id, expected_url = expected["id"], expected["url"]
+
+        assert actual_image["id"] == expected_id
+        assert actual_image["url"] == expected_url
+
 
 solution_data = MappingProxyType(
     {

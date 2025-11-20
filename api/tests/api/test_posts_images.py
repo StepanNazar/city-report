@@ -1,218 +1,220 @@
 """Tests for posts with images functionality."""
 
-from io import BytesIO
+import uuid
 from typing import Any
 
-from conftest import post_data
+from conftest import (
+    assert_resource_images,
+    create_post_with_images,
+    post_data,
+    upload_image,
+)
 
 
-def upload_image(client, filename="test.png", content=b"fake image content"):
-    """Helper function to upload an image and return its ID and URL."""
-    data = {"image": (BytesIO(content), filename)}
-    response = client.post(
-        "/uploads/images", data=data, content_type="multipart/form-data"
-    )
-    assert response.status_code == 201
-    return response.json["id"], response.json["url"]
-
-
-def test_create_post_with_images(authenticated_client):
+def test_create_post_with_images(authenticated_client, images):
     """Test creating a post with multiple images."""
-    # Upload multiple images
-    image1_id, image1_url = upload_image(authenticated_client, "test1.png", b"image 1")
-    image2_id, image2_url = upload_image(authenticated_client, "test2.png", b"image 2")
-    image3_id, image3_url = upload_image(authenticated_client, "test3.png", b"image 3")
-
-    # Create a post with all images
+    images_ids = [img_id for img_id, _ in images]
     post_data_with_images: dict[str, Any] = dict(post_data)
-    post_data_with_images["imagesIds"] = [image1_id, image2_id, image3_id]
+    post_data_with_images["imagesIds"] = images_ids
 
     response = authenticated_client.post("/posts", json=post_data_with_images)
 
     assert response.status_code == 201
-    assert "images" in response.json
-    assert len(response.json["images"]) == 3
-    assert image1_url in response.json["images"]
-    assert image2_url in response.json["images"]
-    assert image3_url in response.json["images"]
+    assert_resource_images(response, images)
 
 
-def test_get_post_with_images(authenticated_client):
+def test_get_post_with_images(authenticated_client, post_with_images, images):
     """Test retrieving a post that has images."""
-    # Upload images and create a post
-    image1_id, image1_url = upload_image(authenticated_client, "test1.png", b"image 1")
-    image2_id, image2_url = upload_image(authenticated_client, "test2.png", b"image 2")
+    response = authenticated_client.get(post_with_images)
 
-    post_data_with_images: dict[str, Any] = dict(post_data)
-    post_data_with_images["imagesIds"] = [image1_id, image2_id]
+    assert response.status_code == 200
+    assert_resource_images(response, images)
 
-    create_response = authenticated_client.post("/posts", json=post_data_with_images)
-    post_url = create_response.headers["Location"]
 
-    # Get the post
+def test_add_images_to_post_without_images(authenticated_client, post, images):
+    """Test adding images to an existing post with no images"""
+    images_subset = images[:2]
+    images_ids = [img_id for img_id, _ in images_subset]
+    updated_post_data: dict[str, Any] = dict(post_data)
+    updated_post_data["imagesIds"] = images_ids
+
+    update_response = authenticated_client.put(post, json=updated_post_data)
+
+    assert update_response.status_code == 200
+    assert_resource_images(update_response, images_subset)
+
+
+def test_add_images_to_post_with_existing_images(
+    authenticated_client, post_with_images, images
+):
+    """Test adding images to an existing post that already has images."""
+    get_response = authenticated_client.get(post_with_images)
+    current_images = get_response.json["images"]
+    current_image_ids = [img["id"] for img in current_images]
+    new_image = upload_image(authenticated_client)
+    new_image_id = new_image[0]
+    updated_post_data: dict[str, Any] = dict(post_data)
+    updated_post_data["imagesIds"] = [*current_image_ids, new_image_id]
+
+    update_response = authenticated_client.put(post_with_images, json=updated_post_data)
+
+    assert update_response.status_code == 200
+    expected_images = [*current_images, new_image]
+    assert_resource_images(update_response, expected_images)
+
+
+def test_update_post_replace_image(authenticated_client, images):
+    """Test replacing images of an existing post."""
+    post_url = create_post_with_images(
+        authenticated_client, [images[0][0], images[1][0]]
+    )
+
     get_response = authenticated_client.get(post_url)
 
-    assert get_response.status_code == 200
-    assert len(get_response.json["images"]) == 2
-    assert image1_url in get_response.json["images"]
-    assert image2_url in get_response.json["images"]
-
-
-def test_update_post_add_images(authenticated_client):
-    """Test adding images to an existing post."""
-    # Create a post without images
-    create_response = authenticated_client.post("/posts", json=dict(post_data))
-    post_url = create_response.headers["Location"]
-
-    # Verify no images initially
-    assert len(create_response.json["images"]) == 0
-
-    # Upload images
-    image1_id, image1_url = upload_image(authenticated_client, "test1.png", b"image 1")
-    image2_id, image2_url = upload_image(authenticated_client, "test2.png", b"image 2")
-
-    # Update the post to add images
+    first_image = get_response.json["images"][0]
+    new_images_subset = [first_image, images[2]]
+    new_images_ids = [img_id for img_id, _ in new_images_subset]
     updated_post_data: dict[str, Any] = dict(post_data)
-    updated_post_data["imagesIds"] = [image1_id, image2_id]
+    updated_post_data["imagesIds"] = new_images_ids
 
     update_response = authenticated_client.put(post_url, json=updated_post_data)
 
     assert update_response.status_code == 200
-    assert len(update_response.json["images"]) == 2
-    assert image1_url in update_response.json["images"]
-    assert image2_url in update_response.json["images"]
+    assert_resource_images(update_response, new_images_subset)
 
 
-def test_update_post_replace_images(authenticated_client):
-    """Test replacing images of an existing post."""
-    # Upload initial images
-    image1_id, image1_url = upload_image(authenticated_client, "test1.png", b"image 1")
-    image2_id, image2_url = upload_image(authenticated_client, "test2.png", b"image 2")
-
-    # Create a post with initial images
-    post_data_with_images: dict[str, Any] = dict(post_data)
-    post_data_with_images["imagesIds"] = [image1_id, image2_id]
-    create_response = authenticated_client.post("/posts", json=post_data_with_images)
-    post_url = create_response.headers["Location"]
-
-    # Upload new images
-    image3_id, image3_url = upload_image(authenticated_client, "test3.png", b"image 3")
-    image4_id, image4_url = upload_image(authenticated_client, "test4.png", b"image 4")
-
-    # Update the post with new images
-    updated_post_data: dict[str, Any] = dict(post_data)
-    updated_post_data["imagesIds"] = [image3_id, image4_id]
-
-    update_response = authenticated_client.put(post_url, json=updated_post_data)
-
-    assert update_response.status_code == 200
-    assert len(update_response.json["images"]) == 2
-    assert image3_url in update_response.json["images"]
-    assert image4_url in update_response.json["images"]
-    assert image1_url not in update_response.json["images"]
-    assert image2_url not in update_response.json["images"]
-
-
-def test_update_post_remove_all_images(authenticated_client):
-    """Test removing all images from a post."""
-    # Upload images and create a post
-    image1_id, image1_url = upload_image(authenticated_client, "test1.png", b"image 1")
-    image2_id, image2_url = upload_image(authenticated_client, "test2.png", b"image 2")
-
-    post_data_with_images: dict[str, Any] = dict(post_data)
-    post_data_with_images["imagesIds"] = [image1_id, image2_id]
-    create_response = authenticated_client.post("/posts", json=post_data_with_images)
-    post_url = create_response.headers["Location"]
-
-    # Update the post to remove all images
+def test_update_post_remove_all_images_with_empty_list(
+    authenticated_client, post_with_images
+):
+    """Test removing all images from a post with empty imagesIds list."""
     updated_post_data: dict[str, Any] = dict(post_data)
     updated_post_data["imagesIds"] = []
 
-    update_response = authenticated_client.put(post_url, json=updated_post_data)
+    update_response = authenticated_client.put(post_with_images, json=updated_post_data)
 
     assert update_response.status_code == 200
-    assert len(update_response.json["images"]) == 0
+    assert update_response.json.get("images", default=[]) == []
 
 
-def test_update_post_partial_image_change(authenticated_client):
-    """Test keeping some images and adding/removing others."""
-    # Upload initial images
-    image1_id, image1_url = upload_image(authenticated_client, "test1.png", b"image 1")
-    image2_id, image2_url = upload_image(authenticated_client, "test2.png", b"image 2")
-    image3_id, image3_url = upload_image(authenticated_client, "test3.png", b"image 3")
-
-    # Create a post with initial images
-    post_data_with_images: dict[str, Any] = dict(post_data)
-    post_data_with_images["imagesIds"] = [image1_id, image2_id]
-    create_response = authenticated_client.post("/posts", json=post_data_with_images)
-    post_url = create_response.headers["Location"]
-
-    # Update the post: keep image2, remove image1, add image3
-    updated_post_data: dict[str, Any] = dict(post_data)
-    updated_post_data["imagesIds"] = [image2_id, image3_id]
-
-    update_response = authenticated_client.put(post_url, json=updated_post_data)
-
-    assert update_response.status_code == 200
-    assert len(update_response.json["images"]) == 2
-    assert image2_url in update_response.json["images"]
-    assert image3_url in update_response.json["images"]
-    assert image1_url not in update_response.json["images"]
-
-
-def test_image_shared_between_multiple_posts(authenticated_client):
-    """Test that an image can be shared between multiple posts."""
-    # Upload an image
-    image_id, image_url = upload_image(authenticated_client)
-
-    # Create first post with the image
-    post1_data: dict[str, Any] = dict(post_data)
-    post1_data["title"] = "Post 1"
-    post1_data["imagesIds"] = [image_id]
-    response1 = authenticated_client.post("/posts", json=post1_data)
-    post1_url = response1.headers["Location"]
-
-    # Create second post with the same image
-    post2_data: dict[str, Any] = dict(post_data)
-    post2_data["title"] = "Post 2"
-    post2_data["imagesIds"] = [image_id]
-    response2 = authenticated_client.post("/posts", json=post2_data)
-    post2_url = response2.headers["Location"]
-
-    # Verify both posts have the same image
-    get_response1 = authenticated_client.get(post1_url)
-    get_response2 = authenticated_client.get(post2_url)
-
-    assert image_url in get_response1.json["images"]
-    assert image_url in get_response2.json["images"]
-
-    # Verify the image is still accessible
-    image_response = authenticated_client.get(image_url)
-    assert image_response.status_code == 200
-
-
-def test_delete_post_with_images_keeps_images_if_used_elsewhere(
-    authenticated_client, db
+def test_update_post_remove_all_images_without_key(
+    authenticated_client, post_with_images
 ):
-    """Test that deleting a post doesn't delete images that are used by other posts."""
+    """Test removing all images by omitting imagesIds key."""
+    updated_post_data: dict[str, Any] = dict(post_data)
+    # Don't include imagesIds key at all
 
-    # Upload an image
-    image_id, image_url = upload_image(authenticated_client)
+    update_response = authenticated_client.put(post_with_images, json=updated_post_data)
+
+    assert update_response.status_code == 200
+    assert update_response.json.get("images", default=[]) == []
+
+
+def test_update_post_remove_one_image(authenticated_client, images):
+    """Test removing one image while keeping others."""
+    # Create post with all 3 images
+    all_images_ids = [img[0] for img in images]
+    post_url = create_post_with_images(authenticated_client, all_images_ids)
+
+    # Get the post to see current images
+    get_response = authenticated_client.get(post_url)
+    current_images = get_response.json["images"]
+
+    # Update to keep only first 2 images using IDs from response
+    updated_images_ids = [current_images[0]["id"], current_images[1]["id"]]
+    expected_images = images[:2]
+
+    updated_post_data: dict[str, Any] = dict(post_data)
+    updated_post_data["imagesIds"] = updated_images_ids
+
+    update_response = authenticated_client.put(post_url, json=updated_post_data)
+
+    assert update_response.status_code == 200
+    assert_resource_images(update_response, expected_images)
+
+
+def test_update_post_reorder_images(authenticated_client, images):
+    """Test changing the order of images."""
+    # Create post with images in order 0,1,2
+    original_order_ids = [img[0] for img in images]
+    post_url = create_post_with_images(authenticated_client, original_order_ids)
+
+    # Get the post to retrieve current images
+    get_response = authenticated_client.get(post_url)
+    current_images = get_response.json["images"]
+
+    # Update with reversed order 2,1,0 using IDs from response
+    reversed_order_ids = [
+        current_images[2]["id"],
+        current_images[1]["id"],
+        current_images[0]["id"],
+    ]
+    expected_images = [images[2], images[1], images[0]]
+
+    updated_post_data: dict[str, Any] = dict(post_data)
+    updated_post_data["imagesIds"] = reversed_order_ids
+
+    update_response = authenticated_client.put(post_url, json=updated_post_data)
+
+    assert update_response.status_code == 200
+    assert_resource_images(update_response, expected_images)
+
+
+def test_create_post_with_too_many_images(authenticated_client):
+    """Test creating a post with more than maximum allowed images."""
+    post_data_with_images: dict[str, Any] = dict(post_data)
+    post_data_with_images["imagesIds"] = [str(uuid.uuid4()) for _ in range(11)]
+
+    response = authenticated_client.post("/posts", json=post_data_with_images)
+
+    assert response.status_code == 422
+
+
+def test_update_post_with_too_many_images(authenticated_client, post):
+    """Test updating a post with more than maximum allowed images."""
+    updated_post_data: dict[str, Any] = dict(post_data)
+    updated_post_data["imagesIds"] = [str(uuid.uuid4()) for _ in range(11)]
+
+    response = authenticated_client.put(post, json=updated_post_data)
+
+    assert response.status_code == 422
+
+
+def test_image_shared_between_multiple_posts(authenticated_client, image):
+    """Test that an image can be shared between multiple posts."""
+    image_id, image_url = image
 
     # Create two posts with the same image
     post1_data: dict[str, Any] = dict(post_data)
     post1_data["title"] = "Post 1"
-    post1_data["imagesIds"] = [image_id]
-    response1 = authenticated_client.post("/posts", json=post1_data)
-    post1_url = response1.headers["Location"]
+    post1_url = create_post_with_images(authenticated_client, [image_id], post1_data)
 
     post2_data: dict[str, Any] = dict(post_data)
     post2_data["title"] = "Post 2"
-    post2_data["imagesIds"] = [image_id]
-    response2 = authenticated_client.post("/posts", json=post2_data)
-    post2_url = response2.headers["Location"]
+    post2_url = create_post_with_images(authenticated_client, [image_id], post2_data)
 
-    # Delete the first post
+    # Verify both posts have the same image
+    response1 = authenticated_client.get(post1_url)
+    response2 = authenticated_client.get(post2_url)
+
+    assert_resource_images(response1, [image])
+    assert_resource_images(response2, [image])
+
+
+def test_delete_post_with_images_keeps_images_if_used_elsewhere(
+    authenticated_client, image
+):
+    """Test that deleting a post doesn't delete images used by other posts."""
+    image_id, image_url = image
+
+    # Create two posts with the same image
+    post1_data: dict[str, Any] = dict(post_data)
+    post1_data["title"] = "Post 1"
+    post1_url = create_post_with_images(authenticated_client, [image_id], post1_data)
+
+    post2_data: dict[str, Any] = dict(post_data)
+    post2_data["title"] = "Post 2"
+    post2_url = create_post_with_images(authenticated_client, [image_id], post2_data)
+
     delete_response = authenticated_client.delete(post1_url)
     assert delete_response.status_code == 204
 
@@ -221,35 +223,68 @@ def test_delete_post_with_images_keeps_images_if_used_elsewhere(
     assert image_response.status_code == 200
 
     # Verify the second post still has the image
-    get_response2 = authenticated_client.get(post2_url)
-    assert image_url in get_response2.json["images"]
+    response2 = authenticated_client.get(post2_url)
+    assert_resource_images(response2, [image])
 
 
-# to do check that orphaned images are deleted
+def test_orphaned_by_post_update_images_are_deleted(authenticated_client, image):
+    """Test that images not used by any posts are deleted."""
+    image_id, image_url = image
+
+    # Create a post with the image
+    post_url = create_post_with_images(authenticated_client, [image_id])
+
+    # Remove the image from the post
+    updated_post_data: dict[str, Any] = dict(post_data)
+    updated_post_data["imagesIds"] = []
+    authenticated_client.put(post_url, json=updated_post_data)
+
+    # Verify the orphaned image is deleted
+    image_response = authenticated_client.get(image_url)
+    assert image_response.status_code == 404
+
+
+def test_orphaned_by_post_deletion_images_are_deleted(authenticated_client, image):
+    """Test that images not used by any posts are deleted upon post deletion."""
+    image_id, image_url = image
+
+    post_url = create_post_with_images(authenticated_client, [image_id])
+
+    authenticated_client.delete(post_url)
+
+    image_response = authenticated_client.get(image_url)
+    assert image_response.status_code == 404
 
 
 def test_create_post_with_nonexistent_image_id(authenticated_client):
     """Test creating a post with an image ID that doesn't exist."""
-    import uuid
-
-    # Try to create a post with a non-existent image ID
     post_data_with_fake_image: dict[str, Any] = dict(post_data)
     post_data_with_fake_image["imagesIds"] = [str(uuid.uuid4())]
 
     response = authenticated_client.post("/posts", json=post_data_with_fake_image)
 
-    # The post should be created successfully but with no images
-    # since the image ID doesn't exist in the database
-    assert response.status_code == 201
-    assert len(response.json["images"]) == 0
+    assert response.status_code == 422
 
 
-def test_create_post_with_too_much_images(authenticated_client):
-    import uuid
+def test_update_post_with_nonexistent_image_id(authenticated_client, post):
+    """Test updating a post with an image ID that doesn't exist."""
+    updated_post_data: dict[str, Any] = dict(post_data)
+    updated_post_data["imagesIds"] = [str(uuid.uuid4())]
 
-    post_data_with_images: dict[str, Any] = dict(post_data)
-    post_data_with_images["imagesIds"] = [str(uuid.uuid4()) for _ in range(11)]
-
-    response = authenticated_client.post("/posts", json=post_data_with_images)
+    response = authenticated_client.put(post, json=updated_post_data)
 
     assert response.status_code == 422
+
+
+def test_allow_duplicate_image_in_single_post(authenticated_client, image):
+    """Test that the same image can be used multiple times in one post."""
+    image_id, image_url = image
+
+    # Create post with duplicated image
+    post_data_with_dup: dict[str, Any] = dict(post_data)
+    post_data_with_dup["imagesIds"] = [image_id, image_id, image_id]
+
+    response = authenticated_client.post("/posts", json=post_data_with_dup)
+
+    assert response.status_code == 201
+    assert_resource_images(response, [image, image, image])
