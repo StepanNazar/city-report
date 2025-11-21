@@ -1,17 +1,15 @@
-import uuid
 from types import MappingProxyType
 from typing import Any
 
 import email_validator
 import pytest
-from flask import Response, url_for
+from flask import Response
 from pytest_lazy_fixtures import lf as _lf
 from werkzeug.datastructures import FileStorage
-from werkzeug.utils import secure_filename
 
 from api import create_app
 from api import db as _db
-from api.blueprints.uploads.services import StorageService
+from api.blueprints.uploads.services import LocalFolderStorageService
 from api.config import TestConfig
 
 
@@ -329,20 +327,30 @@ def specify_testing_environment_for_email_validator():
     email_validator.TEST_ENVIRONMENT = True
 
 
-class TestStorageService(StorageService):
+class TestStorageService(LocalFolderStorageService):
     def __init__(self):
         self.uploaded_images = {}
 
-    def _upload(self, file: FileStorage) -> str:
-        """Upload a file to a local folder and return its URL"""
-        filename = uuid.uuid4().hex + secure_filename(file.filename or "")
+    def _save_file(self, file: FileStorage, filename: str):
         self.uploaded_images[filename] = file.read()
-        return url_for("uploads.image", filename=filename)
 
     def send_file(self, filename: str):
-        image_data = self.uploaded_images[filename]
+        try:
+            image_data = self.uploaded_images[filename]
+        except KeyError as e:
+            raise FileNotFoundError(f"File {filename} not found") from e
         return Response(image_data, mimetype="image/jpeg")
 
     @staticmethod
     def _check_file_is_image(file: FileStorage) -> bool:
-        return True
+        result = file.read() != b"not an image"
+        file.seek(0)
+        return result
+
+    def _delete_file(self, filename: str):
+        self.uploaded_images.pop(filename, None)
+
+
+@pytest.fixture(autouse=True)
+def clear_test_storage(app):
+    app.storage_service.uploaded_images = {}

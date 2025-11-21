@@ -6318,6 +6318,16 @@
               }
             },
             "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Failed to upload image"
           }
         },
         "security": [

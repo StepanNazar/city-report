@@ -4,6 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm as so
 
 from api import db
+from api.blueprints.posts.models import PostImage
 
 
 class Image(db.Model):
@@ -12,3 +13,22 @@ class Image(db.Model):
 
     def __repr__(self):
         return f"<Image {self.url}>"
+
+
+@sa.event.listens_for(PostImage, "after_delete")
+def delete_orphaned_image(mapper, connection, target):
+    image_id = target.image_id
+    has_post_associations = (
+        connection.scalar(
+            sa.select(sa.func.count())
+            .select_from(PostImage)
+            .where(PostImage.image_id == image_id)
+        )
+        > 0
+    )
+    if not has_post_associations:
+        from api import get_app
+
+        url = target.image.url
+        connection.execute(sa.delete(Image).where(Image.id == image_id))
+        get_app().storage_service.delete_file(url)

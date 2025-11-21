@@ -8,10 +8,23 @@ from typing import TYPE_CHECKING
 import filetype
 from flask import send_from_directory, url_for
 from werkzeug.datastructures import FileStorage
+from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
 if TYPE_CHECKING:
     from api.blueprints.uploads.models import Image
+
+
+class StorageError(Exception):
+    """Base exception for storage operations"""
+
+    pass
+
+
+class UploadError(StorageError):
+    """Exception raised when file upload fails"""
+
+    pass
 
 
 class StorageService(abc.ABC):
@@ -20,7 +33,7 @@ class StorageService(abc.ABC):
         """Upload a file to storage and return its URL
         :param file: werkzeug's FileStorage object
         :return: URL of the uploaded file
-        :raises RuntimeError: If the upload failed
+        :raises UploadError: If the upload failed
         """
         pass
 
@@ -41,7 +54,7 @@ class StorageService(abc.ABC):
         :param db_session: Database session for adding the image record
         :return: Image model instance
         :raises ValueError: If the file is not an image
-        :raises RuntimeError: If the upload failed
+        :raises UploadError: If the upload failed
         """
         from api.blueprints.uploads.models import Image
 
@@ -56,7 +69,14 @@ class StorageService(abc.ABC):
 
     @abc.abstractmethod
     def send_file(self, filename: str):
-        """Send a file to the client"""
+        """Send a file to the client
+        :raises FileNotFoundError: If the file is not found
+        """
+        pass
+
+    @abc.abstractmethod
+    def delete_file(self, file_path: str):
+        """Delete a file from storage"""
         pass
 
 
@@ -64,12 +84,29 @@ class LocalFolderStorageService(StorageService):
     def _upload(self, file: FileStorage) -> str:
         """Upload a file to a local folder and return its URL"""
         filename = uuid.uuid4().hex + secure_filename(file.filename or "")
-        file_path = os.path.join("uploaded_images", filename)
         try:
-            file.save(file_path)
+            self._save_file(file, filename)
         except Exception as e:
-            raise RuntimeError("Failed to save file") from e
+            raise UploadError("Failed to save file") from e
         return url_for("uploads.image", filename=filename)
 
+    def _save_file(self, file: FileStorage, filename: str):
+        file_path = os.path.join("uploaded_images", filename)
+        file.save(file_path)
+
     def send_file(self, filename: str):
-        return send_from_directory("uploaded_images", filename)
+        """Send a file from the local folder to the client
+        raises FileNotFoundError if the file is not found"""
+        try:
+            return send_from_directory("uploaded_images", filename)
+        except NotFound as e:
+            raise FileNotFoundError(f"File {filename} not found") from e
+
+    def delete_file(self, filename: str):
+        endpoint_prefix = url_for("uploads.image", filename="")
+        filename = filename[len(endpoint_prefix) :]
+        self._delete_file(filename)
+
+    def _delete_file(self, filename: str):
+        filename = os.path.join("uploaded_images", filename)
+        os.remove(filename)
