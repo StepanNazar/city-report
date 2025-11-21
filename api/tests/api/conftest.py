@@ -313,6 +313,25 @@ def solution(authenticated_client, post):
     return create_solution(authenticated_client, post)
 
 
+def create_solution_with_images(
+    client,
+    post_url: str,
+    images_ids,
+    solution_data: dict | MappingProxyType = solution_data,
+):
+    """Create a solution with specified images and return its URL."""
+    data = dict(solution_data)
+    data["imagesIds"] = images_ids
+    return create_solution(client, post_url, data)
+
+
+@pytest.fixture
+def solution_with_images(authenticated_client, post, images):
+    """Create a solution with 3 test images and return its URL."""
+    images_ids = [img_id for img_id, _ in images]
+    return create_solution_with_images(authenticated_client, post, images_ids)
+
+
 @pytest.fixture(autouse=True)
 def mock_nominatim(mocker):
     """Mock NominatimService for tests."""
