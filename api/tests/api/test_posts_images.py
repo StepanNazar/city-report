@@ -72,7 +72,7 @@ def test_update_post_replace_image(authenticated_client, images):
     get_response = authenticated_client.get(post_url)
 
     first_image = get_response.json["images"][0]
-    new_images_subset = [first_image, images[2]]
+    new_images_subset = [(first_image["id"], first_image["url"]), images[2]]
     new_images_ids = [img_id for img_id, _ in new_images_subset]
     updated_post_data: dict[str, Any] = dict(post_data)
     updated_post_data["imagesIds"] = new_images_ids
@@ -93,7 +93,7 @@ def test_update_post_remove_all_images_with_empty_list(
     update_response = authenticated_client.put(post_with_images, json=updated_post_data)
 
     assert update_response.status_code == 200
-    assert update_response.json.get("images", default=[]) == []
+    assert update_response.json.get("images") == []
 
 
 def test_update_post_remove_all_images_without_key(
@@ -106,7 +106,7 @@ def test_update_post_remove_all_images_without_key(
     update_response = authenticated_client.put(post_with_images, json=updated_post_data)
 
     assert update_response.status_code == 200
-    assert update_response.json.get("images", default=[]) == []
+    assert update_response.json.get("images") == []
 
 
 def test_update_post_remove_one_image(authenticated_client, images):

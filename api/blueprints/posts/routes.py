@@ -21,6 +21,7 @@ from api.blueprints.locations.models import Locality
 from api.blueprints.locations.routes import get_or_create_locality
 from api.blueprints.posts import posts
 from api.blueprints.posts.models import Post as PostModel
+from api.blueprints.posts.models import PostImage
 from api.blueprints.posts.schemas import (
     PostInSchema,
     PostOutPaginationSchema,
@@ -102,11 +103,28 @@ class Posts(MethodView):
             **post_data,
         )
 
-        if json_data.get("images_ids"):
-            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
-            new_post.images = images
-
         db.session.add(new_post)
+        db.session.flush()
+
+        if json_data.get("images_ids"):
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+            post_images = [
+                PostImage(post_id=new_post.id, image_id=image_id, order=order)  # type: ignore
+                for order, image_id in enumerate(json_data["images_ids"])
+            ]
+            new_post.image_association = post_images
+
         db.session.commit()
 
         return new_post, 201, {"Location": url_for("posts.post", post_id=new_post.id)}
@@ -152,10 +170,23 @@ class Post(MethodView):
                 setattr(post, key, value)
 
         if json_data.get("images_ids"):
-            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
-            post.images = images
-        else:
-            post.images = []
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+        post_images = [
+            PostImage(post_id=post_id, image_id=image_id, order=order)  # type: ignore
+            for order, image_id in enumerate(json_data.get("images_ids") or [])
+        ]
+        post.image_association = post_images
 
         db.session.commit()
 

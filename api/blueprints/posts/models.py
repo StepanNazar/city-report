@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy import orm as so
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 
 from api import db
 from api.blueprints.common.models import TimestampMixin
@@ -13,22 +14,16 @@ if TYPE_CHECKING:
     from api.blueprints.uploads.models import Image
 
 
-post_image = sa.Table(
-    "post_image",
-    db.Model.metadata,
-    sa.Column(
-        "post_id",
-        sa.Integer,
-        sa.ForeignKey("post.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    sa.Column(
-        "image_id",
-        sa.Uuid,
-        sa.ForeignKey("image.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
+class PostImage(db.Model):
+    __tablename__ = "post_image"
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    post_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("post.id", ondelete="CASCADE")
+    )
+    image_id: so.Mapped[str] = so.mapped_column(sa.Uuid, sa.ForeignKey("image.id"))
+    order: so.Mapped[int] = so.mapped_column(nullable=False)
+    post: so.Mapped["Post"] = so.relationship(back_populates="image_association")
+    image: so.Mapped["Image"] = so.relationship(backref="post_association")
 
 
 class Post(TimestampMixin, db.Model):
@@ -48,8 +43,11 @@ class Post(TimestampMixin, db.Model):
     solutions: so.Mapped[list["Solution"]] = so.relationship(
         back_populates="post", cascade="all, delete-orphan"
     )
-    images: so.Mapped[list["Image"]] = so.relationship(
-        secondary=post_image, backref="posts"
+    image_association: so.Mapped[list["PostImage"]] = so.relationship(
+        back_populates="post", order_by="PostImage.order", cascade="all, delete-orphan"
+    )
+    images: AssociationProxy[list["Image"]] = association_proxy(
+        "image_association", "image"
     )
 
     def __repr__(self):

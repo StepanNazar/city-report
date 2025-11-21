@@ -8,7 +8,7 @@ from flask_jwt_extended.exceptions import JWTExtendedException
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from jwt import PyJWTError
-from sqlalchemy import MetaData
+from sqlalchemy import Engine, MetaData, event
 
 from api.config import DevConfig
 
@@ -87,6 +87,13 @@ def create_app(config):
     migrate.init_app(app, db)
     jwt.init_app(app)
     app.storage_service = config.STORAGE_SERVICE  # type: ignore[attr-defined]
+
+    @event.listens_for(Engine, "connect")
+    def set_sqlite_pragma(dbapi_conn, connection_record):
+        if "sqlite" in str(dbapi_conn.__class__):
+            cursor = dbapi_conn.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
 
     register_routes(app)
 
