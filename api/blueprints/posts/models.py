@@ -21,7 +21,7 @@ class PostImage(db.Model):
         sa.ForeignKey("post.id", ondelete="CASCADE")
     )
     image_id: so.Mapped[str] = so.mapped_column(sa.Uuid, sa.ForeignKey("image.id"))
-    order: so.Mapped[int] = so.mapped_column(nullable=False)
+    order: so.Mapped[int] = so.mapped_column(sa.SmallInteger, nullable=False)
     post: so.Mapped["Post"] = so.relationship(back_populates="image_association")
     image: so.Mapped["Image"] = so.relationship(backref="post_association")
 
