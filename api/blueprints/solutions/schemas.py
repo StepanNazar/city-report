@@ -1,5 +1,14 @@
 from apiflask import Schema
-from apiflask.fields import UUID, Boolean, DateTime, Integer, List, Method, String
+from apiflask.fields import (
+    UUID,
+    Boolean,
+    DateTime,
+    Integer,
+    List,
+    Method,
+    Nested,
+    String,
+)
 from apiflask.validators import Length, OneOf
 from flask import url_for
 
@@ -8,6 +17,7 @@ from api.blueprints.common.schemas import (
     CamelCaseSchema,
     pagination_schema,
 )
+from api.blueprints.uploads.schemas import ImageLinkOutSchema
 
 
 class SolutionBaseSchema(CamelCaseSchema):
@@ -44,16 +54,10 @@ class SolutionOutSchema(SolutionBaseSchema):
     comments = Integer(load_default=0, dump_default=0)
     approved = Boolean(load_default=False, dump_default=False)
     approved_at = DateTime(metadata={"x-faker": "date.recent"})
-    images = Method(
-        "get_images",
-        metadata={"type": "array", "items": {"type": "string", "format": "uri"}},
-    )
+    images = Nested(ImageLinkOutSchema, many=True, attribute="images")
 
     def get_author_link(self, obj):
         return url_for("users.user", user_id=obj.author_id)
-
-    def get_images(self, obj):
-        return [image.url for image in obj.images]
 
 
 SolutionOutPaginationSchema = pagination_schema(SolutionOutSchema)

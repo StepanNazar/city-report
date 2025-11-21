@@ -304,6 +304,7 @@ class PostSolutions(MethodView):
     @posts.doc(security="jwt_access_token", responses={201: "Solution created"})
     def post(self, post_id, json_data):
         """Create a new solution for post. Activated account required."""
+        from api.blueprints.solutions.models import SolutionImage
         from api.blueprints.uploads.models import Image
 
         current_user = get_current_user()
@@ -316,12 +317,32 @@ class PostSolutions(MethodView):
             **solution_data,
         )
 
-        # Handle images if provided
-        if json_data.get("images_ids"):
-            images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
-            new_solution.images = images
-
         db.session.add(new_solution)
+        db.session.flush()
+
+        if json_data.get("images_ids"):
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+            solution_images = [
+                SolutionImage(
+                    solution_id=new_solution.id,  # type: ignore
+                    image_id=image_id,  # type: ignore
+                    order=order,  # type: ignore
+                )
+                for order, image_id in enumerate(json_data["images_ids"])
+            ]
+            new_solution.image_association = solution_images
+
         db.session.commit()
 
         return (

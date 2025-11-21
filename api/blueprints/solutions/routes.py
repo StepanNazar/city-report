@@ -16,6 +16,7 @@ from api.blueprints.common.schemas import (
 )
 from api.blueprints.solutions import solutions
 from api.blueprints.solutions.models import Solution as SolutionModel
+from api.blueprints.solutions.models import SolutionImage
 from api.blueprints.solutions.schemas import SolutionInSchema, SolutionOutSchema
 from api.blueprints.users.schemas import ReactionSchema
 
@@ -48,16 +49,27 @@ class Solution(MethodView):
             abort(403, message="You can only update your own solutions")
 
         for key, value in json_data.items():
-            if key != "images_ids" and hasattr(solution, key):
+            if key not in ["images_ids"] and hasattr(solution, key):
                 setattr(solution, key, value)
 
-        # Handle images if provided
-        if "images_ids" in json_data:
-            if json_data["images_ids"]:
-                images = Image.query.filter(Image.id.in_(json_data["images_ids"])).all()
-                solution.images = images
-            else:
-                solution.images = []
+        if json_data.get("images_ids"):
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+        solution_images = [
+            SolutionImage(solution_id=solution_id, image_id=image_id, order=order)  # type: ignore
+            for order, image_id in enumerate(json_data.get("images_ids") or [])
+        ]
+        solution.image_association = solution_images
 
         db.session.commit()
 

@@ -5,6 +5,7 @@ from sqlalchemy import orm as so
 
 from api import db
 from api.blueprints.posts.models import PostImage
+from api.blueprints.solutions.models import SolutionImage
 
 
 class Image(db.Model):
@@ -16,6 +17,7 @@ class Image(db.Model):
 
 
 @sa.event.listens_for(PostImage, "after_delete")
+@sa.event.listens_for(SolutionImage, "after_delete")
 def delete_orphaned_image(mapper, connection, target):
     image_id = target.image_id
     has_post_associations = (
@@ -26,7 +28,15 @@ def delete_orphaned_image(mapper, connection, target):
         )
         > 0
     )
-    if not has_post_associations:
+    has_solution_associations = (
+        connection.scalar(
+            sa.select(sa.func.count())
+            .select_from(SolutionImage)
+            .where(SolutionImage.image_id == image_id)
+        )
+        > 0
+    )
+    if (not has_post_associations) and (not has_solution_associations):
         from api import get_app
 
         url = target.image.url

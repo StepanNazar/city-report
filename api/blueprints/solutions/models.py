@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy import orm as so
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 
 from api import db
 from api.blueprints.common.models import TimestampMixin
@@ -12,23 +13,18 @@ if TYPE_CHECKING:
     from api.blueprints.uploads.models import Image
 
 
-# Association table for many-to-many relationship between solutions and images
-solution_image = sa.Table(
-    "solution_image",
-    db.Model.metadata,
-    sa.Column(
-        "solution_id",
-        sa.Integer,
-        sa.ForeignKey("solution.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    sa.Column(
-        "image_id",
-        sa.Uuid,
-        sa.ForeignKey("image.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
+class SolutionImage(db.Model):
+    __tablename__ = "solution_image"
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    solution_id: so.Mapped[int] = so.mapped_column(
+        sa.ForeignKey("solution.id", ondelete="CASCADE")
+    )
+    image_id: so.Mapped[str] = so.mapped_column(sa.Uuid, sa.ForeignKey("image.id"))
+    order: so.Mapped[int] = so.mapped_column(nullable=False)
+    solution: so.Mapped["Solution"] = so.relationship(
+        back_populates="image_association"
+    )
+    image: so.Mapped["Image"] = so.relationship(backref="solution_association")
 
 
 class Solution(TimestampMixin, db.Model):
@@ -41,8 +37,13 @@ class Solution(TimestampMixin, db.Model):
     author: so.Mapped["User"] = so.relationship(back_populates="solutions")
     post_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("post.id"), nullable=False)
     post: so.Mapped["Post"] = so.relationship(back_populates="solutions")
-    images: so.Mapped[list["Image"]] = so.relationship(
-        secondary=solution_image, backref="solutions"
+    image_association: so.Mapped[list["SolutionImage"]] = so.relationship(
+        back_populates="solution",
+        order_by="SolutionImage.order",
+        cascade="all, delete-orphan",
+    )
+    images: AssociationProxy[list["Image"]] = association_proxy(
+        "image_association", "image"
     )
 
     def __repr__(self):
