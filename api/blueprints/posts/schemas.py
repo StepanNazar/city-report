@@ -1,5 +1,5 @@
 from apiflask import Schema, validators
-from apiflask.fields import UUID, DateTime, Float, Integer, List, Method, String
+from apiflask.fields import UUID, DateTime, Float, Integer, List, Method, Nested, String
 from apiflask.validators import Length, OneOf
 from flask import url_for
 from marshmallow import ValidationError, validates_schema
@@ -9,6 +9,7 @@ from api.blueprints.common.schemas import (
     CamelCaseSchema,
     pagination_schema,
 )
+from api.blueprints.uploads.schemas import ImageLinkOutSchema
 
 
 class PostBaseSchema(CamelCaseSchema):
@@ -56,16 +57,10 @@ class PostOutSchema(PostBaseSchema):
     likes = Integer(load_default=0, dump_default=0)
     dislikes = Integer(load_default=0, dump_default=0)
     comments = Integer(load_default=0, dump_default=0)
-    images = Method(
-        "get_images",
-        metadata={"type": "array", "items": {"type": "string", "format": "uri"}},
-    )
+    images = Nested(ImageLinkOutSchema, many=True, attribute="images")
 
     def get_author_link(self, obj):
         return url_for("users.user", user_id=obj.author_id)
-
-    def get_images(self, obj):
-        return [image.url for image in obj.images]
 
 
 PostOutPaginationSchema = pagination_schema(PostOutSchema, exclude=["body"])

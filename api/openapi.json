@@ -624,10 +624,8 @@
           },
           "images": {
             "items": {
-              "format": "uri",
-              "type": "string"
+              "$ref": "#/components/schemas/ImageLinkOut"
             },
-            "readOnly": true,
             "type": "array"
           },
           "latitude": {
@@ -709,10 +707,8 @@
           },
           "images": {
             "items": {
-              "format": "uri",
-              "type": "string"
+              "$ref": "#/components/schemas/ImageLinkOut"
             },
-            "readOnly": true,
             "type": "array"
           },
           "latitude": {
