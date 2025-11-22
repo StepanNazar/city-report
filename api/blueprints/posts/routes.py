@@ -28,13 +28,6 @@ from api.blueprints.posts.schemas import (
     PostOutSchema,
     PostSortingFilteringSchema,
 )
-from api.blueprints.solutions.models import Solution as SolutionModel
-from api.blueprints.solutions.schemas import (
-    SolutionInSchema,
-    SolutionOutPaginationSchema,
-    SolutionOutSchema,
-    SolutionSortingFilteringSchema,
-)
 from api.blueprints.users.schemas import ReactionSchema
 
 
@@ -48,13 +41,10 @@ class Posts(MethodView):
     @posts.output(PostOutPaginationSchema)
     def get(self, query_data):
         """Get all posts"""
-        sort_by = query_data.get("sort_by")
-        order = query_data.get("order")
-        locality_id = query_data.get("locality_id")
-        locality_provider = query_data.get("locality_provider")
-
         query = PostModel.query
 
+        locality_id = query_data.get("locality_id")
+        locality_provider = query_data.get("locality_provider")
         if locality_id and locality_provider and locality_provider == "nominatim":
             locality = Locality.query.filter_by(osm_id=int(locality_id)).first()
             if locality:
@@ -63,21 +53,9 @@ class Posts(MethodView):
                 # If locality not found, return an empty result by filtering for impossible ID
                 query = query.filter_by(locality_id=-1)
 
-        if sort_by == "created_at":
-            order_column = PostModel.created_at
-        elif sort_by == "edited_at":
-            order_column = PostModel.edited_at
-        else:
-            # For likes, dislikes, we'll just use created_at for now
-            order_column = PostModel.created_at
-
-        if order == "desc":
-            query = query.order_by(order_column.desc(), PostModel.id.desc())
-        else:
-            query = query.order_by(order_column.asc(), PostModel.id.asc())
-
-        pagination = query.paginate()
-        return create_pagination_response(pagination, "posts.posts", **query_data)
+        if query_data.get("sort_by") in ["likes", "dislikes"]:
+            query_data["sort_by"] = "created_at"  # until reactions are not implemented
+        return create_pagination_response(query, PostModel, "posts.posts", **query_data)
 
     @jwt_required()
     @posts.input(PostInSchema)
@@ -263,95 +241,6 @@ class PostComments(MethodView):
         return {}, 501
 
 
-class PostSolutions(MethodView):
-    @posts.input(
-        merge_schemas(
-            pagination_query_schema(default_per_page=5), SolutionSortingFilteringSchema
-        ),
-        location="query",
-    )
-    @posts.output(SolutionOutPaginationSchema)
-    def get(self, post_id, query_data):
-        """Get solutions for post"""
-        PostModel.query.get_or_404(post_id, description="Post not found")
-
-        sort_by = query_data.get("sort_by")
-        order = query_data.get("order")
-
-        query = SolutionModel.query.filter_by(post_id=post_id)
-
-        if sort_by == "created_at":
-            order_column = SolutionModel.created_at
-        elif sort_by == "edited_at":
-            order_column = SolutionModel.edited_at
-        else:
-            # For likes, dislikes, we'll just use created_at for now
-            order_column = SolutionModel.created_at
-
-        if order == "desc":
-            query = query.order_by(order_column.desc(), SolutionModel.id.desc())
-        else:
-            query = query.order_by(order_column.asc(), SolutionModel.id.asc())
-
-        pagination = query.paginate()
-        return create_pagination_response(
-            pagination, "posts.post_solutions", post_id=post_id, **query_data
-        )
-
-    @jwt_required()
-    @posts.input(SolutionInSchema)
-    @posts.output(SolutionOutSchema, status_code=201)
-    @posts.doc(security="jwt_access_token", responses={201: "Solution created"})
-    def post(self, post_id, json_data):
-        """Create a new solution for post. Activated account required."""
-        from api.blueprints.solutions.models import SolutionImage
-        from api.blueprints.uploads.models import Image
-
-        current_user = get_current_user()
-        PostModel.query.get_or_404(post_id, description="Post not found")
-
-        solution_data = {k: v for k, v in json_data.items() if k != "images_ids"}
-        new_solution = SolutionModel(
-            author_id=current_user.id,  # type: ignore
-            post_id=post_id,  # type: ignore
-            **solution_data,
-        )
-
-        db.session.add(new_solution)
-        db.session.flush()
-
-        if json_data.get("images_ids"):
-            existing_image_ids = db.session.scalars(
-                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
-            ).all()
-            non_existing_image_ids = set(json_data["images_ids"]) - set(
-                existing_image_ids
-            )
-            if non_existing_image_ids:
-                abort(
-                    422,
-                    message=f"Images with IDs {non_existing_image_ids} do not exist",
-                )
-
-            solution_images = [
-                SolutionImage(
-                    solution_id=new_solution.id,  # type: ignore
-                    image_id=image_id,  # type: ignore
-                    order=order,  # type: ignore
-                )
-                for order, image_id in enumerate(json_data["images_ids"])
-            ]
-            new_solution.image_association = solution_images
-
-        db.session.commit()
-
-        return (
-            new_solution,
-            201,
-            {"Location": url_for("solutions.solution", solution_id=new_solution.id)},
-        )
-
-
 posts.add_url_rule("/posts", view_func=Posts.as_view("posts"))
 posts.add_url_rule("/posts/<int:post_id>", view_func=Post.as_view("post"))
 posts.add_url_rule(
@@ -363,7 +252,4 @@ posts.add_url_rule(
 )
 posts.add_url_rule(
     "/posts/<int:post_id>/comments", view_func=PostComments.as_view("post_comments")
-)
-posts.add_url_rule(
-    "/posts/<int:post_id>/solutions", view_func=PostSolutions.as_view("post_solutions")
 )

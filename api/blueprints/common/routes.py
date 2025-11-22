@@ -3,7 +3,9 @@ import typing as t
 from apiflask import APIBlueprint
 from apiflask.types import DecoratedType
 from flask import url_for
+from flask_sqlalchemy.model import Model
 from flask_sqlalchemy.pagination import Pagination
+from flask_sqlalchemy.query import Query
 
 from api.blueprints.common.schemas import LocationHeader
 
@@ -43,14 +45,33 @@ def pagination_links(pagination: Pagination, endpoint: str, **kwargs) -> dict:
     return nav_links
 
 
-def create_pagination_response(pagination: Pagination, endpoint: str, **kwargs) -> dict:
+def create_pagination_response(
+    query: Query,
+    db_model: type[Model],
+    endpoint: str,
+    sort_by: str,
+    order: str,
+    secondary_sort: str = "id",
+    **kwargs,
+) -> dict:
     """Create a pagination response that matches your schema.
 
-    :param pagination: The pagination object from Flask-SQLAlchemy
+    :param query: The query object from Flask-SQLAlchemy to paginate.
+    :param db_model: The database model being queried.
     :param endpoint: The endpoint to generate links for.
+    :param sort_by: The column to sort by.
+    :param order: The order to sort (asc or desc).
+    :param secondary_sort: The column to sort by if the primary sort column is not unique.
     :param kwargs: Additional query parameters to include in the links.
     :return: A dictionary matching pagination schema
     """
+    order_column = getattr(db_model, sort_by)
+    secondary_order_column = getattr(db_model, secondary_sort)
+    if order == "desc":
+        query = query.order_by(order_column.desc(), secondary_order_column.desc())
+    else:
+        query = query.order_by(order_column.asc(), secondary_order_column.asc())
+    pagination = query.paginate()
     return {
         "has_next": pagination.has_next,
         "has_prev": pagination.has_prev,
