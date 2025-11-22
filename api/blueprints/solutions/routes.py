@@ -1,7 +1,7 @@
 from apiflask import abort
 from apiflask.views import MethodView
 from flask import url_for
-from flask_jwt_extended import get_current_user, get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from api import db
 from api.blueprints.comments.schemas import (
@@ -62,7 +62,7 @@ class PostSolutions(MethodView):
         from api.blueprints.solutions.models import SolutionImage
         from api.blueprints.uploads.models import Image
 
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         PostModel.query.get_or_404(post_id, description="Post not found")
 
         solution_data = {k: v for k, v in json_data.items() if k != "images_ids"}
@@ -126,12 +126,12 @@ class Solution(MethodView):
         """Update solution. Only the author of the solution can update it"""
         from api.blueprints.uploads.models import Image
 
-        current_user = get_current_user()
+        user_id = int(get_jwt_identity())
         solution = SolutionModel.query.get_or_404(
             solution_id, description="Solution not found"
         )
 
-        if solution.author_id != current_user.id:
+        if solution.author_id != user_id:
             abort(403, message="You can only update your own solutions")
 
         for key, value in json_data.items():
@@ -179,12 +179,12 @@ class Solution(MethodView):
     )
     def delete(self, solution_id):
         """Delete the solution. Only the author of the solution can delete it."""
-        current_user = get_current_user()
+        user_id = int(get_jwt_identity())
         solution = SolutionModel.query.get_or_404(
             solution_id, description="Solution not found"
         )
 
-        if solution.author_id != current_user.id:
+        if solution.author_id != user_id:
             abort(403, message="You can only delete your own solutions")
 
         db.session.delete(solution)

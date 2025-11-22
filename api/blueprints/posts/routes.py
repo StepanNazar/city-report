@@ -1,7 +1,7 @@
 from apiflask import abort
 from apiflask.views import MethodView
 from flask import url_for
-from flask_jwt_extended import get_current_user, get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy.orm import joinedload
 
 from api import db
@@ -65,7 +65,7 @@ class Posts(MethodView):
         """Create a new post. Activated account required."""
         from api.blueprints.uploads.models import Image
 
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         locality = get_or_create_locality(
             json_data["locality_id"], json_data["locality_provider"]
         )
@@ -126,12 +126,12 @@ class Post(MethodView):
         """Update a post by ID. Only the author can update the post."""
         from api.blueprints.uploads.models import Image
 
-        current_user = get_current_user()
+        user_id = int(get_jwt_identity())
         post = PostModel.query.options(
             joinedload(PostModel.locality), joinedload(PostModel.author)
         ).get_or_404(post_id, description="Post not found")
 
-        if post.author_id != current_user.id:
+        if post.author_id != user_id:
             abort(403, message="You can only update your own posts")
 
         locality = get_or_create_locality(
@@ -187,10 +187,10 @@ class Post(MethodView):
     )
     def delete(self, post_id):
         """Delete a post by ID. Only the author can delete the post."""
-        current_user = get_current_user()
+        user_id = int(get_jwt_identity())
         post = PostModel.query.get_or_404(post_id, description="Post not found")
 
-        if post.author_id != current_user.id:
+        if post.author_id != user_id:
             abort(403, message="You can only delete your own posts")
 
         db.session.delete(post)
