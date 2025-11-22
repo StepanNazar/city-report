@@ -1,7 +1,7 @@
 from apiflask import abort
 from apiflask.views import MethodView
 from flask import url_for
-from flask_jwt_extended import get_current_user, jwt_required
+from flask_jwt_extended import get_current_user, get_jwt_identity, jwt_required
 from sqlalchemy.orm import joinedload
 
 from api import db
@@ -65,7 +65,7 @@ class Posts(MethodView):
         """Create a new post. Activated account required."""
         from api.blueprints.uploads.models import Image
 
-        current_user = get_current_user()
+        user_id = get_jwt_identity()
         locality = get_or_create_locality(
             json_data["locality_id"], json_data["locality_provider"]
         )
@@ -76,7 +76,7 @@ class Posts(MethodView):
             if k not in ["locality_id", "locality_provider", "images_ids"]
         }
         new_post = PostModel(
-            author_id=current_user.id,  # type: ignore
+            author_id=user_id,  # type: ignore
             locality_id=locality.id,  # type: ignore
             **post_data,
         )

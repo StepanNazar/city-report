@@ -1,7 +1,7 @@
 from apiflask import abort
 from apiflask.views import MethodView
 from flask import url_for
-from flask_jwt_extended import get_current_user, jwt_required
+from flask_jwt_extended import get_current_user, get_jwt_identity, jwt_required
 
 from api import db
 from api.blueprints.comments.schemas import (
@@ -62,12 +62,12 @@ class PostSolutions(MethodView):
         from api.blueprints.solutions.models import SolutionImage
         from api.blueprints.uploads.models import Image
 
-        current_user = get_current_user()
+        user_id = get_jwt_identity()
         PostModel.query.get_or_404(post_id, description="Post not found")
 
         solution_data = {k: v for k, v in json_data.items() if k != "images_ids"}
         new_solution = SolutionModel(
-            author_id=current_user.id,  # type: ignore
+            author_id=user_id,  # type: ignore
             post_id=post_id,  # type: ignore
             **solution_data,
         )
