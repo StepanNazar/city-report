@@ -157,7 +157,7 @@ def test_logout(client):
     assert cookies["csrf_refresh_token"].value == ""
 
 
-def test_logout_without_tokeScheman(client):
+def test_logout_without_token(client):
     response = register_user(client)
 
     response = client.post("/auth/logout")
