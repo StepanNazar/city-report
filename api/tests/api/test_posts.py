@@ -1,12 +1,13 @@
 import time
 
 import pytest
-from conftest import (
+
+from api.tests.api.assertions import (
     assert_pagination_response,
     assert_resources_order_match,
-    create_post,
-    post_data,
 )
+from api.tests.api.data import post_data
+from api.tests.api.helpers import create_post
 
 
 def test_post_author_link_is_valid(authenticated_client, post):

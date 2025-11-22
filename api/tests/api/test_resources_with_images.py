@@ -5,16 +5,18 @@ from typing import Any
 
 import pytest
 from conftest import (
-    assert_resource_images,
+    post,
+    post_with_images,
+    solution,
+    solution_with_images,
+)
+
+from api.tests.api.assertions import assert_resource_images
+from api.tests.api.data import post_data, solution_data
+from api.tests.api.helpers import (
     create_post_with_images,
     create_solution_with_images,
     lf,
-    post,
-    post_data,
-    post_with_images,
-    solution,
-    solution_data,
-    solution_with_images,
     upload_image,
 )
 

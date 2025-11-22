@@ -1,14 +1,13 @@
 import pytest
-from conftest import (
-    assert_response_matches_resource,
-    create_post,
-    create_solution,
-    lf,
+
+from api.tests.api.assertions import assert_response_matches_resource
+from api.tests.api.data import (
     post_data,
     solution_data,
     updated_post_data,
     updated_solution_data,
 )
+from api.tests.api.helpers import create_post, create_solution, lf
 
 
 @pytest.fixture

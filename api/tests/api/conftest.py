@@ -1,16 +1,19 @@
-from types import MappingProxyType
-from typing import Any
-
 import email_validator
 import pytest
 from flask import Response
-from pytest_lazy_fixtures import lf as _lf
 from werkzeug.datastructures import FileStorage
 
 from api import create_app
 from api import db as _db
 from api.blueprints.uploads.services import LocalFolderStorageService
 from api.config import TestConfig
+from api.tests.api.helpers import (
+    create_post,
+    create_post_with_images,
+    create_solution,
+    create_solution_with_images,
+    upload_image,
+)
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -113,100 +116,6 @@ def authenticated_client2(client) -> AuthenticatedClient:
     )
 
 
-def lf(fixture):
-    """Converts a fixture to a lazy fixture which can be used in parametrize."""
-    fixture_name = fixture.__name__
-    return _lf(fixture_name)
-
-
-def assert_pagination_response(response, total, page, total_pages, items_count):
-    """Verify pagination metadata."""
-    assert response.status_code == 200
-    assert "items" in response.json
-    assert response.json["totalItems"] == total
-    assert response.json["totalPages"] == total_pages
-    assert response.json["page"] == page
-    assert len(response.json["items"]) == items_count
-
-
-def assert_resources_order_match(returned_resources, expected_resources):
-    """Verify returned resources match expected resources in the correct pagination order.
-
-    This helper checks that resources are returned in the expected order by comparing
-    each field in the expected resources with the corresponding field in the returned
-    resources. Only fields present in both the expected and returned resources are compared,
-    allowing for fields that may be excluded in pagination responses (like 'body').
-    """
-    for i, expected_source in enumerate(expected_resources):
-        for key, value in expected_source.items():
-            if key in returned_resources[i]:
-                assert returned_resources[i][key] == value
-
-
-def assert_response_matches_resource(
-    response, resource_data, additional_keys=None, excluded_keys=None
-):
-    """Asserts that the response matches the resource data and has additional keys."""
-    excluded_keys = excluded_keys or []
-    for key, value in resource_data.items():
-        if key not in excluded_keys:
-            assert response.json[key] == value
-    if additional_keys:
-        for key in additional_keys:
-            assert key in response.json
-
-
-post_data = MappingProxyType(  # immutable dict view to ensure test isolation
-    {
-        "title": "Test Post",
-        "body": "This is a test post",
-        "latitude": 40.7128,
-        "longitude": -74.0060,
-        "localityId": 3167397,
-        "localityProvider": "nominatim",
-    }
-)
-updated_post_data = MappingProxyType(
-    {
-        "title": "Updated Post",
-        "body": "This is a updated test post",
-        "latitude": 41.7128,
-        "longitude": -73.0060,
-        "localityId": 3167397,
-        "localityProvider": "nominatim",
-    }
-)
-additional_post_keys = [  # additional keys which should be present in post's output schema
-    "id",
-    "createdAt",
-    "updatedAt",
-    "authorLink",
-    "authorFirstName",
-    "authorLastName",
-    "localityNominatimId",
-    "likes",
-    "dislikes",
-    "comments",
-]
-excluded_post_keys = [  # keys present in post's input schema, but not present in the output schema
-    "localityId",
-    "localityProvider",
-]
-
-
-def upload_image(
-    client, filename="test.png", content=b"fake image content"
-) -> tuple[str, str]:
-    """Helper function to upload an image and return its ID and URL."""
-    from io import BytesIO
-
-    data = {"image": (BytesIO(content), filename)}
-    response = client.post(
-        "/uploads/images", data=data, content_type="multipart/form-data"
-    )
-    return response.json["id"], response.json["url"]
-
-
 @pytest.fixture
 def image(authenticated_client) -> tuple[str, str]:
     """Upload a single test image and return its ID and URL."""
@@ -222,76 +131,11 @@ def images(authenticated_client) -> list[tuple[str, str]]:
     ]
 
 
-def create_post_with_images(
-    client, images_ids, post_data: dict | MappingProxyType = post_data
-):
-    """Create a post with specified images and return its URL."""
-    data = dict(post_data)
-    data["imagesIds"] = images_ids
-    return create_post(client, data)
-
-
 @pytest.fixture
 def post_with_images(authenticated_client, images):
     """Create a post with 3 test images and return its URL."""
     images_ids = [img_id for img_id, _ in images]
     return create_post_with_images(authenticated_client, images_ids)
-
-
-def assert_resource_images(
-    response, expected_images: list[tuple[str, str] | dict[str, Any]]
-):
-    """Assert that response contains expected image objects {id, url} in correct order.
-
-    Args:
-        response: Flask response object
-        expected_images: List of tuples (id, url) or list of dicts with 'id' and 'url' keys
-    """
-    assert "images" in response.json
-    assert len(response.json["images"]) == len(expected_images)
-
-    for i, expected in enumerate(expected_images):
-        actual_image = response.json["images"][i]
-        assert "id" in actual_image
-        assert "url" in actual_image
-
-        if isinstance(expected, tuple):
-            expected_id, expected_url = expected
-        else:
-            expected_id, expected_url = expected["id"], expected["url"]
-
-        assert actual_image["id"] == expected_id
-        assert actual_image["url"] == expected_url
-
-
-solution_data = MappingProxyType(
-    {
-        "title": "Test Solution",
-        "body": "This is a test solution",
-    }
-)
-updated_solution_data = MappingProxyType(
-    {
-        "title": "Updated Solution",
-        "body": "This is a updated test solution",
-    }
-)
-additional_solution_keys = [
-    "id",
-    "createdAt",
-    "updatedAt",
-    "authorLink",
-    "authorFirstName",
-    "authorLastName",
-    "likes",
-    "dislikes",
-    "comments",
-]
-
-
-def create_post(client, post_data: dict | MappingProxyType = post_data):
-    response = client.post("/posts", json=post_data.copy())
-    return response.headers["Location"]
 
 
 @pytest.fixture
@@ -300,29 +144,10 @@ def post(authenticated_client):
     return create_post(authenticated_client)
 
 
-def create_solution(
-    client, post_url: str, solution_data: dict | MappingProxyType = solution_data
-):
-    response = client.post(f"{post_url}/solutions", json=solution_data.copy())
-    return response.headers["Location"]
-
-
 @pytest.fixture
 def solution(authenticated_client, post):
     """Sets up a test case with a solution with solution_data. Returns the solution's url."""
     return create_solution(authenticated_client, post)
-
-
-def create_solution_with_images(
-    client,
-    post_url: str,
-    images_ids,
-    solution_data: dict | MappingProxyType = solution_data,
-):
-    """Create a solution with specified images and return its URL."""
-    data = dict(solution_data)
-    data["imagesIds"] = images_ids
-    return create_solution(client, post_url, data)
 
 
 @pytest.fixture
