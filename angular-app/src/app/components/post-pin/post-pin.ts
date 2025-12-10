@@ -3,7 +3,7 @@ import { ShortPostInfo } from '../short-post-info/short-post-info';
 
 @Component({
   selector: 'app-post-pin',
-  imports: [ShortPostInfo],
+  imports: [],
   templateUrl: './post-pin.html',
   styleUrl: './post-pin.scss'
 })

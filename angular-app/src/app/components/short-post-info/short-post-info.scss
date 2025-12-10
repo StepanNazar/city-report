@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.post-card {
+  background: #FFFFFF;
+  border: 1px solid #E1E5E9;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+  }
+}
+
+.post-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1E2530;
+  margin: 0 0 8px 0;
+
+  a {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.post-author {
+  font-size: 13px;
+  color: #7A7A7A;
+  margin: 0 0 12px 0;
+}
+
+.post-snippet {
+  font-size: 15px;
+  color: #5C6470;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-meta {
+  font-size: 13px;
+  color: #7A7A7A;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}

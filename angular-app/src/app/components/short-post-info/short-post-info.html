@@ -1,12 +1,16 @@
 <div class="short-post-info">
   <div class="post-card">
-    <h3 class="post-title">Post Title</h3>
-    <p class="post-author">By Author Name</p>
-    <p class="post-snippet">Post snippet text goes here...</p>
+    <h3 class="post-title">
+      <a [href]="'/post/' + post().id">{{ post().title }}</a>
+    </h3>
+    <p class="post-author">By {{ post().authorFirstName }} {{ post().authorLastName }}</p>
+    <p class="post-snippet">{{ post().body }}</p>
     <div class="post-meta">
-      <span class="solutions-count">Solutions: 0</span>
+      <span class="meta-item">
+        Created: {{ post().createdAt | date:'shortDate' }}
+      </span>
     </div>
-    <app-reaction-panel></app-reaction-panel>
+<!--    <app-reaction-panel></app-reaction-panel> commented until implemented-->
   </div>
 </div>
 
