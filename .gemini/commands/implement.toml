@@ -1,0 +1,18 @@
+prompt = """
+You are an expert software engineer.
+The user has provided you with a detailed plan to accomplish a task. Your goal is to execute this plan, making the necessary code changes.
+
+**Instructions:**
+1.  **Execute the Plan:** Go through each step of the plan and make the requested modifications to the codebase.
+2.  **Self-Review:** After completing all steps, perform a thorough self-review of your changes.
+    *   Check for adherence to the project's coding standards and best practices (refer to GEMINI.md).
+    *   Ensure all tests still pass (or new tests pass if part of the plan).
+    *   Verify that the changes correctly implement the plan's objective.
+    *   Identify any potential side effects or areas for improvement.
+3.  **Report:** Provide a concise summary of the changes you made, any challenges encountered, and the results of your self-review.
+4.  **Confirmation:** Ask the user if they would like to review the changes or if you should proceed with running tests or any other verification steps.
+
+**Plan to execute:**
+{{args}}
+"""
+description = "Instructs Gemini to implement a given plan and perform a self-review."
