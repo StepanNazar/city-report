@@ -50,9 +50,7 @@ Users can:
 ## Technologies 💻
 
 - **Backend**: Flask (Python) API
-- **Frontend**:
-  - Initially started to build with React
-  - **Currently being migrated to Angular**
+- **Frontend**: Angular
 - **Database**: SQLite for development, PostgreSQL for production
 - **API Documentation**: OpenAPI specification
 - **Development Tools**:
@@ -74,8 +72,8 @@ Users can:
 
 ```bash
 git clone https://github.com/StepanNazar/city-report.git
-git checkout dev
 cd city-report
+git checkout dev
 ```
 
 #### 2. Backend Setup (Flask API)
@@ -115,20 +113,9 @@ npm install -g @angular/cli
 yarn global add @angular/cli
 ```
 
-#### 4. Frontend Setup (React - Legacy)
-
-```bash
-cd ../react-app
-
-# Install dependencies
-npm install
-# or with Yarn
-yarn install
-```
-
 ## Scripts Documentation 📜
 
-The project contains three separate `package.json` files (root, angular-app, and react-app) each with their own scripts.
+The project contains two separate `package.json` files (root and angular-app) each with their own scripts.
 
 ### Root Directory Scripts
 
@@ -137,13 +124,11 @@ The project contains three separate `package.json` files (root, angular-app, and
 npm run start-angular
 # or with Yarn
 yarn start-angular
-
-# Start React frontend (legacy)
-npm run start-react
+# Alternatively, you can use 'npm start' or 'yarn start' to run the Angular frontend:
+npm start
 # or with Yarn
-yarn start-react
+yarn start
 
-# Next 3 commands are same for other directories
 # Start the Flask API backend
 npm run start-api
 # or with Yarn
@@ -184,30 +169,4 @@ yarn test
 npm run watch
 # or with Yarn
 yarn watch
-```
-
-### React App Directory Scripts (cd react-app) - Legacy
-
-```bash
-# Start React development server
-npm run start
-# or with Yarn
-yarn start
-
-# Start Flask API. Start mock API, Update OpenAPI specification are same as in root
-
-# Build the React app
-npm run build
-# or with Yarn
-yarn build
-
-# Run tests for React components
-npm run test
-# or with Yarn
-yarn test
-
-# Eject React configuration (irreversible!)
-npm run eject
-# or with Yarn
-yarn eject
 ```
