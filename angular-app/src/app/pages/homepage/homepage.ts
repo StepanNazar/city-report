@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { PostFilterSearchPanel } from '../../components/post-filter-search-panel/post-filter-search-panel';
 import { MapComponent } from '../../components/map/map.component';
 import { PostsList } from '../../components/posts-list/posts-list';
@@ -8,7 +8,8 @@ import { LocationOption } from '../../services/location-selector-service';
   selector: 'app-homepage',
   imports: [PostFilterSearchPanel, MapComponent, PostsList],
   templateUrl: './homepage.html',
-  styleUrl: './homepage.scss'
+  styleUrl: './homepage.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Homepage {
   readonly selectedLocation = signal<LocationOption | null>(null);

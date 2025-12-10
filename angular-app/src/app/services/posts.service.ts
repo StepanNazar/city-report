@@ -1,7 +1,12 @@
 import { inject, Injectable } from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { LocationProvider } from './location-selector-service';
+
+export interface ImageResponse {
+    id: string;
+    url: string;
+}
 
 export interface CreatePostPayload {
     latitude: number;
@@ -23,7 +28,7 @@ export interface PostResponse {
     longitude: number;
     title: string;
     body: string;
-    images: string[];
+    images: ImageResponse[];
     localityNominatimId?: number;
     localityGoogleId?: number;
     createdAt: string;

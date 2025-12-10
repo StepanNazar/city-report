@@ -1,4 +1,4 @@
-import { Component, inject, input, OnChanges, SimpleChanges, signal } from '@angular/core';
+import { Component, inject, input, OnChanges, OnInit, SimpleChanges, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ShortPostInfo } from '../short-post-info/short-post-info';
 import { PostResponse, PostsService } from '../../services/posts.service';
 import { LocationOption, LocationSelectorService } from '../../services/location-selector-service';
@@ -7,9 +7,10 @@ import { LocationOption, LocationSelectorService } from '../../services/location
   selector: 'app-posts-list',
   imports: [ShortPostInfo],
   templateUrl: './posts-list.html',
-  styleUrl: './posts-list.scss'
+  styleUrl: './posts-list.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PostsList implements OnChanges {
+export class PostsList implements OnInit, OnChanges {
   private postsService = inject(PostsService);
   private locationSelectorService = inject(LocationSelectorService);
 
@@ -24,6 +25,11 @@ export class PostsList implements OnChanges {
   readonly totalPages = signal<number>(0);
   readonly hasPrev = signal<boolean>(false);
   readonly hasNext = signal<boolean>(false);
+
+  ngOnInit() {
+    // Fetch posts on initial load
+    this.fetchPosts();
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     // Reset page to 1 when location, sortBy, or order changes
