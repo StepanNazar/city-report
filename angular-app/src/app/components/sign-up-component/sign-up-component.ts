@@ -50,7 +50,7 @@ export class SignUpComponent {
 
     if (this.selectedLocationData) {
       payload.localityId = this.selectedLocationData.id;
-      payload.localityProvider = this.locationSelectorService.getLocationProviderName();
+      payload.localityProvider = this.locationSelectorService.locationProviderName;
     }
 
     this.authService.register(payload).subscribe({

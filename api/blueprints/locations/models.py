@@ -12,12 +12,11 @@ if TYPE_CHECKING:
 
 class Locality(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    name: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
-    state: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
-    country: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
+    latitude: so.Mapped[float] = so.mapped_column(sa.Float, nullable=False)
+    longitude: so.Mapped[float] = so.mapped_column(sa.Float, nullable=False)
     osm_id: so.Mapped[int] = so.mapped_column(sa.Integer, unique=True, nullable=True)
     users: so.Mapped[list["User"]] = so.relationship(back_populates="locality")
     posts: so.Mapped[list["Post"]] = so.relationship(back_populates="locality")
 
     def __repr__(self):
-        return f"<Locality {self.name}, {self.state}, {self.country}>"
+        return f"<Locality id={self.id} lat={self.latitude} lon={self.longitude}>"

@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start-angular": "cd angular-app && ng serve",
-    "start-react": "cd react-app && npx react-scripts start",
+    "start": "cd angular-app && ng serve",
     "start-api": "cd api && (venv\\Scripts\\flask run --no-debugger || venv/bin/flask run --no-debugger)",
     "start-mock-api": "prism mock api/openapi.json --dynamic --port 5000",
     "update-spec": "cd api && (venv\\Scripts\\flask spec --output openapi.json -q || venv/bin/flask spec --output openapi.json -q)"

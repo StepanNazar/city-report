@@ -1,12 +1,19 @@
-from types import MappingProxyType
-
 import email_validator
 import pytest
-from pytest_lazy_fixtures import lf as _lf
+from flask import Response
+from werkzeug.datastructures import FileStorage
 
 from api import create_app
 from api import db as _db
+from api.blueprints.uploads.services import LocalFolderStorageService
 from api.config import TestConfig
+from api.tests.api.helpers import (
+    create_post,
+    create_post_with_images,
+    create_solution,
+    create_solution_with_images,
+    upload_image,
+)
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -18,6 +25,7 @@ def app():
     2) Create database tables, yield the app for individual tests
     3) Final tear down logic at the end of the session
     """
+    TestConfig.STORAGE_SERVICE = TestStorageService()
     app = create_app(TestConfig)
 
     with app.app_context():
@@ -108,114 +116,26 @@ def authenticated_client2(client) -> AuthenticatedClient:
     )
 
 
-def lf(fixture):
-    """Converts a fixture to a lazy fixture which can be used in parametrize."""
-    fixture_name = fixture.__name__
-    return _lf(fixture_name)
+@pytest.fixture
+def image(authenticated_client) -> tuple[str, str]:
+    """Upload a single test image and return its ID and URL."""
+    return upload_image(authenticated_client)
 
 
-def assert_pagination_response(response, total, page, total_pages, items_count):
-    """Verify pagination metadata."""
-    assert response.status_code == 200
-    assert "items" in response.json
-    assert response.json["totalItems"] == total
-    assert response.json["totalPages"] == total_pages
-    assert response.json["page"] == page
-    assert len(response.json["items"]) == items_count
+@pytest.fixture
+def images(authenticated_client) -> list[tuple[str, str]]:
+    """Upload multiple test images and return list of tuples (id, url)."""
+    return [
+        upload_image(authenticated_client, f"test{i}.png", f"image {i}".encode())
+        for i in range(3)
+    ]
 
 
-def assert_resources_order_match(returned_resources, expected_resources):
-    """Verify returned resources match expected resources in the correct pagination order.
-
-    This helper checks that resources are returned in the expected order by comparing
-    each field in the expected resources with the corresponding field in the returned
-    resources. Only fields present in both the expected and returned resources are compared,
-    allowing for fields that may be excluded in pagination responses (like 'body').
-    """
-    for i, expected_source in enumerate(expected_resources):
-        for key, value in expected_source.items():
-            if key in returned_resources[i]:
-                assert returned_resources[i][key] == value
-
-
-def assert_response_matches_resource(
-    response, resource_data, additional_keys=None, excluded_keys=None
-):
-    """Asserts that the response matches the resource data and has additional keys."""
-    excluded_keys = excluded_keys or []
-    for key, value in resource_data.items():
-        if key not in excluded_keys:
-            assert response.json[key] == value
-    if additional_keys:
-        for key in additional_keys:
-            assert key in response.json
-
-
-post_data = MappingProxyType(  # immutable dict view to ensure test isolation
-    {
-        "title": "Test Post",
-        "body": "This is a test post",
-        "latitude": 40.7128,
-        "longitude": -74.0060,
-        "localityId": 3167397,
-        "localityProvider": "nominatim",
-    }
-)
-updated_post_data = MappingProxyType(
-    {
-        "title": "Updated Post",
-        "body": "This is a updated test post",
-        "latitude": 41.7128,
-        "longitude": -73.0060,
-        "localityId": 3167397,
-        "localityProvider": "nominatim",
-    }
-)
-additional_post_keys = [  # additional keys which should be present in post's output schema
-    "id",
-    "createdAt",
-    "updatedAt",
-    "authorLink",
-    "authorFirstName",
-    "authorLastName",
-    "localityNominatimId",
-    "likes",
-    "dislikes",
-    "comments",
-]
-excluded_post_keys = [  # keys present in post's input schema, but not present in the output schema
-    "localityId",
-    "localityProvider",
-]
-
-solution_data = MappingProxyType(
-    {
-        "title": "Test Solution",
-        "body": "This is a test solution",
-    }
-)
-updated_solution_data = MappingProxyType(
-    {
-        "title": "Updated Solution",
-        "body": "This is a updated test solution",
-    }
-)
-additional_solution_keys = [
-    "id",
-    "createdAt",
-    "updatedAt",
-    "authorLink",
-    "authorFirstName",
-    "authorLastName",
-    "likes",
-    "dislikes",
-    "comments",
-]
-
-
-def create_post(client, post_data: dict | MappingProxyType = post_data):
-    response = client.post("/posts", json=post_data.copy())
-    return response.headers["Location"]
+@pytest.fixture
+def post_with_images(authenticated_client, images):
+    """Create a post with 3 test images and return its URL."""
+    images_ids = [img_id for img_id, _ in images]
+    return create_post_with_images(authenticated_client, images_ids)
 
 
 @pytest.fixture
@@ -224,28 +144,57 @@ def post(authenticated_client):
     return create_post(authenticated_client)
 
 
-def create_solution(
-    client, post_url: str, solution_data: dict | MappingProxyType = solution_data
-):
-    response = client.post(f"{post_url}/solutions", json=solution_data.copy())
-    return response.headers["Location"]
-
-
 @pytest.fixture
 def solution(authenticated_client, post):
     """Sets up a test case with a solution with solution_data. Returns the solution's url."""
     return create_solution(authenticated_client, post)
 
 
+@pytest.fixture
+def solution_with_images(authenticated_client, post, images):
+    """Create a solution with 3 test images and return its URL."""
+    images_ids = [img_id for img_id, _ in images]
+    return create_solution_with_images(authenticated_client, post, images_ids)
+
+
 @pytest.fixture(autouse=True)
 def mock_nominatim(mocker):
     """Mock NominatimService for tests."""
     return mocker.patch(
-        "api.services.NominatimService.get_locality_name_state_and_country",
-        return_value=("Test Locality", "Test State", "Test Country"),
+        "api.services.NominatimService.get_latitude_longitude",
+        return_value=(40.7128, -74.0060),
     )
 
 
 @pytest.fixture(autouse=True, scope="session")
 def specify_testing_environment_for_email_validator():
     email_validator.TEST_ENVIRONMENT = True
+
+
+class TestStorageService(LocalFolderStorageService):
+    def __init__(self):
+        self.uploaded_images = {}
+
+    def _save_file(self, file: FileStorage, filename: str):
+        self.uploaded_images[filename] = file.read()
+
+    def send_file(self, filename: str):
+        try:
+            image_data = self.uploaded_images[filename]
+        except KeyError as e:
+            raise FileNotFoundError(f"File {filename} not found") from e
+        return Response(image_data, mimetype="image/jpeg")
+
+    @staticmethod
+    def _check_file_is_image(file: FileStorage) -> bool:
+        result = file.read() != b"not an image"
+        file.seek(0)
+        return result
+
+    def _delete_file(self, filename: str):
+        self.uploaded_images.pop(filename, None)
+
+
+@pytest.fixture(autouse=True)
+def clear_test_storage(app):
+    app.storage_service.uploaded_images = {}

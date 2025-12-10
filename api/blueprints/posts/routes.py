@@ -1,7 +1,7 @@
 from apiflask import abort
+from apiflask.views import MethodView
 from flask import url_for
-from flask.views import MethodView
-from flask_jwt_extended import get_current_user, jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy.orm import joinedload
 
 from api import db
@@ -10,7 +10,6 @@ from api.blueprints.comments.schemas import (
     CommentOutSchema,
     CommentSortingSchema,
 )
-from api.blueprints.common.helpers import get_or_create_locality
 from api.blueprints.common.routes import create_pagination_response
 from api.blueprints.common.schemas import (
     JSONPatchSchema,
@@ -19,20 +18,15 @@ from api.blueprints.common.schemas import (
     pagination_query_schema,
 )
 from api.blueprints.locations.models import Locality
+from api.blueprints.locations.routes import get_or_create_locality
 from api.blueprints.posts import posts
 from api.blueprints.posts.models import Post as PostModel
+from api.blueprints.posts.models import PostImage
 from api.blueprints.posts.schemas import (
     PostInSchema,
     PostOutPaginationSchema,
     PostOutSchema,
     PostSortingFilteringSchema,
-)
-from api.blueprints.solutions.models import Solution as SolutionModel
-from api.blueprints.solutions.schemas import (
-    SolutionInSchema,
-    SolutionOutPaginationSchema,
-    SolutionOutSchema,
-    SolutionSortingFilteringSchema,
 )
 from api.blueprints.users.schemas import ReactionSchema
 
@@ -47,13 +41,10 @@ class Posts(MethodView):
     @posts.output(PostOutPaginationSchema)
     def get(self, query_data):
         """Get all posts"""
-        sort_by = query_data.get("sort_by")
-        order = query_data.get("order")
-        locality_id = query_data.get("locality_id")
-        locality_provider = query_data.get("locality_provider")
-
         query = PostModel.query
 
+        locality_id = query_data.get("locality_id")
+        locality_provider = query_data.get("locality_provider")
         if locality_id and locality_provider and locality_provider == "nominatim":
             locality = Locality.query.filter_by(osm_id=int(locality_id)).first()
             if locality:
@@ -62,21 +53,9 @@ class Posts(MethodView):
                 # If locality not found, return an empty result by filtering for impossible ID
                 query = query.filter_by(locality_id=-1)
 
-        if sort_by == "created_at":
-            order_column = PostModel.created_at
-        elif sort_by == "edited_at":
-            order_column = PostModel.edited_at
-        else:
-            # For likes, dislikes, we'll just use created_at for now
-            order_column = PostModel.created_at
-
-        if order == "desc":
-            query = query.order_by(order_column.desc(), PostModel.id.desc())
-        else:
-            query = query.order_by(order_column.asc(), PostModel.id.asc())
-
-        pagination = query.paginate()
-        return create_pagination_response(pagination, "posts.posts", **query_data)
+        if query_data.get("sort_by") in ["likes", "dislikes"]:
+            query_data["sort_by"] = "created_at"  # until reactions are not implemented
+        return create_pagination_response(query, PostModel, "posts.posts", **query_data)
 
     @jwt_required()
     @posts.input(PostInSchema)
@@ -84,7 +63,9 @@ class Posts(MethodView):
     @posts.doc(security="jwt_access_token", responses={201: "Post created"})
     def post(self, json_data):
         """Create a new post. Activated account required."""
-        current_user = get_current_user()
+        from api.blueprints.uploads.models import Image
+
+        user_id = int(get_jwt_identity())
         locality = get_or_create_locality(
             json_data["locality_id"], json_data["locality_provider"]
         )
@@ -92,15 +73,36 @@ class Posts(MethodView):
         post_data = {
             k: v
             for k, v in json_data.items()
-            if k not in ["locality_id", "locality_provider"]
+            if k not in ["locality_id", "locality_provider", "images_ids"]
         }
         new_post = PostModel(
-            author_id=current_user.id,  # type: ignore
+            author_id=user_id,  # type: ignore
             locality_id=locality.id,  # type: ignore
             **post_data,
         )
 
         db.session.add(new_post)
+        db.session.flush()
+
+        if json_data.get("images_ids"):
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+            post_images = [
+                PostImage(post_id=new_post.id, image_id=image_id, order=order)  # type: ignore
+                for order, image_id in enumerate(json_data["images_ids"])
+            ]
+            new_post.image_association = post_images
+
         db.session.commit()
 
         return new_post, 201, {"Location": url_for("posts.post", post_id=new_post.id)}
@@ -122,12 +124,14 @@ class Post(MethodView):
     )
     def put(self, post_id, json_data):
         """Update a post by ID. Only the author can update the post."""
-        current_user = get_current_user()
+        from api.blueprints.uploads.models import Image
+
+        user_id = int(get_jwt_identity())
         post = PostModel.query.options(
             joinedload(PostModel.locality), joinedload(PostModel.author)
         ).get_or_404(post_id, description="Post not found")
 
-        if post.author_id != current_user.id:
+        if post.author_id != user_id:
             abort(403, message="You can only update your own posts")
 
         locality = get_or_create_locality(
@@ -136,8 +140,31 @@ class Post(MethodView):
         post.locality = locality
 
         for key, value in json_data.items():
-            if key not in ["locality_id", "locality_provider"] and hasattr(post, key):
+            if key not in [
+                "locality_id",
+                "locality_provider",
+                "images_ids",
+            ] and hasattr(post, key):
                 setattr(post, key, value)
+
+        if json_data.get("images_ids"):
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+        post_images = [
+            PostImage(post_id=post_id, image_id=image_id, order=order)  # type: ignore
+            for order, image_id in enumerate(json_data.get("images_ids") or [])
+        ]
+        post.image_association = post_images
 
         db.session.commit()
 
@@ -160,10 +187,10 @@ class Post(MethodView):
     )
     def delete(self, post_id):
         """Delete a post by ID. Only the author can delete the post."""
-        current_user = get_current_user()
+        user_id = int(get_jwt_identity())
         post = PostModel.query.get_or_404(post_id, description="Post not found")
 
-        if post.author_id != current_user.id:
+        if post.author_id != user_id:
             abort(403, message="You can only delete your own posts")
 
         db.session.delete(post)
@@ -214,65 +241,6 @@ class PostComments(MethodView):
         return {}, 501
 
 
-class PostSolutions(MethodView):
-    @posts.input(
-        merge_schemas(
-            pagination_query_schema(default_per_page=5), SolutionSortingFilteringSchema
-        ),
-        location="query",
-    )
-    @posts.output(SolutionOutPaginationSchema)
-    def get(self, post_id, query_data):
-        """Get solutions for post"""
-        PostModel.query.get_or_404(post_id, description="Post not found")
-
-        sort_by = query_data.get("sort_by")
-        order = query_data.get("order")
-
-        query = SolutionModel.query.filter_by(post_id=post_id)
-
-        if sort_by == "created_at":
-            order_column = SolutionModel.created_at
-        elif sort_by == "edited_at":
-            order_column = SolutionModel.edited_at
-        else:
-            # For likes, dislikes, we'll just use created_at for now
-            order_column = SolutionModel.created_at
-
-        if order == "desc":
-            query = query.order_by(order_column.desc(), SolutionModel.id.desc())
-        else:
-            query = query.order_by(order_column.asc(), SolutionModel.id.asc())
-
-        pagination = query.paginate()
-        return create_pagination_response(
-            pagination, "posts.post_solutions", post_id=post_id, **query_data
-        )
-
-    @jwt_required()
-    @posts.input(SolutionInSchema)
-    @posts.output(SolutionOutSchema, status_code=201)
-    @posts.doc(security="jwt_access_token", responses={201: "Solution created"})
-    def post(self, post_id, json_data):
-        """Create a new solution for post. Activated account required."""
-        current_user = get_current_user()
-        PostModel.query.get_or_404(post_id, description="Post not found")
-
-        new_solution = SolutionModel(
-            author_id=current_user.id,  # type: ignore
-            post_id=post_id,  # type: ignore
-            **json_data,
-        )
-        db.session.add(new_solution)
-        db.session.commit()
-
-        return (
-            new_solution,
-            201,
-            {"Location": url_for("solutions.solution", solution_id=new_solution.id)},
-        )
-
-
 posts.add_url_rule("/posts", view_func=Posts.as_view("posts"))
 posts.add_url_rule("/posts/<int:post_id>", view_func=Post.as_view("post"))
 posts.add_url_rule(
@@ -284,7 +252,4 @@ posts.add_url_rule(
 )
 posts.add_url_rule(
     "/posts/<int:post_id>/comments", view_func=PostComments.as_view("post_comments")
-)
-posts.add_url_rule(
-    "/posts/<int:post_id>/solutions", view_func=PostSolutions.as_view("post_solutions")
 )

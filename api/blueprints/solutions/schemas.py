@@ -1,5 +1,14 @@
 from apiflask import Schema
-from apiflask.fields import URL, Boolean, DateTime, Integer, List, Method, String
+from apiflask.fields import (
+    UUID,
+    Boolean,
+    DateTime,
+    Integer,
+    List,
+    Method,
+    Nested,
+    String,
+)
 from apiflask.validators import Length, OneOf
 from flask import url_for
 
@@ -8,9 +17,10 @@ from api.blueprints.common.schemas import (
     CamelCaseSchema,
     pagination_schema,
 )
+from api.blueprints.uploads.schemas import ImageLinkOutSchema
 
 
-class SolutionInSchema(CamelCaseSchema):
+class SolutionBaseSchema(CamelCaseSchema):
     title = String(
         metadata={"x-faker": "lorem.sentences"},
         required=True,
@@ -21,10 +31,13 @@ class SolutionInSchema(CamelCaseSchema):
         required=True,
         validate=Length(min=1, max=10000),
     )
-    images_links = List(URL(metadata={"x-faker": "image.city"}))
 
 
-class SolutionOutSchema(SolutionInSchema):
+class SolutionInSchema(SolutionBaseSchema):
+    images_ids = List(UUID(), validate=Length(max=10))
+
+
+class SolutionOutSchema(SolutionBaseSchema):
     id = Integer()
     author_id = Integer()
     author_link = Method("get_author_link", metadata=URL_METADATA)
@@ -41,6 +54,7 @@ class SolutionOutSchema(SolutionInSchema):
     comments = Integer(load_default=0, dump_default=0)
     approved = Boolean(load_default=False, dump_default=False)
     approved_at = DateTime(metadata={"x-faker": "date.recent"})
+    images = Nested(ImageLinkOutSchema, many=True, attribute="images")
 
     def get_author_link(self, obj):
         return url_for("users.user", user_id=obj.author_id)

@@ -1,7 +1,8 @@
-import {inject, Injectable} from '@angular/core';
-import {Observable, tap} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import {CookieService} from 'ngx-cookie-service';
+import { inject, Injectable, signal } from '@angular/core';
+import { Observable, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { CookieService } from 'ngx-cookie-service';
+import { LocationProvider } from './location-selector-service';
 
 interface RegisterPayload {
   firstName: string;
@@ -9,7 +10,7 @@ interface RegisterPayload {
   email: string;
   password: string;
   localityId: number | undefined;
-  localityProvider: 'google' | 'nominatim' | undefined;
+  localityProvider: LocationProvider | undefined;
 }
 
 interface LoginPayload {
@@ -17,16 +18,18 @@ interface LoginPayload {
   password: string;
 }
 
-interface AccessTokenResponse {
+export interface AccessTokenResponse {
   access_token: string;
 }
 
-interface WhoAmIResponse {
+export interface WhoAmIResponse {
   id: number;
   first_name: string;
   last_name: string;
   email: string;
   is_activated: boolean;
+  localityLongitude: number | undefined;
+  localityLatitude: number | undefined;
   locality_nominatim_id: number | undefined;
   locality_google_id: number | undefined;
   created_at: string;
@@ -39,14 +42,18 @@ export class AuthenticationService {
   http = inject(HttpClient);
   cookieService = inject(CookieService);
 
+  isAuthenticated = signal(!!this.getUserId());
+
   setAccessToken(token: string) {
     localStorage.setItem('d97g4584V5D6dg65gHDRG546r9d56', token);
+    this.isAuthenticated.set(true);
   }
   getAccessToken(): string | null {
     return localStorage.getItem('d97g4584V5D6dg65gHDRG546r9d56');
   }
   clearAccessToken() {
     localStorage.removeItem('d97g4584V5D6dg65gHDRG546r9d56');
+    this.isAuthenticated.set(false);
   }
   getUserId(): string | null {
     const token = this.getAccessToken();

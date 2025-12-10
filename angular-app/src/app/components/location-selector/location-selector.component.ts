@@ -1,6 +1,6 @@
-import {Component, signal, inject, output} from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {LocationOption, LocationSelectorService} from '../../services/location-selector-service';
+import { Component, signal, inject, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { LocationOption, LocationSelectorService, ReverseGeocodingResult } from '../../services/location-selector-service';
 
 
 @Component({
@@ -20,6 +20,24 @@ export class LocationSelector {
   readonly locationSelectedEvent = output<LocationOption | null>();
   readonly isLoading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
+
+  /**
+   * Populate fields with reverse geocoded data and trigger search
+   */
+  async populateFromReverseGeocode(geocodeData: ReverseGeocodingResult) {
+    const country = geocodeData.country;
+    const state = geocodeData.state;
+    const city = geocodeData.city;
+
+    this.typedInCountry.set(country);
+    this.typedInState.set(state);
+    this.typedInLocality.set(city);
+
+    // Automatically trigger search with populated data
+    if (country || state || city) {
+      await this.onSearch();
+    }
+  }
 
   async onSearch() {
     if (this.isLoading()) {

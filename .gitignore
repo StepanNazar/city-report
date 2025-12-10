@@ -49,3 +49,4 @@ api/*.pyc
 .vscode
 
 
+/api/uploaded_images/

@@ -1,6 +1,7 @@
 from apiflask import abort
-from flask.views import MethodView
-from flask_jwt_extended import get_current_user, jwt_required
+from apiflask.views import MethodView
+from flask import url_for
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from api import db
 from api.blueprints.comments.schemas import (
@@ -8,16 +9,102 @@ from api.blueprints.comments.schemas import (
     CommentOutSchema,
     CommentSortingSchema,
 )
+from api.blueprints.common.routes import create_pagination_response
 from api.blueprints.common.schemas import (
     JSONPatchSchema,
     TextBodySchema,
     merge_schemas,
     pagination_query_schema,
 )
+from api.blueprints.posts.models import Post as PostModel
 from api.blueprints.solutions import solutions
 from api.blueprints.solutions.models import Solution as SolutionModel
-from api.blueprints.solutions.schemas import SolutionInSchema, SolutionOutSchema
+from api.blueprints.solutions.models import SolutionImage
+from api.blueprints.solutions.schemas import (
+    SolutionInSchema,
+    SolutionOutPaginationSchema,
+    SolutionOutSchema,
+    SolutionSortingFilteringSchema,
+)
 from api.blueprints.users.schemas import ReactionSchema
+
+
+class PostSolutions(MethodView):
+    @solutions.input(
+        merge_schemas(
+            pagination_query_schema(default_per_page=5), SolutionSortingFilteringSchema
+        ),
+        location="query",
+    )
+    @solutions.output(SolutionOutPaginationSchema)
+    def get(self, post_id, query_data):
+        """Get solutions for post"""
+        PostModel.query.get_or_404(post_id, description="Post not found")
+
+        query = SolutionModel.query.filter_by(post_id=post_id)
+
+        if query_data.get("sort_by") in ["likes", "dislikes"]:
+            query_data["sort_by"] = "created_at"  # until reactions are not implemented
+        return create_pagination_response(
+            query,
+            SolutionModel,
+            "solutions.post_solutions",
+            post_id=post_id,
+            **query_data,
+        )
+
+    @jwt_required()
+    @solutions.input(SolutionInSchema)
+    @solutions.output(SolutionOutSchema, status_code=201)
+    @solutions.doc(security="jwt_access_token", responses={201: "Solution created"})
+    def post(self, post_id, json_data):
+        """Create a new solution for post. Activated account required."""
+        from api.blueprints.solutions.models import SolutionImage
+        from api.blueprints.uploads.models import Image
+
+        user_id = int(get_jwt_identity())
+        PostModel.query.get_or_404(post_id, description="Post not found")
+
+        solution_data = {k: v for k, v in json_data.items() if k != "images_ids"}
+        new_solution = SolutionModel(
+            author_id=user_id,  # type: ignore
+            post_id=post_id,  # type: ignore
+            **solution_data,
+        )
+
+        db.session.add(new_solution)
+        db.session.flush()
+
+        if json_data.get("images_ids"):
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+            solution_images = [
+                SolutionImage(
+                    solution_id=new_solution.id,  # type: ignore
+                    image_id=image_id,  # type: ignore
+                    order=order,  # type: ignore
+                )
+                for order, image_id in enumerate(json_data["images_ids"])
+            ]
+            new_solution.image_association = solution_images
+
+        db.session.commit()
+
+        return (
+            new_solution,
+            201,
+            {"Location": url_for("solutions.solution", solution_id=new_solution.id)},
+        )
 
 
 class Solution(MethodView):
@@ -37,17 +124,38 @@ class Solution(MethodView):
     )
     def put(self, solution_id, json_data):
         """Update solution. Only the author of the solution can update it"""
-        current_user = get_current_user()
+        from api.blueprints.uploads.models import Image
+
+        user_id = int(get_jwt_identity())
         solution = SolutionModel.query.get_or_404(
             solution_id, description="Solution not found"
         )
 
-        if solution.author_id != current_user.id:
+        if solution.author_id != user_id:
             abort(403, message="You can only update your own solutions")
 
         for key, value in json_data.items():
-            if hasattr(solution, key):
+            if key not in ["images_ids"] and hasattr(solution, key):
                 setattr(solution, key, value)
+
+        if json_data.get("images_ids"):
+            existing_image_ids = db.session.scalars(
+                db.select(Image.id).where(Image.id.in_(json_data["images_ids"]))
+            ).all()
+            non_existing_image_ids = set(json_data["images_ids"]) - set(
+                existing_image_ids
+            )
+            if non_existing_image_ids:
+                abort(
+                    422,
+                    message=f"Images with IDs {non_existing_image_ids} do not exist",
+                )
+
+        solution_images = [
+            SolutionImage(solution_id=solution_id, image_id=image_id, order=order)  # type: ignore
+            for order, image_id in enumerate(json_data.get("images_ids") or [])
+        ]
+        solution.image_association = solution_images
 
         db.session.commit()
 
@@ -71,12 +179,12 @@ class Solution(MethodView):
     )
     def delete(self, solution_id):
         """Delete the solution. Only the author of the solution can delete it."""
-        current_user = get_current_user()
+        user_id = int(get_jwt_identity())
         solution = SolutionModel.query.get_or_404(
             solution_id, description="Solution not found"
         )
 
-        if solution.author_id != current_user.id:
+        if solution.author_id != user_id:
             abort(403, message="You can only delete your own solutions")
 
         db.session.delete(solution)
@@ -149,6 +257,9 @@ class SolutionComments(MethodView):
         return {}, 501
 
 
+solutions.add_url_rule(
+    "/posts/<int:post_id>/solutions", view_func=PostSolutions.as_view("post_solutions")
+)
 solutions.add_url_rule(
     "/solutions/<int:solution_id>", view_func=Solution.as_view("solution")
 )

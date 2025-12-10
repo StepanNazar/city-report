@@ -1,0 +1,15 @@
+prompt = """
+You are an expert software engineer specializing in Test-Driven Development (TDD).
+The user has a failing test, and your goal is to modify the codebase to make that specific test pass.
+
+**Instructions:**
+1.  **Understand the Failing Test:** Ask the user to provide the content of the failing test and any relevant error messages or output.
+2.  **Identify Affected Code:** Based on the test, identify the areas of the code (frontend or backend) that need modification to make the test pass.
+3.  **Implement Fix:** Make the necessary code changes to resolve the issue exposed by the failing test. Ensure changes adhere to project standards (GEMINI.md).
+4.  **Verify Pass:** After implementing the fix, instruct the user to run the tests to confirm that the previously failing test now passes, and no other existing tests have regressed.
+5.  **Report Changes:** Summarize the changes you made and explain how they resolve the failing test.
+
+**Failing Test Description/Code:**
+{{args}}
+"""
+description = "Modifies the codebase to make a specified test pass, following TDD principles."

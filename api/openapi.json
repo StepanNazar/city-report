@@ -542,12 +542,12 @@
             "type": "string",
             "x-faker": "lorem.paragraphs"
           },
-          "imagesLinks": {
+          "imagesIds": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "format": "uuid",
+              "type": "string"
             },
+            "maxItems": 10,
             "type": "array"
           },
           "latitude": {
@@ -622,11 +622,9 @@
           "id": {
             "type": "integer"
           },
-          "imagesLinks": {
+          "images": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "$ref": "#/components/schemas/ImageLinkOut"
             },
             "type": "array"
           },
@@ -707,11 +705,9 @@
           "id": {
             "type": "integer"
           },
-          "imagesLinks": {
+          "images": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "$ref": "#/components/schemas/ImageLinkOut"
             },
             "type": "array"
           },
@@ -932,12 +928,12 @@
             "type": "string",
             "x-faker": "lorem.paragraphs"
           },
-          "imagesLinks": {
+          "imagesIds": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "format": "uuid",
+              "type": "string"
             },
+            "maxItems": 10,
             "type": "array"
           },
           "title": {
@@ -1002,11 +998,9 @@
           "id": {
             "type": "integer"
           },
-          "imagesLinks": {
+          "images": {
             "items": {
-              "format": "url",
-              "type": "string",
-              "x-faker": "image.city"
+              "$ref": "#/components/schemas/ImageLinkOut"
             },
             "type": "array"
           },
@@ -1628,6 +1622,12 @@
           },
           "localityGoogleId": {
             "type": "integer"
+          },
+          "localityLatitude": {
+            "type": "number"
+          },
+          "localityLongitude": {
+            "type": "number"
           },
           "localityNominatimId": {
             "type": "integer"
@@ -6316,6 +6316,16 @@
               }
             },
             "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            },
+            "description": "Failed to upload image"
           }
         },
         "security": [
@@ -6329,12 +6339,12 @@
         ]
       }
     },
-    "/uploads/images/{image_id}": {
+    "/uploads/images/{filename}": {
       "get": {
         "parameters": [
           {
             "in": "path",
-            "name": "image_id",
+            "name": "filename",
             "required": true,
             "schema": {
               "type": "string"

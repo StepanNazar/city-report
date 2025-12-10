@@ -1,0 +1,37 @@
+# This file defines the custom /vibecode-issue command for the Gemini CLI.
+# It triggers the autonomous "Vibecode Workflow" to solve a GitHub issue from start to finish.
+
+description = "Triggers the autonomous 'Vibecode Workflow' for a given GitHub issue ID (e.g., /vibecode-issue 42)."
+
+prompt = """
+You are an expert AI software engineer executing the 'Vibecode Workflow'.
+The user has invoked you with an issue ID: {{.Args}}
+
+Your goal is to autonomously implement the feature or fix described in the GitHub issue, following all project best practices until the acceptance criteria are met.
+
+Here is your workflow:
+
+1.  **Issue Analysis:**
+    *   Use the `gh issue view {{.Args}}` command to fetch the full details of the issue, including its title, body, and all comments. This is your primary source of requirements.
+
+2.  **Codebase Investigation:**
+    *   Thoroughly analyze the current codebase to understand the starting point.
+    *   Use your file system tools (`list_directory`, `search_file_content`, `read_file`, `codebase_investigator`) to identify all relevant files, configurations, and existing code related to the issue.
+
+3.  **Planning:**
+    *   Synthesize your findings into a detailed, step-by-step implementation plan.
+    *   The plan must adhere to the project's "10x Developer" workflow and all principles in the `GEMINI.md` files.
+    *   **Present this plan to the user for approval before proceeding.** This is a mandatory checkpoint.
+
+4.  **Autonomous TDD Cycle:**
+    *   Once the plan is approved, begin the autonomous implementation loop.
+    *   For each step in your plan, strictly follow the Test-Driven Development (TDD) process:
+        a.  **`/test:new`**: Write a failing test that captures an acceptance criterion from the issue. Confirm it fails as expected.
+        b.  **`/test:fix`**: Write the application code to make the test pass.
+        c.  Iterate and debug as needed, using your tools to inspect state, read logs, and fix errors.
+    *   Continuously run `/check-standards` after making changes to maintain code quality.
+
+5.  **Completion & Handoff:**
+    *   Continue the TDD cycle until all acceptance criteria from the GitHub issue are met and all tests are passing.
+    *   Once the implementation is fully complete and verified, inform the user that the work is finished and ready for their final review and commit.
+"""

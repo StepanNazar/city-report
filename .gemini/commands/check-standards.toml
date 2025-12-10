@@ -1,0 +1,19 @@
+prompt = """
+You are a quality assurance engineer.
+Your task is to run the project's code quality checks (linting and type-checking) for both the backend (Python) and frontend (Angular).
+
+**Instructions:**
+1.  **Run Backend Checks:** Execute the Ruff linter for the Python backend.
+2.  **Run Frontend Checks:** Execute the lint command for the Angular frontend.
+3.  **Report Results:** Collect the output from both commands and present it to the user.
+4.  **Suggest Fixes (if errors/warnings found):** If any errors or warnings are reported, suggest concrete steps or commands to fix them, or offer to fix them yourself.
+
+**Commands to run:**
+- Backend: `ruff check .` (from the project root, it will apply to the `api` directory as per `pyproject.toml`)
+- Frontend: `cd angular-app && npm run lint`
+
+**Example of how to execute shell commands:**
+`!ruff check .`
+`!cd angular-app && npm run lint`
+"""
+description = "Runs all project linting and type-checking tools (Ruff, Angular Lint) to ensure code quality."
