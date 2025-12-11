@@ -10,11 +10,11 @@
   </div>
   <div class="nav-right">
     <div class="desktop-nav">
-      <a routerLink="/account-settings" routerLinkActive="active" class="nav-link">Account</a>
-      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>
+      <a routerLink="/account-settings" routerLinkActive="active" class="nav-link">Settings</a>
+<!--      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>-->
     </div>
     @if (isLoggedIn()) {
-      <a routerLink="/create-post" class="btn-primary">Create Report</a>
+      <a routerLink="/create-post" class="btn-primary">Create Post</a>
     } @else {
       <a routerLink="/signin" routerLinkActive="active" class="nav-link" [class.highlighted]="!isLoggedIn()">Sign In</a>
     }
@@ -40,15 +40,15 @@
     </a>
     @if (isLoggedIn()) {
       <a routerLink="/create-post" class="mobile-nav-link" (click)="closeMobileMenu()">
-        <span>Create Report</span>
+        <span>Create Post</span>
       </a>
     }
     <a routerLink="/account-settings" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
-      <span>Account</span>
+      <span>Settings</span>
     </a>
-    <a routerLink="/admin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
-      <span>Admin</span>
-    </a>
+<!--    <a routerLink="/admin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">-->
+<!--      <span>Admin</span>-->
+<!--    </a>-->
     @if (!isLoggedIn()) {
       <a routerLink="/signin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
         <span>Sign In</span>
