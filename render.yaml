@@ -4,7 +4,9 @@ services:
     runtime: python
     region: frankfurt
     rootDir: api
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: |
+      pip install -r requirements.txt
+      flask db upgrade
     startCommand: "gunicorn prod:app"
     preDeployCommand: "flask db upgrade"
     envVars:
@@ -29,10 +31,6 @@ services:
     rootDir: angular-app
     buildCommand: yarn build
     staticPublishPath: "./dist/angular-app/browser"
-    headers:
-      - path: /*
-        name: X-Frame-Options
-        value: sameorigin
     routes:
       - type: rewrite
         source: /api/(.*)
