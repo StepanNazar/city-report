@@ -21,10 +21,10 @@
     <div class="sort-options">
       <label for="sortBy">Sort by:</label>
       <select id="sortBy" [value]="sortBy()" (change)="onSortChange($event)">
-        <option value="likes">Likes</option>
-        <option value="dislikes">Dislikes</option>
         <option value="created_at">Date</option>
         <option value="edited_at">Last Edited</option>
+        <option value="likes">Likes</option>
+        <option value="dislikes">Dislikes</option>
       </select>
     </div>
 
@@ -64,7 +64,8 @@
     </div>
     } @else {
     <app-solution [solution]="solution" [isPostAuthor]="isPostAuthor()" (editClicked)="startEditSolution(solution.id)"
-      (deleteClicked)="deleteSolution(solution.id)" (approveClicked)="approveSolution(solution.id)">
+      (deleteClicked)="deleteSolution(solution.id)" (approveClicked)="approveSolution(solution.id)"
+      (removeApprovalClicked)="removeApproval(solution.id)">
     </app-solution>
     }
     }

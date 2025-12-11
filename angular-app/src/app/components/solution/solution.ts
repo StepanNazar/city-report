@@ -21,6 +21,7 @@ export class Solution {
   readonly editClicked = output<void>();
   readonly deleteClicked = output<void>();
   readonly approveClicked = output<void>();
+  readonly removeApprovalClicked = output<void>();
 
   readonly isAuthor = computed(() => {
     const userId = this.authService.getUserId();
@@ -37,6 +38,10 @@ export class Solution {
 
   onApprove() {
     this.approveClicked.emit();
+  }
+
+  onRemoveApproval() {
+    this.removeApprovalClicked.emit();
   }
 
   navigateToAuthor() {

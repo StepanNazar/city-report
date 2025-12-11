@@ -27,7 +27,7 @@ export class Solutions {
   readonly totalPages = signal<number>(1);
   readonly totalItems = signal<number>(0);
   readonly isLoading = signal<boolean>(false);
-  readonly sortBy = signal<string>('likes');
+  readonly sortBy = signal<string>('created_at');
   readonly order = signal<string>('desc');
   readonly onlyApproved = signal<boolean>(false);
   readonly showCreateForm = signal<boolean>(false);
@@ -174,7 +174,38 @@ export class Solutions {
   }
 
   approveSolution(solutionId: number) {
-    console.log('Approve solution:', solutionId);
-    this.notificationService.info('Approve solution feature coming soon', 3000);
+    this.solutionsService.approveSolution(solutionId).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.notificationService.success('Solution approved successfully!', 5000);
+        this.loadSolutions();
+      },
+      error: (error) => {
+        console.error('Error approving solution:', error);
+        const errorMessage = error?.error?.message || 'Failed to approve solution';
+        this.notificationService.error(errorMessage, 5000);
+      }
+    });
+  }
+
+  removeApproval(solutionId: number) {
+    if (!confirm('Are you sure you want to remove the approval from this solution?')) {
+      return;
+    }
+
+    this.solutionsService.removeApproval(solutionId).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.notificationService.success('Approval removed successfully!', 5000);
+        this.loadSolutions();
+      },
+      error: (error) => {
+        console.error('Error removing approval:', error);
+        const errorMessage = error?.error?.message || 'Failed to remove approval';
+        this.notificationService.error(errorMessage, 5000);
+      }
+    });
   }
 }

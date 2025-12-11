@@ -90,5 +90,12 @@ export class SolutionsService {
     deleteSolution(solutionId: number): Observable<void> {
         return this.http.delete<void>(`/api/solutions/${solutionId}`);
     }
-}
 
+    approveSolution(solutionId: number): Observable<void> {
+        return this.http.put<void>(`/api/solutions/${solutionId}/approval`, {});
+    }
+
+    removeApproval(solutionId: number): Observable<void> {
+        return this.http.delete<void>(`/api/solutions/${solutionId}/approval`);
+    }
+}
