@@ -4,12 +4,14 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Post } from '../../components/post/post';
 import { PostEdit } from '../../components/post-edit/post-edit';
 import { Solutions } from '../../components/solutions/solutions';
+import { AIComment } from '../../components/aicomment/aicomment';
+import { Comments } from '../../components/comments/comments';
 import { PostsService, PostResponse } from '../../services/posts.service';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-post-page',
-  imports: [Post, PostEdit, Solutions, RouterLink],
+  imports: [Post, PostEdit, Solutions, AIComment, Comments, RouterLink],
   templateUrl: './post-page.html',
   styleUrl: './post-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

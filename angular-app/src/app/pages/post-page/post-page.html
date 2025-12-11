@@ -15,9 +15,17 @@
   </app-post>
   }
 
+  <section class="ai-comment-section">
+    <app-aicomment></app-aicomment>
+  </section>
+
   <section class="solutions-section">
     <app-solutions [postId]="post()!.id" [postAuthorId]="post()!.authorId">
     </app-solutions>
+  </section>
+
+  <section class="comments-section">
+    <app-comments></app-comments>
   </section>
   } @else {
   <div class="error-state">
