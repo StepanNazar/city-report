@@ -57,5 +57,5 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
     );
   }
 
-  return RefreshTokenAndRetry();
+  return next(req);
 };

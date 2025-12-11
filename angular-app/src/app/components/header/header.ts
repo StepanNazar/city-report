@@ -26,4 +26,8 @@ export class Header {
     this.isMobileMenuOpen = false;
     document.body.style.overflow = '';
   }
+
+  logout() {
+    this.authService.logout().subscribe();
+  }
 }
