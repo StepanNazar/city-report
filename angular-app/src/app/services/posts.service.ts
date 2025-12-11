@@ -56,6 +56,41 @@ export interface PostsResponse {
     totalPages: number;
 }
 
+// Map Clusters Types
+export interface ClusterBounds {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+}
+
+export interface MapPostItem {
+    type: 'post';
+    id: number;
+    latitude: number;
+    longitude: number;
+    title: string;
+    authorFirstName: string | null;
+    authorLastName: string | null;
+    createdAt: string | null;
+    thumbnailUrl: string | null;
+}
+
+export interface MapClusterItem {
+    type: 'cluster';
+    latitude: number;
+    longitude: number;
+    count: number;
+    bounds: ClusterBounds;
+}
+
+export type MapItem = MapPostItem | MapClusterItem;
+
+export interface MapClustersResponse {
+    items: MapItem[];
+    totalInView: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -97,6 +132,23 @@ export class PostsService {
 
     deletePost(postId: number): Observable<void> {
         return this.http.delete<void>(`/api/posts/${postId}`);
+    }
+
+    getMapClusters(
+        minLat: number,
+        maxLat: number,
+        minLng: number,
+        maxLng: number,
+        zoom: number
+    ): Observable<MapClustersResponse> {
+        const params = new HttpParams()
+            .set('minLat', minLat.toString())
+            .set('maxLat', maxLat.toString())
+            .set('minLng', minLng.toString())
+            .set('maxLng', maxLng.toString())
+            .set('zoom', zoom.toString());
+
+        return this.http.get<MapClustersResponse>('/api/posts/map-clusters', { params });
     }
 }
 
