@@ -1,7 +1,7 @@
 services:
   - name: cityreport-api
     type: web
-    env: python
+    runtime: python
     region: frankfurt
     rootDir: api
     buildCommand: "pip install -r requirements.txt"
@@ -23,18 +23,25 @@ services:
       - key: DATABASE_URL
         sync: false
 
-staticSites:
-  - name: cityreport
+  - type: web
+    runtime: static
+    name: cityreport
     rootDir: angular-app
-    buildCommand: "npm install && npm run build --if-present"
-    publishPath: "dist/angular-app/browser"
-
-    rewrites:
-      - source: "/api/(.*)"
+    buildCommand: yarn build
+    staticPublishPath: "./dist/angular-app/browser"
+    previews:
+      generation: automatic
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: sameorigin
+    routes:
+      - type: rewrite
+        source: /api/(.*)
         destination: "https://cityreport-api.onrender.com/$1"
-
-      - source: "/uploads/(.*)"
+      - type: rewrite
+        source: /uploads/(.*)
         destination: "https://cityreport-api.onrender.com/uploads/$1"
-
-      - source: "/(.*)"
-        destination: "/index.html"
+      - type: rewrite
+        source: /(.*)
+        destination: /index.html
