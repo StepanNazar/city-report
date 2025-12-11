@@ -1,0 +1,40 @@
+services:
+  - name: cityreport-api
+    type: web
+    env: python
+    region: frankfurt
+    rootDir: api
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn prod:app"
+    preDeployCommand: "flask db upgrade"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PUBLIC_URL
+        value: https://cityreport.onrender.com
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+staticSites:
+  - name: cityreport
+    rootDir: angular-app
+    buildCommand: "npm install && npm run build --if-present"
+    publishPath: "dist/angular-app/browser"
+
+    rewrites:
+      - source: "/api/(.*)"
+        destination: "https://cityreport-api.onrender.com/$1"
+
+      - source: "/uploads/(.*)"
+        destination: "https://cityreport-api.onrender.com/uploads/$1"
+
+      - source: "/(.*)"
+        destination: "/index.html"
