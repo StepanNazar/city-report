@@ -29,8 +29,6 @@ services:
     rootDir: angular-app
     buildCommand: yarn build
     staticPublishPath: "./dist/angular-app/browser"
-    previews:
-      generation: automatic
     headers:
       - path: /*
         name: X-Frame-Options
