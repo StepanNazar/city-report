@@ -17,26 +17,34 @@ depends_on = None
 
 
 def upgrade():
-    # Use batch_alter_table to recreate columns with autoincrement=True
-    # This works for both SQLite and PostgreSQL
+    bind = op.get_bind()
+    dialect = bind.dialect.name
 
-    with op.batch_alter_table('post_image', schema=None) as batch_op:
-        batch_op.alter_column('id',
-                              existing_type=sa.Integer(),
-                              autoincrement=True,
-                              existing_nullable=False)
+    if dialect == 'postgresql':
+        # For PostgreSQL: Create sequences and set them as default for id columns
+        # This fixes the autoincrement issue that works in SQLite but not in PostgreSQL
 
-    with op.batch_alter_table('solution_image', schema=None) as batch_op:
-        batch_op.alter_column('id',
-                              existing_type=sa.Integer(),
-                              autoincrement=True,
-                              existing_nullable=False)
+        # Fix post_image table
+        op.execute(sa.text("CREATE SEQUENCE IF NOT EXISTS post_image_id_seq"))
+        op.execute(sa.text("SELECT setval('post_image_id_seq', COALESCE((SELECT MAX(id) FROM post_image), 0) + 1, false)"))
+        op.execute(sa.text("ALTER TABLE post_image ALTER COLUMN id SET DEFAULT nextval('post_image_id_seq')"))
+        op.execute(sa.text("ALTER SEQUENCE post_image_id_seq OWNED BY post_image.id"))
+
+        # Fix solution_image table
+        op.execute(sa.text("CREATE SEQUENCE IF NOT EXISTS solution_image_id_seq"))
+        op.execute(sa.text("SELECT setval('solution_image_id_seq', COALESCE((SELECT MAX(id) FROM solution_image), 0) + 1, false)"))
+        op.execute(sa.text("ALTER TABLE solution_image ALTER COLUMN id SET DEFAULT nextval('solution_image_id_seq')"))
+        op.execute(sa.text("ALTER SEQUENCE solution_image_id_seq OWNED BY solution_image.id"))
+    # SQLite handles INTEGER PRIMARY KEY as autoincrement automatically, no action needed
 
 
 def downgrade():
-    with op.batch_alter_table('post_image', schema=None) as batch_op:
-        batch_op.alter_column('id', existing_type=sa.INTEGER(), autoincrement=False, existing_nullable=False)
+    bind = op.get_bind()
+    dialect = bind.dialect.name
 
-    with op.batch_alter_table('solution_image', schema=None) as batch_op:
-        batch_op.alter_column('id', existing_type=sa.INTEGER(), autoincrement=False, existing_nullable=False)
+    if dialect == 'postgresql':
+        op.execute(sa.text("ALTER TABLE post_image ALTER COLUMN id DROP DEFAULT"))
+        op.execute(sa.text("DROP SEQUENCE IF EXISTS post_image_id_seq"))
 
+        op.execute(sa.text("ALTER TABLE solution_image ALTER COLUMN id DROP DEFAULT"))
+        op.execute(sa.text("DROP SEQUENCE IF EXISTS solution_image_id_seq"))
