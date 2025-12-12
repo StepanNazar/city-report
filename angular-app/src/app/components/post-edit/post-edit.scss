@@ -95,6 +95,24 @@
         border-radius: 8px;
     }
 
+    .coordinates-input {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .loading-text {
+        font-size: 14px;
+        color: #7A7A7A;
+        font-style: italic;
+        margin: 8px 0;
+    }
+
     .form-actions {
         display: flex;
         gap: 12px;

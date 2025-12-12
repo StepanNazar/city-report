@@ -50,13 +50,28 @@
     </div>
 
     <div class="image-section">
-      <h3>Images</h3>
-      <app-image-upload (imageIdsChanged)="onImageIdsChanged($event)"></app-image-upload>
+      <app-image-edit [existingImages]="post().images" (imageIdsChanged)="onImageIdsChanged($event)"></app-image-edit>
     </div>
 
     <div class="location-section">
       <h3>Location</h3>
-      <app-location-selector (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
+      <div class="coordinates-input">
+        <div class="form-group">
+          <label for="latitude">Latitude <span class="required">*</span></label>
+          <input type="number" id="latitude" formControlName="latitude" step="0.000001" placeholder="e.g., 49.8397"
+            (change)="onCoordinatesChanged()">
+        </div>
+        <div class="form-group">
+          <label for="longitude">Longitude <span class="required">*</span></label>
+          <input type="number" id="longitude" formControlName="longitude" step="0.000001" placeholder="e.g., 24.0297"
+            (change)="onCoordinatesChanged()">
+        </div>
+      </div>
+      @if (isLoadingLocation()) {
+      <p class="loading-text">Loading location...</p>
+      }
+      <app-location-selector #locationSelector
+        (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
     </div>
 
     <div class="form-actions">
