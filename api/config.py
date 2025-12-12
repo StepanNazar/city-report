@@ -35,7 +35,8 @@ class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
     SQLALCHEMY_ECHO = True
     JWT_COOKIE_SECURE = False
-    CORS_ORIGINS = re.compile(r"^https?://(localhost|127\.0\.0\.1):4200$")
+    # Allow localhost, 127.0.0.1, and Docker 'frontend' service
+    CORS_ORIGINS = re.compile(r"^https?://(localhost|127\.0\.0\.1|frontend):4200$")
     STORAGE_SERVICE = LocalFolderStorageService()
 
 

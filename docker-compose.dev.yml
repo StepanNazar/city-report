@@ -1,0 +1,73 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount source code for hot reload
+      - ./api:/app/api
+      # Persist uploaded images
+      - ./api/uploaded_images:/app/api/uploaded_images
+      # Persist SQLite database
+      - ./api/app.db:/app/api/app.db
+    environment:
+      - FLASK_APP=dev
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYTHONPATH=/app/api
+    networks:
+      - city-report-network
+    # Uncomment to use PostgreSQL instead of SQLite
+    # depends_on:
+    #   - db:
+    #     condition: service_healthy
+
+  frontend:
+    build:
+      context: ./angular-app
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4200:4200"
+    volumes:
+      # Mount source code for hot reload
+      - ./angular-app/src:/app/src
+      - ./angular-app/public:/app/public
+      - ./angular-app/proxy.conf.docker.js:/app/proxy.conf.docker.js
+      # Exclude node_modules to use container's version
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - city-report-network
+
+  # Optional: PostgreSQL for production parity
+  # Uncomment to use instead of SQLite
+  # db:
+  #   image: postgres:latest
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_USER=cityreport
+  #     - POSTGRES_PASSWORD=cityreport
+  #     - POSTGRES_DB=cityreport
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - city-report-network
+
+networks:
+  city-report-network:
+    driver: bridge
+
+# Optional: PostgreSQL for production parity
+# Uncomment to use instead of SQLite
+# volumes:
+#   postgres_data:
+
