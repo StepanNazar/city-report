@@ -120,7 +120,9 @@ class SupabaseStorageService(StorageService):
 
     def _upload(self, file: FileStorage) -> str:
         """Upload a file to Supabase bucket and return its public URL (CDN)."""
-        filename = uuid.uuid4().hex + secure_filename(file.filename or "unnamed_file")
+        filename = (
+            uuid.uuid4().hex + secure_filename(file.filename or "unnamed_file") + ".jpg"
+        )
 
         try:
             file_bytes = file.read()
@@ -129,7 +131,6 @@ class SupabaseStorageService(StorageService):
                 file_bytes,
                 file_options={  # type: ignore
                     "cacheControl": "public, max-age=31536000",
-                    "contentType": file.content_type,
                 },
             )
             url = self.supabase.storage.from_(self.bucket_name).get_public_url(filename)
