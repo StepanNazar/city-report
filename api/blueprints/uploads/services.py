@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import filetype
 from flask import send_from_directory, url_for
+from supabase import create_client
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
@@ -110,3 +111,39 @@ class LocalFolderStorageService(StorageService):
     def _delete_file(self, filename: str):
         filename = os.path.join("uploaded_images", filename)
         os.remove(filename)
+
+
+class SupabaseStorageService(StorageService):
+    def __init__(self, supabase_url: str, supabase_key: str, bucket_name: str):
+        self.supabase = create_client(supabase_url, supabase_key)
+        self.bucket_name = bucket_name
+
+    def _upload(self, file: FileStorage) -> str:
+        """Upload a file to Supabase bucket and return its public URL (CDN)."""
+        filename = (
+            uuid.uuid4().hex + secure_filename(file.filename or "unnamed_file") + ".jpg"
+        )
+
+        try:
+            file_bytes = file.read()
+            self.supabase.storage.from_(self.bucket_name).upload(
+                filename,
+                file_bytes,
+                file_options={  # type: ignore
+                    "cacheControl": "public, max-age=31536000",
+                },
+            )
+            url = self.supabase.storage.from_(self.bucket_name).get_public_url(filename)
+            return url
+        except Exception as e:
+            raise UploadError("Failed to save file") from e
+
+    def send_file(self, filename: str):
+        return None  # interfaces should be refactored
+
+    def delete_file(self, file_path: str):
+        """Delete a file from Supabase Storage bucket."""
+        try:
+            self.supabase.storage.from_(self.bucket_name).remove([file_path])
+        except Exception as e:
+            raise StorageError(f"Failed to delete file {file_path}") from e

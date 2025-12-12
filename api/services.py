@@ -1,3 +1,5 @@
+import os
+
 import requests
 
 from api.blueprints.auth.models import User
@@ -26,7 +28,11 @@ class NominatimService:
     def get_latitude_longitude(locality_id: int) -> tuple[float, float]:
         url = "https://nominatim.openstreetmap.org/lookup?osm_ids=N{},W{},R{}&format=geocodejson"
         url = url.format(locality_id, locality_id, locality_id)
-        headers = {"User-Agent": "City Report", "Accept-language": "en"}
+        headers = {
+            "User-Agent": os.environ.get("NOMINATIM_USER_AGENT") or "City Report",
+            "Accept-language": "en",
+            "Referer": os.environ.get("NOMINATIM_REFERER"),
+        }
         r = requests.get(url, timeout=10, headers=headers)
         r.raise_for_status()
         json = r.json()
