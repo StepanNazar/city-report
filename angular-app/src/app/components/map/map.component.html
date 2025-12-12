@@ -1,6 +1,6 @@
 <div class="map">
   <div class="map-container" #mapContainer></div>
-  @if (coordinates(); as coordinates) {
+  @if (mode() === 'picker' && coordinates(); as coordinates) {
   <div class="coordinates-display">
     <span>📍 Lat: {{ coordinates.latitude }}</span>
     <span>Lon: {{ coordinates.longitude }}</span>

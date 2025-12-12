@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
@@ -37,6 +38,12 @@ class Solution(TimestampMixin, db.Model):
     author: so.Mapped["User"] = so.relationship(back_populates="solutions")
     post_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("post.id"), nullable=False)
     post: so.Mapped["Post"] = so.relationship(back_populates="solutions")
+    approved: so.Mapped[bool] = so.mapped_column(
+        sa.Boolean, server_default=sa.false(), nullable=False
+    )
+    approved_at: so.Mapped[datetime | None] = so.mapped_column(
+        sa.DateTime(timezone=True), nullable=True
+    )
     image_association: so.Mapped[list["SolutionImage"]] = so.relationship(
         back_populates="solution",
         order_by="SolutionImage.order",

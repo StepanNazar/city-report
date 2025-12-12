@@ -1,24 +1,32 @@
 <div class="posts-list">
-  <h2>Posts</h2>
+  @if (isLoading()) {
+    <p>Loading posts...</p>
+  } @else if (error()) {
+    <p class="error-message">{{ error() }}</p>
+  } @else {
+    @if (totalPages() > 1) {
+      <div class="pagination top-pagination">
+        <button type="button" (click)="prevPage()" [disabled]="!hasPrev()">Previous</button>
+        <span>Page {{ currentPage() }} of {{ totalPages() }}</span>
+        <button type="button" (click)="nextPage()" [disabled]="!hasNext()">Next</button>
+      </div>
+    }
 
-  <div class="sort-options">
-    <label for="sortBy">Sort by:</label>
-    <select id="sortBy" name="sortBy">
-      <option value="newest">Newest</option>
-      <option value="oldest">Oldest</option>
-      <option value="likes">Most Liked</option>
-    </select>
-  </div>
+    <div class="posts">
+      @for (post of posts(); track post.id) {
+        <app-short-post-info [post]="post"></app-short-post-info>
+      } @empty {
+        <p>No posts found.</p>
+      }
+    </div>
 
-  <div class="posts">
-    <app-short-post-info></app-short-post-info>
-    <app-short-post-info></app-short-post-info>
-  </div>
-
-  <div class="pagination">
-    <button type="button">Previous</button>
-    <span>Page 1 of 10</span>
-    <button type="button">Next</button>
-  </div>
+    @if (totalPages() > 1) {
+      <div class="pagination bottom-pagination">
+        <button type="button" (click)="prevPage()" [disabled]="!hasPrev()">Previous</button>
+        <span>Page {{ currentPage() }} of {{ totalPages() }}</span>
+        <button type="button" (click)="nextPage()" [disabled]="!hasNext()">Next</button>
+      </div>
+    }
+  }
 </div>
 

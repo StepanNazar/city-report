@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import {catchError, Observable, tap, throwError} from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CookieService } from 'ngx-cookie-service';
 import { LocationProvider } from './location-selector-service';
@@ -92,9 +92,18 @@ export class AuthenticationService {
     );
   }
   logout() {
-    let observable = this.http.post('/api/auth/logout', {});
-    this.clearAccessToken();
-    return observable;
+    return this.http.post('/api/auth/logout', {}).pipe(
+      tap(() => {
+        this.clearAccessToken();
+      }),
+      catchError((error) => {
+        this.cookieService.delete('refresh_token');
+        this.cookieService.delete('csrf_refresh_token');
+        this.clearAccessToken();
+        return throwError(() => error);
+        }
+      )
+    );
   }
   whoami(): Observable<WhoAmIResponse> {
     return this.http.get<WhoAmIResponse>('/api/auth/whoami');

@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from apiflask import abort
 from apiflask.views import MethodView
 from flask import url_for
@@ -42,6 +44,9 @@ class PostSolutions(MethodView):
         PostModel.query.get_or_404(post_id, description="Post not found")
 
         query = SolutionModel.query.filter_by(post_id=post_id)
+
+        if query_data.get("approved") is not None:
+            query = query.filter_by(approved=query_data["approved"])
 
         if query_data.get("sort_by") in ["likes", "dislikes"]:
             query_data["sort_by"] = "created_at"  # until reactions are not implemented
@@ -197,20 +202,50 @@ class SolutionApproval(MethodView):
     @jwt_required()
     @solutions.doc(
         security="jwt_access_token",
-        responses={204: "Solution approved", 403: "Forbidden"},
+        responses={204: "Solution approved", 403: "Forbidden", 404: "Not found"},
     )
     def put(self, solution_id):
         """Approve the solution. Only the author of the post can approve the solution."""
-        return {}, 501
+        user_id = int(get_jwt_identity())
+        solution = SolutionModel.query.get_or_404(
+            solution_id, description="Solution not found"
+        )
+
+        if solution.post.author_id != user_id:
+            abort(403, message="Only the post author can approve solutions")
+
+        solution.approved = True
+        solution.approved_at = datetime.now(timezone.utc)
+
+        db.session.commit()
+
+        return "", 204
 
     @jwt_required()
     @solutions.doc(
         security="jwt_access_token",
-        responses={204: "Solution approval removed", 403: "Forbidden"},
+        responses={
+            204: "Solution approval removed",
+            403: "Forbidden",
+            404: "Not found",
+        },
     )
     def delete(self, solution_id):
         """Remove approval of the solution. Only the author of the post can remove approval."""
-        return {}, 501
+        user_id = int(get_jwt_identity())
+        solution = SolutionModel.query.get_or_404(
+            solution_id, description="Solution not found"
+        )
+
+        if solution.post.author_id != user_id:
+            abort(403, message="Only the post author can remove approval")
+
+        solution.approved = False
+        solution.approved_at = None
+
+        db.session.commit()
+
+        return "", 204
 
 
 class SolutionReaction(MethodView):

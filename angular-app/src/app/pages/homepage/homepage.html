@@ -1,23 +1,25 @@
 <div class="homepage">
-  <h1>City Report</h1>
+  <div class="map-section">
+    <h2>Post Map</h2>
+    <app-map mode="clusters"></app-map>
+  </div>
 
-  <app-post-filter-search-panel></app-post-filter-search-panel>
-
-  <div class="content-layout">
-    <div class="map-section">
-      <app-map></app-map>
-    </div>
-
-    <div class="posts-section">
-      <div class="view-toggle">
-        <button type="button">List View</button>
-        <button type="button">Grid View</button>
+  <div class="post-feed-section">
+    <h2>Post Feed</h2>
+    <div class="feed-layout">
+      <div class="filter-panel">
+        <app-post-filter-search-panel
+          (locationSelectedEvent)="onLocationSelected($event)"
+          (sortByChanged)="onSortByChanged($event)"
+          (orderChanged)="onOrderChanged($event)"
+        ></app-post-filter-search-panel>
       </div>
-
-      <div class="posts-list">
-        <app-short-post-info></app-short-post-info>
-        <app-short-post-info></app-short-post-info>
-        <app-short-post-info></app-short-post-info>
+      <div class="posts-list-panel">
+        <app-posts-list
+          [location]="selectedLocation()"
+          [sortBy]="sortBy()"
+          [order]="order()"
+        ></app-posts-list>
       </div>
     </div>
   </div>

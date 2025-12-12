@@ -5,16 +5,17 @@
     </div>
     <nav class="nav-links desktop-nav">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
-      <a routerLink="/locations" routerLinkActive="active" class="nav-link">Locations</a>
+<!--      <a routerLink="/locations" routerLinkActive="active" class="nav-link">Locations</a>-->
     </nav>
   </div>
   <div class="nav-right">
     <div class="desktop-nav">
-      <a routerLink="/account-settings" routerLinkActive="active" class="nav-link">Account</a>
-      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>
+<!--      <a routerLink="/account-settings" routerLinkActive="active" class="nav-link">Settings</a>-->
+<!--      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>-->
     </div>
     @if (isLoggedIn()) {
-      <a routerLink="/create-post" class="btn-primary">Create Report</a>
+      <a routerLink="/create-post" class="btn-primary">Create Post</a>
+      <button class="btn-logout" (click)="logout()">Logout</button>
     } @else {
       <a routerLink="/signin" routerLinkActive="active" class="nav-link" [class.highlighted]="!isLoggedIn()">Sign In</a>
     }
@@ -35,20 +36,23 @@
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-nav-link" (click)="closeMobileMenu()">
       <span>Home</span>
     </a>
-    <a routerLink="/locations" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
-      <span>Locations</span>
-    </a>
+<!--    <a routerLink="/locations" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">-->
+<!--      <span>Locations</span>-->
+<!--    </a>-->
     @if (isLoggedIn()) {
       <a routerLink="/create-post" class="mobile-nav-link" (click)="closeMobileMenu()">
-        <span>Create Report</span>
+        <span>Create Post</span>
       </a>
+      <button class="mobile-nav-link logout-link" (click)="logout(); closeMobileMenu()">
+        <span>Logout</span>
+      </button>
     }
-    <a routerLink="/account-settings" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
-      <span>Account</span>
-    </a>
-    <a routerLink="/admin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
-      <span>Admin</span>
-    </a>
+<!--    <a routerLink="/account-settings" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">-->
+<!--      <span>Settings</span>-->
+<!--    </a>-->
+<!--    <a routerLink="/admin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">-->
+<!--      <span>Admin</span>-->
+<!--    </a>-->
     @if (!isLoggedIn()) {
       <a routerLink="/signin" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
         <span>Sign In</span>

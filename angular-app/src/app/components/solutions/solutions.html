@@ -1,34 +1,97 @@
 <div class="solutions">
-  <h2>Solutions</h2>
+  <div class="solutions-header">
+    <h2>Solutions ({{ totalItems() }})</h2>
+    <button type="button" class="create-solution-btn" (click)="startCreateSolution()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Add Solution
+    </button>
+  </div>
+
+  @if (showCreateForm()) {
+  <div class="create-solution-form">
+    <app-solution-edit (saveClicked)="createSolution($event)" (cancelClicked)="cancelCreateSolution()">
+    </app-solution-edit>
+  </div>
+  }
 
   <div class="solutions-controls">
     <div class="sort-options">
       <label for="sortBy">Sort by:</label>
-      <select id="sortBy" name="sortBy">
+      <select id="sortBy" [value]="sortBy()" (change)="onSortChange($event)">
+        <option value="created_at">Date</option>
+        <option value="edited_at">Last Edited</option>
         <option value="likes">Likes</option>
         <option value="dislikes">Dislikes</option>
-        <option value="time">Time</option>
       </select>
     </div>
 
     <div class="filter-options">
       <label>
-        <input type="checkbox" name="onlyApproved">
+        <input type="checkbox" [checked]="onlyApproved()" (change)="onApprovedFilterChange($event)">
         Only Approved
       </label>
     </div>
   </div>
 
+  @if (isLoading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading solutions...</p>
+  </div>
+  } @else if (solutions().length === 0) {
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9EA3A9" stroke-width="1.5">
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+    <p>No solutions yet</p>
+    <p class="empty-state-subtitle">Be the first to propose a solution!</p>
+    <button type="button" class="create-solution-btn" (click)="startCreateSolution()">
+      Add Solution
+    </button>
+  </div>
+  } @else {
   <div class="solutions-list">
-    <app-solution></app-solution>
-    <app-solution></app-solution>
-    <app-solution></app-solution>
+    @for (solution of solutions(); track solution.id) {
+    @if (editingSolutionId() === solution.id) {
+    <div class="edit-solution-form">
+      <app-solution-edit [solution]="solution" (saveClicked)="updateSolution($event)"
+        (cancelClicked)="cancelEditSolution()">
+      </app-solution-edit>
+    </div>
+    } @else {
+    <app-solution [solution]="solution" [isPostAuthor]="isPostAuthor()" (editClicked)="startEditSolution(solution.id)"
+      (deleteClicked)="deleteSolution(solution.id)" (approveClicked)="approveSolution(solution.id)"
+      (removeApprovalClicked)="removeApproval(solution.id)">
+    </app-solution>
+    }
+    }
   </div>
 
+  @if (totalPages() > 1) {
   <div class="pagination">
-    <button type="button">Previous</button>
-    <span>Page 1 of 10</span>
-    <button type="button">Next</button>
-  </div>
-</div>
+    <button type="button" class="pagination-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      Previous
+    </button>
 
+    <span class="pagination-info">
+      Page {{ currentPage() }} of {{ totalPages() }}
+    </span>
+
+    <button type="button" class="pagination-btn" [disabled]="currentPage() === totalPages()"
+      (click)="goToPage(currentPage() + 1)">
+      Next
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </button>
+  </div>
+  }
+  }
+</div>

@@ -1,0 +1,56 @@
+:host {
+  display: block;
+  background-color: #F7F8FA;
+  padding: 40px 20px;
+}
+
+.homepage {
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .map-section {
+    background: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #E1E5E9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    margin-bottom: 48px;
+    padding: 28px;
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1E2530;
+      margin: 0 0 20px 0;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #F0F2F4;
+    }
+
+    app-map {
+      display: block;
+      height: 450px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #E1E5E9;
+    }
+  }
+
+  .post-feed-section {
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1E2530;
+      margin-bottom: 24px;
+    }
+
+    .feed-layout {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 32px;
+
+      @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}

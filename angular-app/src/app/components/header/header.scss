@@ -105,6 +105,30 @@
   }
 }
 
+// Logout button
+.btn-logout {
+  background: transparent;
+  color: #5C6470;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid #E1E5E9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #F7F8FA;
+    color: #1E2530;
+    border-color: #1E2530;
+  }
+
+  &:active {
+    background: #E1E5E9;
+  }
+}
+
 // Mobile menu toggle button (hamburger)
 .mobile-menu-toggle {
   display: none;
@@ -196,6 +220,13 @@
   padding: 16px 24px;
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
 
   span {
     display: block;
@@ -220,6 +251,16 @@
 
     &:hover {
       background: #1570A8;
+    }
+  }
+
+  &.logout-link {
+    color: #5C6470;
+    border-top: 1px solid #E1E5E9;
+    margin-top: 8px;
+
+    &:hover {
+      color: #E03E3E;
     }
   }
 }

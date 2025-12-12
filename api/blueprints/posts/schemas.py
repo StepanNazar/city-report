@@ -1,6 +1,16 @@
 from apiflask import Schema, validators
-from apiflask.fields import UUID, DateTime, Float, Integer, List, Method, Nested, String
-from apiflask.validators import Length, OneOf
+from apiflask.fields import (
+    UUID,
+    DateTime,
+    Float,
+    Integer,
+    List,
+    Method,
+    Nested,
+    Raw,
+    String,
+)
+from apiflask.validators import Length, OneOf, Range
 from flask import url_for
 from marshmallow import ValidationError, validates_schema
 
@@ -103,3 +113,76 @@ class PostSortingFilteringSchema(PostSortingSchema):
             raise ValidationError(
                 "Both localityId and localityProvider must be specified together or omitted together."
             )
+
+
+# Map Clusters Schemas
+class MapBoundsQuerySchema(CamelCaseSchema):
+    """Schema for map bounding box query parameters"""
+
+    min_lat = Float(
+        required=True, metadata={"description": "Minimum latitude of visible area"}
+    )
+    max_lat = Float(
+        required=True, metadata={"description": "Maximum latitude of visible area"}
+    )
+    min_lng = Float(
+        required=True, metadata={"description": "Minimum longitude of visible area"}
+    )
+    max_lng = Float(
+        required=True, metadata={"description": "Maximum longitude of visible area"}
+    )
+    zoom = Integer(
+        required=True,
+        validate=Range(min=0, max=20),
+        metadata={"description": "Current map zoom level"},
+    )
+
+
+class ClusterBoundsSchema(CamelCaseSchema):
+    """Schema for cluster bounds - used for zooming into a cluster"""
+
+    min_lat = Float()
+    max_lat = Float()
+    min_lng = Float()
+    max_lng = Float()
+
+
+class MapPostItemSchema(CamelCaseSchema):
+    """Schema for a single post marker on the map"""
+
+    type = String(dump_default="post")
+    id = Integer()
+    latitude = Float()
+    longitude = Float()
+    title = String()
+    author_first_name = String()
+    author_last_name = String()
+    created_at = DateTime()
+    thumbnail_url = String(allow_none=True)
+
+
+class MapClusterItemSchema(CamelCaseSchema):
+    """Schema for a cluster of posts on the map"""
+
+    type = String(dump_default="cluster")
+    latitude = Float(metadata={"description": "Center latitude of the cluster"})
+    longitude = Float(metadata={"description": "Center longitude of the cluster"})
+    count = Integer(metadata={"description": "Number of posts in the cluster"})
+    bounds = Nested(
+        ClusterBoundsSchema,
+        metadata={"description": "Bounds for zooming into this cluster"},
+    )
+
+
+class MapClustersOutSchema(CamelCaseSchema):
+    """Schema for map clusters response"""
+
+    items = List(
+        Raw(),
+        metadata={
+            "description": "List of posts or clusters. Each item has 'type' field: 'post' or 'cluster'"
+        },
+    )
+    total_in_view = Integer(
+        metadata={"description": "Total number of posts in the visible area"}
+    )

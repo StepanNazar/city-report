@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 export interface Notification {
   id: string;
-  type: 'success' | 'error';
+  type: 'success' | 'error' | 'info';
   message: string;
   duration?: number;
 }
@@ -13,7 +13,7 @@ export interface Notification {
 export class NotificationService {
   notifications = signal<Notification[]>([]);
 
-  show(type: 'success' | 'error', message: string, duration: number = 5000): void {
+  show(type: 'success' | 'error' | 'info', message: string, duration: number = 5000): void {
     const id = crypto.randomUUID();
     const notification: Notification = { id, type, message, duration };
 
@@ -32,6 +32,10 @@ export class NotificationService {
 
   error(message: string, duration?: number): void {
     this.show('error', message, duration);
+  }
+
+  info(message: string, duration?: number): void {
+    this.show('info', message, duration);
   }
 
   remove(id: string): void {

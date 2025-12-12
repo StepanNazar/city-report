@@ -23,6 +23,8 @@ from api.blueprints.posts import posts
 from api.blueprints.posts.models import Post as PostModel
 from api.blueprints.posts.models import PostImage
 from api.blueprints.posts.schemas import (
+    MapBoundsQuerySchema,
+    MapClustersOutSchema,
     PostInSchema,
     PostOutPaginationSchema,
     PostOutSchema,
@@ -241,6 +243,129 @@ class PostComments(MethodView):
         return {}, 501
 
 
+class MapClusters(MethodView):
+    """Get posts clustered for map display based on zoom level and visible bounds."""
+
+    CLUSTER_THRESHOLD_ZOOM = (
+        16  # At this zoom level and above, show all posts without clustering
+    )
+
+    @posts.input(MapBoundsQuerySchema, location="query")
+    @posts.output(MapClustersOutSchema)
+    def get(self, query_data):
+        """
+        Get posts for map display with automatic clustering.
+
+        At high zoom levels (>= 16), returns all individual posts.
+        At lower zoom levels, groups nearby posts into clusters.
+        """
+        min_lat = query_data["min_lat"]
+        max_lat = query_data["max_lat"]
+        min_lng = query_data["min_lng"]
+        max_lng = query_data["max_lng"]
+        zoom = query_data["zoom"]
+
+        posts_in_bounds = PostModel.query.filter(
+            PostModel.latitude.between(min_lat, max_lat),
+            PostModel.longitude.between(min_lng, max_lng),
+        ).all()
+
+        total_in_view = len(posts_in_bounds)
+
+        if zoom >= self.CLUSTER_THRESHOLD_ZOOM:
+            items = [
+                {
+                    "type": "post",
+                    "id": post.id,
+                    "latitude": post.latitude,
+                    "longitude": post.longitude,
+                    "title": post.title,
+                    "authorFirstName": post.author.firstname if post.author else None,
+                    "authorLastName": post.author.lastname if post.author else None,
+                    "createdAt": post.created_at.isoformat()
+                    if post.created_at
+                    else None,
+                    "thumbnailUrl": post.images[0].url if post.images else None,
+                }
+                for post in posts_in_bounds
+            ]
+            return {"items": items, "total_in_view": total_in_view}
+
+        # Calculate grid size based on zoom level
+        # Lower zoom = fewer grid divisions, higher zoom = more divisions
+        grid_divisions = 25
+
+        lat_step = (max_lat - min_lat) / grid_divisions
+        lng_step = (max_lng - min_lng) / grid_divisions
+
+        # Create grid cells and assign posts to them
+        grid: dict[tuple[int, int], list] = {}
+        for post in posts_in_bounds:
+            if lat_step > 0 and lng_step > 0:
+                cell_row = min(
+                    int((post.latitude - min_lat) / lat_step), grid_divisions - 1
+                )
+                cell_col = min(
+                    int((post.longitude - min_lng) / lng_step), grid_divisions - 1
+                )
+            else:
+                cell_row, cell_col = 0, 0
+
+            key = (cell_row, cell_col)
+            if key not in grid:
+                grid[key] = []
+            grid[key].append(post)
+
+        # Build response items
+        items = []
+        for (row, col), cell_posts in grid.items():
+            cell_min_lat = min_lat + row * lat_step
+            cell_max_lat = min_lat + (row + 1) * lat_step
+            cell_min_lng = min_lng + col * lng_step
+            cell_max_lng = min_lng + (col + 1) * lng_step
+
+            if len(cell_posts) == 1:
+                # Single post - return as individual marker
+                post = cell_posts[0]
+                items.append(
+                    {
+                        "type": "post",
+                        "id": post.id,
+                        "latitude": post.latitude,
+                        "longitude": post.longitude,
+                        "title": post.title,
+                        "authorFirstName": post.author.firstname
+                        if post.author
+                        else None,
+                        "authorLastName": post.author.lastname if post.author else None,
+                        "createdAt": post.created_at.isoformat()
+                        if post.created_at
+                        else None,
+                        "thumbnailUrl": post.images[0].url if post.images else None,
+                    }
+                )
+            else:
+                # Multiple posts - return as cluster
+                center_lat = (cell_min_lat + cell_max_lat) / 2
+                center_lng = (cell_min_lng + cell_max_lng) / 2
+                items.append(
+                    {
+                        "type": "cluster",
+                        "latitude": center_lat,
+                        "longitude": center_lng,
+                        "count": len(cell_posts),
+                        "bounds": {
+                            "minLat": cell_min_lat,
+                            "maxLat": cell_max_lat,
+                            "minLng": cell_min_lng,
+                            "maxLng": cell_max_lng,
+                        },
+                    }
+                )
+
+        return {"items": items, "total_in_view": total_in_view}
+
+
 posts.add_url_rule("/posts", view_func=Posts.as_view("posts"))
 posts.add_url_rule("/posts/<int:post_id>", view_func=Post.as_view("post"))
 posts.add_url_rule(
@@ -253,3 +378,4 @@ posts.add_url_rule(
 posts.add_url_rule(
     "/posts/<int:post_id>/comments", view_func=PostComments.as_view("post_comments")
 )
+posts.add_url_rule("/posts/map-clusters", view_func=MapClusters.as_view("map_clusters"))
