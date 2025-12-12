@@ -15,18 +15,11 @@
   </app-post>
   }
 
-  <section class="ai-comment-section">
-    <app-aicomment></app-aicomment>
-  </section>
-
   <section class="solutions-section">
     <app-solutions [postId]="post()!.id" [postAuthorId]="post()!.authorId">
     </app-solutions>
   </section>
 
-  <section class="comments-section">
-    <app-comments></app-comments>
-  </section>
   } @else {
   <div class="error-state">
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#E03E3E" stroke-width="2">
