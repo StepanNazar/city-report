@@ -2,7 +2,7 @@
 
 ## Project Overview 🌟
 
-City Report is a platform for reporting urban problems that are pinned on a map as geographic markers. Each report represents a problem attached to a location, allowing users to see where issues concentrate across the city. Reports can be viewed on a map as markers and explored in a feed that can be filtered by localities to focus on specific towns or neighborhoods.
+City Report is a platform for reporting urban problems that are pinned on a map as geographic markers. Each report represents a problem attached to a location, allowing users to see where issues concentrate across the city. Reports can be viewed on a map as markers and explored in a feed that can be filtered by localities.
 
 For each report, users may post solutions — either proposals for resolving the problem or testimony that it has been resolved. The author of a report can mark solutions as approved if they genuinely solved the problem or are being implemented.
 
@@ -14,7 +14,7 @@ For each report, users may post solutions — either proposals for resolving the
 
 - Pin posts(reports) on a map with geographic markers tied to specific locations.
 - Browse a feed of posts (supports pagination).
-- Filter posts by localities (towns, neighborhoods).
+- Filter posts by localities (cities, towns, villages).
 - Create posts with text, location, and optional attached photos.
 - Post solutions to reports, with optional photos.
 - Post's authors can approve solutions that resolved the problem.
@@ -43,15 +43,45 @@ For each report, users may post solutions — either proposals for resolving the
   - Commitizen for standardized commit messages
   - Pre-commit hooks for code quality
 
-## Installation Guide 🛠️
+## Installation Guide (development) 🛠️
 
 ### Prerequisites
 
+- Git
+- Docker
+
+or
+
+- Git
 - Python 3.12+
 - Node.js 22.x+
-- Git
 
-### Setup Instructions
+### Quick Start with Docker 🐳
+
+The easiest way to run the project locally for development is using Docker:
+
+```bash
+# Clone and enter the project
+git clone https://github.com/StepanNazar/city-report.git
+cd city-report
+
+# Start all services with hot reload
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Access the app at:
+
+- **Frontend**: http://localhost:4200
+- **API**: http://localhost:5000
+
+Features of Docker setup:
+
+- ✅ Hot reload for both Angular and Flask
+- ✅ SQLite for simplicity (PostgreSQL available as opt-in)
+- ✅ Volume mounts for live code changes
+- ✅ No local Python/Node.js installation required
+
+### Manual Setup Instructions
 
 #### 1. Clone the repository
 
