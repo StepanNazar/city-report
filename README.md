@@ -2,57 +2,42 @@
 
 ## Project Overview 🌟
 
-City Report is an interactive platform that allows users to report and discuss various urban issues and improvement proposals. Users can create posts representing problems or suggestions, engage in discussions through comments and reactions, and collaboratively propose solutions. All reports are visualized on a map as markers, enabling intuitive exploration of issues across the city and fostering informed community participation. The system also incorporates moderation tools and AI-assisted suggestions to enhance content quality and community engagement.
+City Report is a platform for reporting urban problems that are pinned on a map as geographic markers. Each report represents a problem attached to a location, allowing users to see where issues concentrate across the city. Reports can be viewed on a map as markers and explored in a feed that can be filtered by localities to focus on specific towns or neighborhoods.
 
-Users can:
+For each report, users may post solutions — either proposals for resolving the problem or testimony that it has been resolved. The author of a report can mark solutions as approved if they genuinely solved the problem or are being implemented.
 
-- Create posts about urban problems or improvement suggestions 📝
-- Engage in discussions through comments and reactions 💬
-- Collaboratively propose solutions 🤝
-- Explore issues across the city using an interactive map interface 🗺️
+<img width="1683" height="980" alt="зображення" src="https://github.com/user-attachments/assets/01284af0-2cb2-465d-9d3b-49790e6baf4e" />
 
-## Concept Visualization 🎨
+<img width="515" height="1143" alt="зображення" src="https://github.com/user-attachments/assets/bf47b601-fe79-4d67-9603-d2b356ccb9f9" />
 
-<img width="1177" height="678" alt="Screenshot 2025-10-06 at 22-06-44 City Report Concept" src="https://github.com/user-attachments/assets/c1980dbc-3426-453c-a610-b3a192ec1050" />
+## Main features 🚀
 
-```
-+---------------------------------------+
-|           CITY REPORT APP             |
-+---------------------------------------+
-|                                       |
-|  +------+                +--------+   |
-|  | Menu |                | User   |   |
-|  +------+                +--------+   |
-|                                       |
-|  +-------------------------------+    |
-|  |                               |    |
-|  |        INTERACTIVE MAP        |    |
-|  |     (With issue markers)      |    |
-|  |                               |    |
-|  +-------------------------------+    |
-|                                       |
-|  +-------------------------------+    |
-|  |       ISSUE FEED/LIST         |    |
-|  | +---------------------------+ |    |
-|  | | Issue 1                   | |    |
-|  | | [Comments] [Solutions]    | |    |
-|  | +---------------------------+ |    |
-|  |                               |    |
-|  | +---------------------------+ |    |
-|  | | Issue 2                   | |    |
-|  | | [Comments] [Solutions]    | |    |
-|  | +---------------------------+ |    |
-|  +-------------------------------+    |
-|                                       |
-+---------------------------------------+
-```
+- Pin posts(reports) on a map with geographic markers tied to specific locations.
+- Browse a feed of posts (supports pagination).
+- Filter posts by localities (towns, neighborhoods).
+- Create posts with text, location, and optional attached photos.
+- Post solutions to reports, with optional photos.
+- Post's authors can approve solutions that resolved the problem.
+- Authors can edit or delete their own posts and solutions, including managing attached photos.
+- Clickable photos open a photo viewer to browse images attached to a post.
+
+## Authors ✍️
+
+- Nazar Stepan
+- Vasylyk Rostyslav
+
+## Deployed demo 🌐
+
+- https://city-report-17wv.onrender.com
+- Note: The demo is hosted on a free tier; it may take ~1 minute to load on first access because the hosting spins down when idle. Also, images may not appear if the monthly free-tier CDN limit is reached.
 
 ## Technologies 💻
 
+- **Frontend**: **Angular**
+- **Geolocation**: **OpenStreetMap**
+- **API Documentation**: **OpenAPI specification**
 - **Backend**: Flask (Python) API
-- **Frontend**: Angular
 - **Database**: SQLite for development, PostgreSQL for production
-- **API Documentation**: OpenAPI specification
 - **Development Tools**:
   - Ruff & Pyright for Python linting/type checking
   - Commitizen for standardized commit messages
