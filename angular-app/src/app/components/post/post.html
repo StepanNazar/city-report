@@ -1,0 +1,48 @@
+<div class="post">
+  <article class="post-content">
+    <header class="post-header">
+      <h1 class="post-title">{{ post().title }}</h1>
+      <div class="post-meta">
+        <span class="author" (click)="navigateToAuthor()">
+          By {{ post().authorFirstName }} {{ post().authorLastName }}
+        </span>
+        <span class="separator">·</span>
+        <span class="date">{{ post().createdAt | date:'medium' }}</span>
+        @if (post().updatedAt && post().updatedAt !== post().createdAt) {
+        <span class="separator">·</span>
+        <span class="edited">Edited: {{ post().updatedAt | date:'medium' }}</span>
+        }
+      </div>
+    </header>
+
+    <div class="post-body">
+      <p>{{ post().body }}</p>
+    </div>
+
+    @if (post().images && post().images.length > 0) {
+    <div class="post-images">
+      @for (image of post().images; track image.id) {
+      <img [src]="image.url" [alt]="'Post image ' + ($index + 1)" loading="lazy">
+      }
+    </div>
+    }
+
+    <div class="post-location">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+      @if (isLoadingLocation()) {
+      <span class="location-loading">Loading location...</span>
+      } @else if (locationInfo()) {
+      <span class="location-name">{{ locationInfo()!.displayName }}</span>
+      } @else {
+      <span>{{ post().latitude.toFixed(6) }}, {{ post().longitude.toFixed(6) }}</span>
+      }
+    </div>
+  </article>
+
+  @if (isAuthor()) {
+  <app-edit-options (editClicked)="onEdit()" (deleteClicked)="onDelete()"></app-edit-options>
+  }
+</div>

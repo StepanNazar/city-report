@@ -1,0 +1,28 @@
+[tool.pytest.ini_options]
+pythonpath = "api"
+
+[tool.ruff]
+extend-exclude = [
+    "api/migrations",
+]
+
+[tool.ruff.lint]
+
+extend-select = [
+    "W",        # PyCodeStyle warnings
+    "I",        # Sort imports properly
+    "UP",       # Warn if certain things can changed due to newer Python versions
+    "B",        # bugbear (common bugs, bad practices)
+    "C4",       # Catch incorrect use of comprehensions, dict, list, etc
+    "SIM",      # Common simplification rules
+    "RUF",      # ruff-specific rules
+    "S",        # bandit (basic security checks)
+    "DTZ",      # enforce timezone-aware datetime
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["S101"]
+"api/tests/api/*.py" = ["S101"]
+"test_*.py" = ["S101"]
+"*_test.py" = ["S101"]
+"conftest.py" = ["S101"]

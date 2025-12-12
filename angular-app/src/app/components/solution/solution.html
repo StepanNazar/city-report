@@ -1,0 +1,70 @@
+<div class="solution">
+  <article class="solution-content">
+    @if (solution().approved) {
+    <div class="approved-badge">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+      </svg>
+      Approved Solution
+      @if (solution().approvedAt) {
+      <span class="approved-date">{{ solution().approvedAt | date:'short' }}</span>
+      }
+    </div>
+    }
+
+    <h3 class="solution-title">{{ solution().title }}</h3>
+
+    <div class="solution-meta">
+      <span class="author" (click)="navigateToAuthor()">
+        By {{ solution().authorFirstName }} {{ solution().authorLastName }}
+      </span>
+      <span class="separator">·</span>
+      <span class="date">{{ solution().createdAt | date:'medium' }}</span>
+      @if (solution().updatedAt && solution().updatedAt !== solution().createdAt) {
+      <span class="separator">·</span>
+      <span class="edited">Edited: {{ solution().updatedAt | date:'short' }}</span>
+      }
+    </div>
+
+    <div class="solution-body">
+      <p>{{ solution().body }}</p>
+    </div>
+
+    @if (solution().images && solution().images.length > 0) {
+    <div class="solution-images">
+      @for (image of solution().images; track image.id) {
+      <img [src]="image.url" [alt]="'Solution image ' + ($index + 1)" loading="lazy">
+      }
+    </div>
+    }
+
+    @if (isPostAuthor() && !solution().approved) {
+    <div class="solution-approval">
+      <button type="button" class="approve-btn" (click)="onApprove()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        Approve Solution
+      </button>
+    </div>
+    }
+
+    @if (isPostAuthor() && solution().approved) {
+    <div class="solution-approval">
+      <button type="button" class="remove-approval-btn" (click)="onRemoveApproval()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+        Remove Approval
+      </button>
+    </div>
+    }
+  </article>
+
+  @if (isAuthor()) {
+  <app-edit-options (editClicked)="onEdit()" (deleteClicked)="onDelete()">
+  </app-edit-options>
+  }
+</div>

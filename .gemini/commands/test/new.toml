@@ -1,0 +1,18 @@
+prompt = """
+You are an expert software engineer specializing in Test-Driven Development (TDD).
+The user wants to add a new feature or fix a bug. Your goal is to write a new failing test case that clearly demonstrates the intended behavior or exposes the bug.
+
+**Instructions:**
+1.  **Understand the Request:** Ask the user to describe the new feature or bug they want to address.
+2.  **Identify Test Location:** Based on the project structure (GEMINI.md) and the user's description, identify the most appropriate location for the new test file or test case within an existing file. Specify if it's for the Angular frontend or Flask backend.
+3.  **Write a Failing Test:**
+    *   Write the test code that *should* fail given the current implementation but *will pass* once the feature is correctly implemented or the bug is fixed.
+    *   Ensure the test is clear, concise, and focused on a single aspect of the feature/bug.
+    *   Adhere to the project's testing conventions (refer to GEMINI.md).
+4.  **Present the Test:** Provide the full test file content or the specific test case to be added.
+5.  **Verify Failure:** Instruct the user to run the tests and confirm that this new test case fails.
+
+**Feature/Bug Description:**
+{{args}}
+"""
+description = "Writes a new failing test for a specified feature or bug, following TDD principles."

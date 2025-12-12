@@ -1,0 +1,81 @@
+<div class="sign-up">
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="firstName">First Name <span style="color: red">*</span></label>
+      <input type="text" id="firstName" name="firstName" required formControlName="firstName" placeholder="Enter your first name">
+      @if (loginForm.get('firstName')?.invalid && (loginForm.get('firstName')?.dirty || loginForm.get('firstName')?.touched)) {
+        <div class="error-messages">
+          @if (loginForm.get('firstName')?.errors?.['required']) {
+            <small class="error-message">First name is required</small>
+          }
+        </div>
+      }
+    </div>
+    <div class="form-group">
+      <label for="lastName">Last Name <span style="color: red">*</span></label>
+      <input type="text" id="lastName" name="lastName" required formControlName="lastName" placeholder="Enter your last name">
+      @if (loginForm.get('lastName')?.invalid && (loginForm.get('lastName')?.dirty || loginForm.get('lastName')?.touched)) {
+        <div class="error-messages">
+          @if (loginForm.get('lastName')?.errors?.['required']) {
+            <small class="error-message">Last name is required</small>
+          }
+        </div>
+      }
+    </div>
+    <div class="form-group">
+      <label for="email">Email <span style="color: red">*</span></label>
+      <input type="email" id="email" name="email" required formControlName="email" placeholder="Enter your email">
+      @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
+        <div class="error-messages">
+          @if (loginForm.get('email')?.errors?.['required']) {
+            <small class="error-message">Email is required</small>
+          }
+          @if (loginForm.get('email')?.errors?.['email']) {
+            <small class="error-message">Please enter a valid email address</small>
+          }
+        </div>
+      }
+    </div>
+    <div class="form-group">
+      <label for="password">Password <span style="color: red">*</span></label>
+      <input type="password" id="password" name="password" required formControlName="password" placeholder="Enter your password">
+      @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
+        <div class="error-messages">
+          @if (loginForm.get('password')?.errors?.['required']) {
+            <small class="error-message">Password is required</small>
+          }
+          @if (loginForm.get('password')?.errors?.['minlength']) {
+            <small class="error-message">Password must be at least 8 characters long</small>
+          }
+          @if (loginForm.get('password')?.errors?.['maxlength']) {
+            <small class="error-message">Password must not exceed 128 characters</small>
+          }
+          @if (loginForm.get('password')?.errors?.['pattern']) {
+            <small class="error-message">Password must contain at least one digit, one uppercase letter, one lowercase letter, and one special character</small>
+          }
+        </div>
+      }
+    </div>
+    <div class="form-group">
+      <label for="confirmPassword">Confirm Password <span style="color: red">*</span></label>
+      <input type="password" id="confirmPassword" name="confirmPassword" required formControlName="confirmPassword" placeholder="Confirm your password">
+      @if (loginForm.get('confirmPassword')?.invalid && (loginForm.get('confirmPassword')?.dirty || loginForm.get('confirmPassword')?.touched)) {
+        <div class="error-messages">
+          @if (loginForm.get('confirmPassword')?.errors?.['required']) {
+            <small class="error-message">Please confirm your password</small>
+          }
+        </div>
+      }
+      @if (loginForm.errors?.['passwordMismatch'] && loginForm.get('confirmPassword')?.touched) {
+        <div class="error-messages">
+          <small class="error-message">Passwords do not match</small>
+        </div>
+      }
+    </div>
+    <div class="form-group location-group">
+      <app-location-selector (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
+      <small class="optional-label">Optional - Select your location to see local posts</small>
+    </div>
+    <button type="submit" class="submit-button">Sign Up</button>
+  </form>
+</div>

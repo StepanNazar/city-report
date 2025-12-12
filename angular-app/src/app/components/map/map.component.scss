@@ -1,0 +1,135 @@
+.map {
+    width: 100%;
+
+    .map-container {
+        width: 100%;
+        height: 400px;
+        border: 2px solid #E1E5E9;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #E5E7EB;
+        z-index: 0;
+
+        &:hover {
+            border-color: #1A83C5;
+        }
+    }
+
+    .coordinates-display {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+        padding: 10px 16px;
+        background: #F8F9FA;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #404040;
+        font-family: 'Courier New', monospace;
+
+        span {
+            font-weight: 500;
+        }
+    }
+}
+
+// Leaflet controls styling
+:host ::ng-deep {
+    .leaflet-container {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+    }
+
+    .leaflet-control-zoom a {
+        color: #1A83C5;
+    }
+
+    // Cluster icon styles
+    .cluster-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+        &:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+
+        span {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+    }
+
+    // Small clusters (< 10) - Primary Accent Blue
+    .cluster-small {
+        background: linear-gradient(135deg, #1A83C5, #1570A8);
+        border: 3px solid #125D8F;
+    }
+
+    // Medium clusters (10-50) - Warning/Amber
+    .cluster-medium {
+        background: linear-gradient(135deg, #F59E0B, #D97706);
+        border: 3px solid #B45309;
+    }
+
+    // Large clusters (> 50) - Error/Danger Red
+    .cluster-large {
+        background: linear-gradient(135deg, #E03E3E, #C53030);
+        border: 3px solid #9B2C2C;
+    }
+
+    // Post popup styles
+    .post-popup {
+        .leaflet-popup-content {
+            margin: 0;
+            min-width: 200px;
+        }
+    }
+
+    .map-post-popup {
+        padding: 12px;
+
+        .popup-thumbnail {
+            width: 100%;
+            max-height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .popup-title {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1A83C5;
+            text-decoration: none;
+            margin-bottom: 6px;
+            line-height: 1.3;
+
+            &:hover {
+                color: #0E5A8A;
+                text-decoration: underline;
+            }
+        }
+
+        .popup-author {
+            font-size: 13px;
+            color: #606060;
+            margin-bottom: 4px;
+        }
+
+        .popup-date {
+            font-size: 12px;
+            color: #808080;
+        }
+    }
+}

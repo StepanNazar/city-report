@@ -1,0 +1,32 @@
+<div class="posts-list">
+  @if (isLoading()) {
+    <p>Loading posts...</p>
+  } @else if (error()) {
+    <p class="error-message">{{ error() }}</p>
+  } @else {
+    @if (totalPages() > 1) {
+      <div class="pagination top-pagination">
+        <button type="button" (click)="prevPage()" [disabled]="!hasPrev()">Previous</button>
+        <span>Page {{ currentPage() }} of {{ totalPages() }}</span>
+        <button type="button" (click)="nextPage()" [disabled]="!hasNext()">Next</button>
+      </div>
+    }
+
+    <div class="posts">
+      @for (post of posts(); track post.id) {
+        <app-short-post-info [post]="post"></app-short-post-info>
+      } @empty {
+        <p>No posts found.</p>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination bottom-pagination">
+        <button type="button" (click)="prevPage()" [disabled]="!hasPrev()">Previous</button>
+        <span>Page {{ currentPage() }} of {{ totalPages() }}</span>
+        <button type="button" (click)="nextPage()" [disabled]="!hasNext()">Next</button>
+      </div>
+    }
+  }
+</div>
+

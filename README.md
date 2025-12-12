@@ -1,70 +1,157 @@
-# Getting Started with Create React App
+# City Report 🏙️
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Project Overview 🌟
 
-## Available Scripts
+City Report is a platform for reporting urban problems that are pinned on a map as geographic markers. Each report represents a problem attached to a location, allowing users to see where issues concentrate across the city. Reports can be viewed on a map as markers and explored in a feed that can be filtered by localities to focus on specific towns or neighborhoods.
 
-In the project directory, you can run:
+For each report, users may post solutions — either proposals for resolving the problem or testimony that it has been resolved. The author of a report can mark solutions as approved if they genuinely solved the problem or are being implemented.
 
-### `npm start`
+<img width="1683" height="980" alt="зображення" src="https://github.com/user-attachments/assets/01284af0-2cb2-465d-9d3b-49790e6baf4e" />
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+<img width="515" height="1143" alt="зображення" src="https://github.com/user-attachments/assets/bf47b601-fe79-4d67-9603-d2b356ccb9f9" />
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Main features 🚀
 
-### `npm test`
+- Pin posts(reports) on a map with geographic markers tied to specific locations.
+- Browse a feed of posts (supports pagination).
+- Filter posts by localities (towns, neighborhoods).
+- Create posts with text, location, and optional attached photos.
+- Post solutions to reports, with optional photos.
+- Post's authors can approve solutions that resolved the problem.
+- Authors can edit or delete their own posts and solutions, including managing attached photos.
+- Clickable photos open a photo viewer to browse images attached to a post.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Authors ✍️
 
-### `npm run build`
+- Nazar Stepan
+- Vasylyk Rostyslav
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Deployed demo 🌐
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- https://city-report-17wv.onrender.com
+- Note: The demo is hosted on a free tier; it may take ~1 minute to load on first access because the hosting spins down when idle. Also, images may not appear if the monthly free-tier CDN limit is reached.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Technologies 💻
 
-### `npm run eject`
+- **Frontend**: **Angular**
+- **Geolocation**: **OpenStreetMap**
+- **API Documentation**: **OpenAPI specification**
+- **Backend**: Flask (Python) API
+- **Database**: SQLite for development, PostgreSQL for production
+- **Development Tools**:
+  - Ruff & Pyright for Python linting/type checking
+  - Commitizen for standardized commit messages
+  - Pre-commit hooks for code quality
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Installation Guide 🛠️
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Prerequisites
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- Python 3.12+
+- Node.js 22.x+
+- Git
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Setup Instructions
 
-## Learn More
+#### 1. Clone the repository
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+git clone https://github.com/StepanNazar/city-report.git
+cd city-report
+git checkout dev
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#### 2. Backend Setup (Flask API)
 
-### Code Splitting
+```bash
+cd api
+# Create a virtual environment
+python -m venv venv
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# Activate the virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
-### Analyzing the Bundle Size
+# Install dependencies
+pip install -r requirements.txt
+pip install -r dev-requirements.txt
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Setup pre-commit hooks
+pre-commit install
+```
 
-### Making a Progressive Web App
+#### 3. Frontend Setup (Angular)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+cd ../angular-app
 
-### Advanced Configuration
+# Install dependencies
+npm install
+# or with Yarn
+yarn install
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+# Setup Angular CLI globally if you don't have it
+npm install -g @angular/cli
+# or with Yarn
+yarn global add @angular/cli
+```
 
-### Deployment
+## Scripts Documentation 📜
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+The project contains two separate `package.json` files (root and angular-app) each with their own scripts.
 
-### `npm run build` fails to minify
+### Root Directory Scripts
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+# Start Angular frontend
+npm run start-angular
+# or with Yarn
+yarn start-angular
+# Alternatively, you can use 'npm start' or 'yarn start' to run the Angular frontend:
+npm start
+# or with Yarn
+yarn start
+
+# Start the Flask API backend
+npm run start-api
+# or with Yarn
+yarn start-api
+
+# Start a mock API using Prism
+npm run start-mock-api
+# or with Yarn
+yarn start-mock-api
+
+# Update OpenAPI specification (generated from Flask code)
+npm run update-spec
+# or with Yarn
+yarn update-spec
+```
+
+### Angular App Directory Scripts (cd angular-app)
+
+```bash
+# Start Angular development server
+npm run start
+# or with Yarn
+yarn start
+
+# Start Flask API. Start mock API, Update OpenAPI specification are same as in root
+
+# Build the Angular app
+npm run build
+# or with Yarn
+yarn build
+
+# Run tests for Angular components
+npm run test
+# or with Yarn
+yarn test
+
+# Build in watch mode
+npm run watch
+# or with Yarn
+yarn watch
+```

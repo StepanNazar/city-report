@@ -1,0 +1,80 @@
+<div class="post-edit">
+  <h2>Edit Post</h2>
+
+  <form [formGroup]="postForm" (ngSubmit)="onSave()">
+    <div class="form-group">
+      <label for="title">
+        Post Title <span class="required">*</span>
+      </label>
+      <input type="text" id="title" formControlName="title" placeholder="e.g., Broken street light on Main Street"
+        [class.invalid]="titleControl?.invalid && titleControl?.touched">
+      @if (titleControl?.invalid && titleControl?.touched) {
+      <div class="error-messages">
+        @if (titleControl?.errors?.['required']) {
+        <small class="error-message">Title is required</small>
+        }
+        @if (titleControl?.errors?.['maxlength']) {
+        <small class="error-message">
+          Title must be at most 100 characters (current: {{ (titleControl?.value?.length || 0) }})
+        </small>
+        }
+      </div>
+      }
+      <div class="character-count">
+        {{ titleControl?.value?.length || 0 }} / 100
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="body">
+        Description <span class="required">*</span>
+      </label>
+      <textarea id="body" formControlName="body" rows="10"
+        placeholder="Provide detailed information about the problem..."
+        [class.invalid]="bodyControl?.invalid && bodyControl?.touched"></textarea>
+      @if (bodyControl?.invalid && bodyControl?.touched) {
+      <div class="error-messages">
+        @if (bodyControl?.errors?.['required']) {
+        <small class="error-message">Description is required</small>
+        }
+        @if (bodyControl?.errors?.['maxlength']) {
+        <small class="error-message">
+          Description must be at most 10,000 characters (current: {{ (bodyControl?.value?.length || 0) }})
+        </small>
+        }
+      </div>
+      }
+      <div class="character-count">
+        {{ bodyControl?.value?.length || 0 }} / 10,000
+      </div>
+    </div>
+
+    <div class="image-section">
+      <h3>Images</h3>
+      <app-image-upload (imageIdsChanged)="onImageIdsChanged($event)"></app-image-upload>
+    </div>
+
+    <div class="location-section">
+      <h3>Location</h3>
+      <app-location-selector (locationSelectedEvent)="onLocationSelected($event)"></app-location-selector>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="save-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+          <polyline points="17 21 17 13 7 13 7 21" />
+          <polyline points="7 3 7 8 15 8" />
+        </svg>
+        Save Changes
+      </button>
+      <button type="button" class="cancel-btn" (click)="onCancel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

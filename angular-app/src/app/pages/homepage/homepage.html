@@ -1,0 +1,27 @@
+<div class="homepage">
+  <div class="map-section">
+    <h2>Post Map</h2>
+    <app-map mode="clusters"></app-map>
+  </div>
+
+  <div class="post-feed-section">
+    <h2>Post Feed</h2>
+    <div class="feed-layout">
+      <div class="filter-panel">
+        <app-post-filter-search-panel
+          (locationSelectedEvent)="onLocationSelected($event)"
+          (sortByChanged)="onSortByChanged($event)"
+          (orderChanged)="onOrderChanged($event)"
+        ></app-post-filter-search-panel>
+      </div>
+      <div class="posts-list-panel">
+        <app-posts-list
+          [location]="selectedLocation()"
+          [sortBy]="sortBy()"
+          [order]="order()"
+        ></app-posts-list>
+      </div>
+    </div>
+  </div>
+</div>
+

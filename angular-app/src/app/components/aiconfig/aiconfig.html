@@ -1,0 +1,36 @@
+<div class="ai-config">
+  <h2>AI Prompt Configuration</h2>
+
+  <div class="default-prompt">
+    <h3>Default AI Prompt</h3>
+    <form>
+      <div class="form-group">
+        <label for="defaultPrompt">Default Prompt</label>
+        <textarea id="defaultPrompt" name="defaultPrompt" rows="6"></textarea>
+      </div>
+      <button type="submit">Update Default Prompt</button>
+    </form>
+  </div>
+
+  <div class="locality-prompts">
+    <h3>Locality-Specific Prompts</h3>
+
+    <div class="locality-prompt-item">
+      <div class="form-group">
+        <label for="locality">Locality</label>
+        <select id="locality" name="locality">
+          <option value="">Select locality...</option>
+        </select>
+      </div>
+
+      <form>
+        <div class="form-group">
+          <label for="localityPrompt">Prompt for Selected Locality</label>
+          <textarea id="localityPrompt" name="localityPrompt" rows="6"></textarea>
+        </div>
+        <button type="submit">Update Locality Prompt</button>
+      </form>
+    </div>
+  </div>
+</div>
+

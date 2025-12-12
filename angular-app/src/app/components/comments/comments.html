@@ -1,0 +1,27 @@
+<div class="comments">
+  <h2>Comments</h2>
+
+  <div class="comments-controls">
+    <div class="sort-options">
+      <label for="sortBy">Sort by:</label>
+      <select id="sortBy" name="sortBy">
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="likes">Most Liked</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="comments-list">
+    <app-comment></app-comment>
+    <app-comment></app-comment>
+    <app-comment></app-comment>
+  </div>
+
+  <div class="pagination">
+    <button type="button">Previous</button>
+    <span>Page 1 of 10</span>
+    <button type="button">Next</button>
+  </div>
+</div>
+
