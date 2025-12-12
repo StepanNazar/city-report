@@ -489,6 +489,20 @@
         ],
         "type": "object"
       },
+      "MapClustersOut": {
+        "properties": {
+          "items": {
+            "description": "List of posts or clusters. Each item has 'type' field: 'post' or 'cluster'",
+            "items": {},
+            "type": "array"
+          },
+          "totalInView": {
+            "description": "Total number of posts in the visible area",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
       "PaginationLinks": {
         "properties": {
           "first": {
@@ -4056,6 +4070,86 @@
         ]
       }
     },
+    "/posts/map-clusters": {
+      "get": {
+        "description": "At high zoom levels (>= 16), returns all individual posts.\n        At lower zoom levels, groups nearby posts into clusters.",
+        "parameters": [
+          {
+            "description": "Minimum latitude of visible area",
+            "in": "query",
+            "name": "minLat",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Maximum latitude of visible area",
+            "in": "query",
+            "name": "maxLat",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Minimum longitude of visible area",
+            "in": "query",
+            "name": "minLng",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Maximum longitude of visible area",
+            "in": "query",
+            "name": "maxLng",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Current map zoom level",
+            "in": "query",
+            "name": "zoom",
+            "required": true,
+            "schema": {
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapClustersOut"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Get posts for map display with automatic clustering.",
+        "tags": [
+          "Posts operations"
+        ]
+      }
+    },
     "/posts/{post_id}": {
       "delete": {
         "parameters": [
@@ -4911,7 +5005,7 @@
         },
         "summary": "Get solutions for post",
         "tags": [
-          "Posts operations"
+          "Solutions operations"
         ]
       },
       "post": {
@@ -4993,7 +5087,7 @@
         ],
         "summary": "Create a new solution for post. Activated account required.",
         "tags": [
-          "Posts operations"
+          "Solutions operations"
         ]
       }
     },
