@@ -1,0 +1,101 @@
+<div class="image-edit">
+    <h3>Images</h3>
+    <p class="subtitle">Add, remove, or reorder images (max 10 images, 5MB each)</p>
+
+    @if (error()) {
+    <div class="error-message-box">
+        {{ error() }}
+        <button type="button" class="close-error" (click)="clearError()">&times;</button>
+    </div>
+    }
+
+    <div class="upload-section">
+        <div class="file-upload-area">
+            <input type="file" [id]="inputId" multiple accept="image/*" (change)="onFileSelect($event)"
+                class="file-input" [disabled]="isUploading() || images().length >= 10">
+            <label [for]="inputId" class="file-label" [class.disabled]="isUploading() || images().length >= 10">
+                @if (isUploading()) {
+                <div class="processing-spinner"></div>
+                <span>Processing images...</span>
+                } @else if (images().length >= 10) {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>Maximum 10 images reached</span>
+                } @else {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                </svg>
+                <span>Add More Images</span>
+                }
+            </label>
+        </div>
+    </div>
+
+    @if (images().length > 0) {
+    <div class="image-list">
+        @for (image of images(); track image.id || $index; let i = $index) {
+        <div class="image-item" [class.uploading]="image.isUploading">
+            <img [src]="image.url" [alt]="'Image ' + (i + 1)">
+
+            <div class="image-controls">
+                <button type="button" class="control-btn move-btn" (click)="moveImageUp(i)"
+                    [disabled]="i === 0 || image.isUploading" title="Move up">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="18 15 12 9 6 15" />
+                    </svg>
+                </button>
+
+                <button type="button" class="control-btn move-btn" (click)="moveImageDown(i)"
+                    [disabled]="i === images().length - 1 || image.isUploading" title="Move down">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+
+                <button type="button" class="control-btn remove-btn" (click)="removeImage(i)"
+                    [disabled]="image.isUploading" title="Remove">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="image-info">
+                <span class="image-number">{{ i + 1 }}</span>
+                @if (image.isExisting) {
+                <span class="image-badge existing">Existing</span>
+                } @else {
+                <span class="image-badge new">New</span>
+                }
+            </div>
+
+            @if (image.isUploading) {
+            <div class="upload-overlay">
+                <div class="upload-spinner"></div>
+                <span>Uploading...</span>
+            </div>
+            }
+
+            @if (image.uploadError) {
+            <div class="upload-error">{{ image.uploadError }}</div>
+            }
+        </div>
+        }
+    </div>
+    }
+
+    @if (images().length === 0) {
+    <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9EA3A9" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+        </svg>
+        <p>No images added yet</p>
+    </div>
+    }
+</div>

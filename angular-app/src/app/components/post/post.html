@@ -22,7 +22,8 @@
     @if (post().images && post().images.length > 0) {
     <div class="post-images">
       @for (image of post().images; track image.id) {
-      <img [src]="image.url" [alt]="'Post image ' + ($index + 1)" loading="lazy">
+      <img [src]="image.url" [alt]="'Post image ' + ($index + 1)" loading="lazy" (click)="openLightbox($index)"
+        class="clickable-image">
       }
     </div>
     }
@@ -46,3 +47,8 @@
   <app-edit-options (editClicked)="onEdit()" (deleteClicked)="onDelete()"></app-edit-options>
   }
 </div>
+
+@if (showLightbox() && post().images && post().images.length > 0) {
+<app-image-lightbox [images]="post().images" [initialIndex]="lightboxInitialIndex()"
+  (closeClicked)="closeLightbox()"></app-image-lightbox>
+}

@@ -1,12 +1,11 @@
 import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { ReactionPanel } from '../reaction-panel/reaction-panel';
 import { PostResponse } from '../../services/posts.service';
 import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-short-post-info',
-  imports: [ReactionPanel, DatePipe],
+  imports: [DatePipe],
   templateUrl: './short-post-info.html',
   styleUrl: './short-post-info.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
